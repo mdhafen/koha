@@ -294,7 +294,7 @@ sub  BatchStageMarcRecords {
             $num_valid++;
             $import_record_id = AddBiblioToBatch($batch_id, $rec_num, $marc_record, $marc_flavor, int(rand(99999)), 0);
             if ($parse_items) {
-                my @import_items_ids = AddItemsToImportBiblio($batch_id, $import_record_id, $marc_record, 0);
+                my @import_items_ids = AddItemsToImportBiblio($batch_id, $import_record_id, $marc_record, $marc_flavor, 0);
                 $num_items += scalar(@import_items_ids);
             }
         }
@@ -321,25 +321,86 @@ sub AddItemsToImportBiblio {
     my $batch_id = shift;
     my $import_record_id = shift;
     my $marc_record = shift;
+    my $marc_flavor = shift;
     my $update_counts = @_ ? shift : 0;
 
     my @import_items_ids = ();
    
     my $dbh = C4::Context->dbh; 
     my ($item_tag,$item_subfield) = &GetMarcFromKohaField("items.itemnumber",'');
-    foreach my $item_field ($marc_record->field($item_tag)) {
-        my $item_marc = MARC::Record->new();
-        $item_marc->leader("00000    a              "); # must set Leader/09 to 'a'
-        $item_marc->append_fields($item_field);
-        $marc_record->delete_field($item_field);
-        my $sth = $dbh->prepare_cached("INSERT INTO import_items (import_record_id, status, marcxml)
+    if ( $marc_record->field( $item_tag ) ) {
+	foreach my $item_field ($marc_record->field($item_tag)) {
+	    my $item_marc = MARC::Record->new();
+           $item_marc->leader("00000    a              "); # must set Leader/09 to 'a'
+	    $item_marc->append_fields($item_field);
+	    $marc_record->delete_field($item_field);
+	    my $sth = $dbh->prepare_cached("INSERT INTO import_items (import_record_id, status, marcxml)
                                         VALUES (?, ?, ?)");
-        $sth->bind_param(1, $import_record_id);
-        $sth->bind_param(2, 'staged');
-        $sth->bind_param(3, $item_marc->as_xml());
-        $sth->execute();
-        push @import_items_ids, $dbh->{'mysql_insertid'};
-        $sth->finish();
+	    $sth->bind_param(1, $import_record_id);
+	    $sth->bind_param(2, 'staged');
+	    $sth->bind_param(3, $item_marc->as_xml());
+	    $sth->execute();
+	    push @import_items_ids, $dbh->{'mysql_insertid'};
+	    $sth->finish();
+	}
+    } elsif ( $marc_flavor eq 'MARC21' ) {
+	#  Tags I care about
+	my ($b_tag,$b_sub) = &GetMarcFromKohaField("items.barcode",'');
+	my ($h_tag,$h_sub) = &GetMarcFromKohaField("items.homebranch",'');
+	my ($h2_tag,$h2_sub) = &GetMarcFromKohaField("items.holdingbranch",'');
+	my ($p_tag,$p_sub) = &GetMarcFromKohaField("items.price",'');
+	my ($p2_tag,$p2_sub) = &GetMarcFromKohaField("items.replacementprice",'');
+	my ($c_tag,$c_sub) = &GetMarcFromKohaField("items.itemcallnumber",'');
+	my ($n_tag,$n_sub) = &GetMarcFromKohaField("items.itemnotes",'');
+
+	my $branch = C4::Context::userenv->{branch};
+
+	#  Collect info from import record
+	foreach my $item_field ($marc_record->field('852')) {
+	    my $item_marc = MARC::Record->new();
+	    $item_marc->leader("00000    a              "); # must set Leader/09 to 'a'
+	    my %tags;
+	    my ( $call, $notes, $bar, $price );
+
+	    if ( $call = $item_field->subfield( 'h' ) ) {
+		$call .= " ". $item_field->subfield( 'i' );
+	    } else {
+		$call = $item_field->subfield( 'k' );
+		$call .= " ". $item_field->subfield( 'l' );
+		$call .= " ". $item_field->subfield( 'm' );
+	    }
+	    $call =~ s/\s+$//; # trim trailing spaces
+
+	    $price = $item_field->subfield('9') or $item_field->subfield('r');
+	    $price =~ s/[^\d\.]//g; # chop price down to just decimal number
+
+	    $bar = $item_field->subfield( 'p' );
+	    $notes = $item_field->subfield( 'z' );
+
+	    push @{ $tags{$b_tag} }, ( $b_sub, $bar ) if ( $bar );
+	    push @{ $tags{$h_tag} }, ( $h_sub, $branch ) if ( $branch );
+	    push @{ $tags{$h2_tag} }, ( $h2_sub, $branch ) if ( $branch );
+	    push @{ $tags{$p_tag} }, ( $p_sub, $price ) if ( $price );
+	    push @{ $tags{$p2_tag} }, ( $p2_sub, $price ) if ( $price );
+	    push @{ $tags{$c_tag} }, ( $c_sub, $call ) if ( $call );
+	    push @{ $tags{$n_tag} }, ( $n_sub, $notes ) if ( $notes );
+
+	    foreach my $t ( sort keys %tags ) {
+		my $temp_field = MARC::Field->new( $t, '1', '0', @{ $tags{$t} } );
+		$item_marc->append_fields($temp_field);
+	    }
+
+	    $marc_record->delete_field($item_field);
+
+	    my $sth = $dbh->prepare_cached("INSERT INTO import_items (import_record_id, status, marcxml) VALUES (?, ?, ?)");
+	    $sth->bind_param(1, $import_record_id);
+	    $sth->bind_param(2, 'staged');
+	    $sth->bind_param(3, $item_marc->as_xml());
+	    $sth->execute();
+	    push @import_items_ids, $dbh->{'mysql_insertid'};
+	    $sth->finish();
+	}
+    } elsif ( $marc_flavor eq 'UNIMARC' ) {
     }
 
     if ($#import_items_ids > -1) {
