@@ -197,20 +197,26 @@ exit 0;
 sub staging_progress_callback {
     my $job = shift;
     my $dbh = shift;
-    return sub {
-        my $progress = shift;
-        $job->progress($progress);
-        $dbh->commit();
+
+    if ( $job ) {
+        return sub {
+            my $progress = shift;
+            $job->progress($progress);
+            $dbh->commit();
+        }
     }
 }
 
 sub matching_progress_callback {
     my $job = shift;
     my $dbh = shift;
-    my $start_progress = $job->progress();
-    return sub {
-        my $progress = shift;
-        $job->progress($start_progress + $progress);
-        $dbh->commit();
+
+    if ( $job ) {
+	my $start_progress = $job->progress();
+	return sub {
+	    my $progress = shift;
+	    $job->progress($start_progress + $progress);
+	    $dbh->commit();
+	}
     }
 }
