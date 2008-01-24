@@ -606,41 +606,44 @@ sub getcredits {
 	my ( $date, $date2 ) = @_;
 	my $dbh = C4::Context->dbh;
 	my $sth = $dbh->prepare(
-			        "SELECT * FROM accountlines,borrowers
-      WHERE amount < 0 AND accounttype <> 'Pay' AND accountlines.borrowernumber = borrowers.borrowernumber
-	  AND timestamp >=TIMESTAMP(?) AND timestamp < TIMESTAMP(?)"
-      );  
+	    "SELECT * FROM accountlines
+	    WHERE amount < 0 AND accounttype <> 'Pay'
+	    AND timestamp >=TIMESTAMP(?) AND timestamp < TIMESTAMP(?)"
+	    );
 
-    $sth->execute( $date, $date2 );                                                                                                              
-    my @results;          
-    while ( my $data = $sth->fetchrow_hashref ) {
+	$sth->execute( $date, $date2 );
+
+	my @results;
+	while ( my $data = $sth->fetchrow_hashref ) {
 		$data->{'date'} = $data->{'timestamp'};
+		my $borrower = GetMember( $$data{borrowernumber}, 'borrowernumber' );
+		$data = C4::Koha::JoinHashes( $data, $borrower );
 		push @results,$data;
 	}
-    return (@results);
+	return (@results);
 } 
 
 
 sub getrefunds {
 	my ( $date, $date2 ) = @_;
 	my $dbh = C4::Context->dbh;
-	
+
 	my $sth = $dbh->prepare(
-			        "SELECT *,timestamp AS datetime                                                                                      
-                  FROM accountlines,borrowers
-                  WHERE (accounttype = 'REF'
-					  AND accountlines.borrowernumber = borrowers.borrowernumber
-					                  AND date  >=?  AND date  <?)"
-    );
+	    "SELECT *,timestamp AS datetime
+	    FROM accountlines
+	    WHERE (accounttype = 'REF'
+	    AND date  >=?  AND date  <?)"
+	    );
 
-    $sth->execute( $date, $date2 );
+	$sth->execute( $date, $date2 );
 
-    my @results;
-    while ( my $data = $sth->fetchrow_hashref ) {
+	my @results;
+	while ( my $data = $sth->fetchrow_hashref ) {
+		my $borrower = GetMember( $$data{borrowernumber}, 'borrowernumber' );
+		$data = C4::Koha::JoinHashes( $data, $borrower );
 		push @results,$data;
-		
 	}
-    return (@results);
+	return (@results);
 }
 END { }    # module clean-up code here (global destructor)
 

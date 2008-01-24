@@ -611,15 +611,20 @@ sub GetReserveFee {
     #check for issues;
     my $dbh   = C4::Context->dbh;
     my $const = lc substr( $constraint, 0, 1 );
+
+    my $borrower = GetMember( $borrowernumber, 'borrowernumber' );
+
     my $query = qq/
-      SELECT * FROM borrowers
-    LEFT JOIN categories ON borrowers.categorycode = categories.categorycode
-    WHERE borrowernumber = ?
+      SELECT * FROM categories
+    WHERE categorycode = ?
     /;
     my $sth = $dbh->prepare($query);
-    $sth->execute($borrowernumber);
+    $sth->execute( $$borrower{categorycode} );
     my $data = $sth->fetchrow_hashref;
     $sth->finish();
+
+    $data = C4::Koha::JoinHashes( $data, $borrower );
+
     my $fee      = $data->{'reservefee'};
     my $cntitems = @- > $bibitems;
 

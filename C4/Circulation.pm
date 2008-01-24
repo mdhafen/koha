@@ -1853,6 +1853,8 @@ sub GetItemIssues {
     }
     my $results = $sth->fetchall_arrayref({});
     foreach (@$results) {
+	my $borrower = GetMember( $$_{borrowernumber}, 'borrowernumber' );
+	$_ = C4::Koha::JoinHashes( $_, $borrower );
         $_->{'overdue'} = ($_->{'date_due'} lt $today) ? 1 : 0;
     }
     return $results;

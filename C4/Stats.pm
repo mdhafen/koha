@@ -99,7 +99,6 @@ sub TotalPaid {
     $time2 = $time unless $time2;
     my $dbh   = C4::Context->dbh;
     my $query = "SELECT * FROM statistics 
-  LEFT JOIN borrowers ON statistics.borrowernumber= borrowers.borrowernumber
   WHERE (statistics.type='payment' OR statistics.type='writeoff') ";
     if ( $time eq 'today' ) {
         $query .= " AND datetime = now()";
@@ -115,7 +114,15 @@ sub TotalPaid {
     $debug and warn "TotalPaid query: $query";
     my $sth = $dbh->prepare($query);
     $sth->execute();
-    return @{$sth->fetchall_arrayref({})};
+    my @results;
+    while ( my $data = $sth->fetchrow_hashref ) {
+	my $borrower = GetMember( $$data{borrowernumber}, 'borrowernumber' );
+	$data = C4::Koha::JoinHashes( $data, $borrower );
+
+        push @results, $data;
+    }
+    $sth->finish;
+    return (@results);
 }
 
 1;
