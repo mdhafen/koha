@@ -57,6 +57,7 @@ BEGIN {
 		&GetNormalizedISBN
 		&GetNormalizedEAN
 		&GetNormalizedOCLCNumber
+		&JoinHashes
 		$DEBUG
 	);
 	$DEBUG = 0;
@@ -1270,6 +1271,29 @@ sub _isbn_cleanup ($) {
         return $1;
     }
     return undef;
+}
+
+=item JoinHashes
+
+  $hash = &JoinHashes( $hash1, $hash2 );
+
+Returns the result of putting two hashes together.
+
+=cut
+
+sub JoinHashes {
+    my $hash1 = shift;
+    my $hash2 = shift;
+    my %result;
+
+    %result = %$hash1 if ( ref( $hash1 ) eq 'HASH' );
+    if ( ref( $hash2 ) eq 'HASH' ) {
+	foreach ( keys %$hash2 ) {
+	    $result{ $_ } = $$hash2{ $_ };
+	}
+    }
+
+    return \%result;
 }
 
 1;
