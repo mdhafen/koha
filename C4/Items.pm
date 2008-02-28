@@ -132,10 +132,13 @@ sub GetItem {
         $sth->execute($itemnumber);
         $data = $sth->fetchrow_hashref;
     } else {
-        my $sth = $dbh->prepare("
+	my $strsth = "
             SELECT * FROM items 
-            WHERE barcode = ?"
-            );
+            WHERE barcode = ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    $strsth .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+	}
+        my $sth = $dbh->prepare( $strsth );
         $sth->execute($barcode);		
         $data = $sth->fetchrow_hashref;
     }
@@ -998,6 +1001,11 @@ sub GetLostItems {
         $query .= " AND $key LIKE ?";
         push @query_parameters, "%$where->{$key}%";
     }
+    if ( C4::Context->preference("IndependantBranches") && ! $where->{homebranch} ) {
+        $query .= " AND homebranch = ?";
+	push @query_parameters, C4::Context->userenv->{branch};
+    }
+
     my @ordervalues = qw/title author homebranch itype barcode price replacementprice lib datelastseen location/;
     
     if ( defined $orderby && grep($orderby, @ordervalues)) {
@@ -1463,8 +1471,12 @@ sub GetItemnumberFromBarcode {
     my ($barcode) = @_;
     my $dbh = C4::Context->dbh;
 
+    my $query = "SELECT itemnumber FROM items WHERE items.barcode=?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+      $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     my $rq =
-      $dbh->prepare("SELECT itemnumber FROM items WHERE items.barcode=?");
+      $dbh->prepare( $query );
     $rq->execute($barcode);
     my ($result) = $rq->fetchrow;
     return ($result);

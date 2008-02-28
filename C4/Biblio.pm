@@ -713,10 +713,14 @@ sub GetBiblioFromItemNumber {
              WHERE items.itemnumber = ?") ; 
         $sth->execute($itemnumber);
     } else {
-        $sth=$dbh->prepare(  "SELECT * FROM items 
+	my $strsth = "SELECT * FROM items
             LEFT JOIN biblio ON biblio.biblionumber = items.biblionumber
             LEFT JOIN biblioitems ON biblioitems.biblioitemnumber = items.biblioitemnumber
-             WHERE items.barcode = ?") ; 
+             WHERE items.barcode = ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    $strsth .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+	}
+        $sth=$dbh->prepare( $strsth );
         $sth->execute($barcode);
     }
     my $data = $sth->fetchrow_hashref;

@@ -2553,6 +2553,9 @@ my $query=qq|SELECT count(*)
 	     FROM items 
              WHERE barcode=?
 	    |;
+if ( C4::Context->preference("IndependantBranches") ) {
+    $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+}
 my $sth = $dbh->prepare($query);
 $sth->execute($barcode);
 my $exist=$sth->fetchrow ;

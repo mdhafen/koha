@@ -73,6 +73,9 @@ sub plugin_javascript {
     }
 	if ($autoBarcodeType eq 'annual') {
 		$query = "select max(cast( substring_index(barcode, '-',-1) as signed)) from items where barcode like ?";
+		if ( C4::Context->preference("IndependantBranches") ) {
+		    $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+		}
 		my $sth=$dbh->prepare($query);
 		$sth->execute("$year%");
 		while (my ($count)= $sth->fetchrow_array) {
@@ -86,6 +89,9 @@ sub plugin_javascript {
 	elsif ($autoBarcodeType eq 'incremental') {
 		# not the best, two catalogers could add the same barcode easily this way :/
 		$query = "select max(abs(barcode)) from items";
+		if ( C4::Context->preference("IndependantBranches") ) {
+		    $query .= " WHERE homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+		}
         my $sth = $dbh->prepare($query);
 		$sth->execute();
 		while (my ($count)= $sth->fetchrow_array) {
@@ -96,6 +102,9 @@ sub plugin_javascript {
     elsif ($autoBarcodeType eq 'hbyymmincr') {      # Generates a barcode where hb = home branch Code, yymm = year/month catalogued, incr = incremental number, reset yearly -fbcit
         $year = substr($year, -2);
         $query = "SELECT MAX(CAST(SUBSTRING(barcode,7,4) AS signed)) FROM items WHERE barcode REGEXP ?";
+        if ( C4::Context->preference("IndependantBranches") ) {
+            $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+        }
         my $sth = $dbh->prepare($query);
         $sth->execute("^[a-zA-Z]{1,}$year");
         while (my ($count)= $sth->fetchrow_array) {

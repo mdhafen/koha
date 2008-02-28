@@ -139,7 +139,11 @@ if ( $count == 1 ) {
 	# FIXME : Same problems as other autoBarcode: breaks if any unexpected data is encountered (like alphanumerical barcode)
     # FIXME : Fails when >1 items are added (via js).  
     if ( C4::Context->preference('autoBarcode') eq 'incremental' ) {
-        my $sth = $dbh->prepare("Select max(barcode) from items");
+	my $strsth = "Select max(barcode) from items";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    $strsth .= " WHERE homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+	}
+        my $sth = $dbh->prepare( $strsth );
         $sth->execute;
         my $data = $sth->fetchrow_hashref;
         $barcode = $results[0]->{'barcode'} + 1;

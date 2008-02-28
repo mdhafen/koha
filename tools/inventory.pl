@@ -120,8 +120,14 @@ if ($uploadbarcodes && length($uploadbarcodes)>0){
     my $date = format_date_in_iso($input->param('setdate')) || C4::Dates->today('iso');
 # 	warn "$date";
     my $strsth="select * from issues, items where items.itemnumber=issues.itemnumber and items.barcode =?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+	$strsth .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     my $qonloan = $dbh->prepare($strsth);
     $strsth="select * from items where items.barcode =? and items.wthdrawn = 1";
+    if ( C4::Context->preference("IndependantBranches") ) {
+	$strsth .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     my $qwthdrawn = $dbh->prepare($strsth);
     my @errorloop;
     my $count=0;

@@ -239,7 +239,11 @@ if ($op and $op eq 'serialchangestatus') {
             my ($barcodetagfield,$barcodetagsubfield) = &GetMarcFromKohaField("items.barcode", GetFrameworkCode($serialdatalist[0]->{'biblionumber'}));
             if (C4::Context->preference("autoBarcode") eq 'incremental'  ) {
               if (!$record->field($barcodetagfield)->subfield($barcodetagsubfield)) {
-                my $sth_barcode = $dbh->prepare("select max(abs(barcode)) from items");
+                my $barcode_str = "select max(abs(barcode)) from items";
+                if ( C4::Context->preference("IndependantBranches") ) {
+	            $barcode_str .= " WHERE homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+                }
+                my $sth_barcode = $dbh->prepare( $barcode_str );
                 $sth_barcode->execute;
                 my ($newbarcode) = $sth_barcode->fetchrow;
                 # OK, we have the new barcode, add the entry in MARC record # FIXME -> should be  using barcode plugin here.

@@ -831,6 +831,9 @@ sub CheckReserves {
               AND biblioitems.itemtype = itemtypes.itemtype
               AND barcode=$qbc
         ";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+	}
         $sth = $dbh->prepare($query);
 
         # FIXME - This function uses $item later on. Ought to set it here.

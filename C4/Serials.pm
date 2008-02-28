@@ -2535,10 +2535,12 @@ the Koha database.
 sub itemdata {
     my ($barcode) = @_;
     my $dbh       = C4::Context->dbh;
-    my $sth       = $dbh->prepare(
-        "Select * from items LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber 
-        WHERE barcode=?"
-    );
+    my $strsth    = "Select * from items LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
+        WHERE barcode=?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+	$strsth  .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
+    my $sth       = $dbh->prepare( $strsth );
     $sth->execute($barcode);
     my $data = $sth->fetchrow_hashref;
     $sth->finish;
