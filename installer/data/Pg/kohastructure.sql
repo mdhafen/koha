@@ -515,6 +515,24 @@ CREATE INDEX borrowers_branchcode_idx ON borrowers (branchcode);
 CREATE INDEX borrowers_borrowernumber_idx ON borrowers (borrowernumber);
 CREATE INDEX borrowers_categorycode_idx ON borrowers (categorycode);
 
+--
+-- Table structure for table borrowers_external_structure
+--
+
+--DROP TABLE IF EXISTS borrowers_external_structure;
+
+CREATE TABLE borrowers_external_structure (
+  externalid BIGSERIAL UNIQUE,
+  liblibrarian varchar(255) NOT NULL default '',
+  kohafield varchar(40) default NULL,
+  attrib varchar(255) default NULL,
+  dblink varchar(64) default NULL,
+  categorycode varchar(10) NOT NULL default ''
+);
+CREATE INDEX bes_externalid_idx ON borrowers_external_structure (externalid);
+CREATE INDEX bes_kohafield_idx ON borrowers_external_structure (kohafield);
+CREATE INDEX bes_attrib_idx ON borrowers_external_structure (attrib);
+
 -- 
 -- Table structure for table branchcategories
 -- 

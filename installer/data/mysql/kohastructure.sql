@@ -534,6 +534,25 @@ CREATE TABLE `borrower_attributes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
+-- Table structure for table `borrowers_external_structure`
+--
+
+DROP TABLE IF EXISTS `borrowers_external_structure`;
+CREATE TABLE `borrowers_external_structure` (
+  `externalid` int(11) NOT NULL auto_increment,
+  `liblibrarian` varchar(255) NOT NULL default '',
+  `kohafield` varchar(40) default NULL,
+  `attrib` varchar(255) default NULL,
+  `dblink` varchar(64) default NULL,
+  `categorycode` varchar(10) NOT NULL default '',
+  PRIMARY KEY  (`externalid`),
+  KEY `bes_k_kohafield` (`kohafield`),
+  KEY `bes_k_attrib` (`attrib`),
+  KEY `bes_k_categorycode` (`categorycode`),
+  CONSTRAINT `bes_fk_categorycode` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
 -- Table structure for table `branchcategories`
 --
 

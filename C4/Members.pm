@@ -189,6 +189,11 @@ sub SearchMember {
     $sth->execute(@bind_params);
     my $data = $sth->fetchall_arrayref({});
     if (@$data){
+	if ( C4::Context->preference("MembersViaExternal") ) {
+	    use C4::MembersExternal;
+	    my $borr = GetMemberDetails_External( $$data[0]{cardnumber} );
+	    $$data[0] = C4::Koha::JoinHashes( $$data[0], $borr );
+	}
         return ( scalar(@$data), $data );
     }
     $sth->finish;
@@ -259,6 +264,15 @@ AND attribute like ?
     $data = $sth->fetchall_arrayref({});
 
     $sth->finish;
+
+    if ( @$data && C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	foreach my $member ( @$data ) {
+	    my $borr = GetMemberDetails_External( $member->{cardnumber} );
+	    $member = C4::Koha::JoinHashes( $member, $borr );
+	}
+    }
+
     return ( scalar(@$data), $data );
 }
 
@@ -311,6 +325,16 @@ sub GetMemberDetails {
         return undef;
     }
     my $borrower = $sth->fetchrow_hashref;
+
+    if ( C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	my $data = GetMemberDetails_External( $$borrower{cardnumber} );
+	if ( $C4::MembersExternal::MembersExternal_Context{'pass_method'} eq 'plain' ) {
+	    $$data{'password'} = md5_base64( $$data{'password'} ) if ( $$data{'password'} ne "" );
+	}  # don't leave their password showing.
+	$borrower = C4::Koha::JoinHashes( $borrower, $data );
+    }
+
     my ($amount) = GetMemberAccountRecords( $borrowernumber);
     $borrower->{'amountoutstanding'} = $amount;
     # FIXME - patronflags calls GetMemberAccountRecords... just have patronflags return $amount
@@ -509,12 +533,22 @@ LEFT JOIN categories on borrowers.categorycode=categories.categorycode
     }
     $sth->execute($information);
     my $data = $sth->fetchrow_hashref;
+    if ( $data && C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	my $borr = GetMemberDetails_External( $$data{cardnumber} );
+	$data = C4::Koha::JoinHashes( $data, $borr );
+    }
     ($data) and return ($data);
 
     if (defined($type) and ($type eq 'cardnumber' || $type eq 'firstname')) {    # otherwise, try with firstname
         $sth = $dbh->prepare("$select WHERE firstname like ?");
         $sth->execute($information);
         $data = $sth->fetchrow_hashref;
+	if ( $data && C4::Context->preference("MembersViaExternal") ) {
+	    use C4::MembersExternal;
+	    my $borr = GetMemberDetails_External( $$data{cardnumber} );
+	    $data = C4::Koha::JoinHashes( $data, $borr );
+	}
         ($data) and return ($data);
     }
     return undef;        
@@ -608,13 +642,18 @@ sub ModMember {
     my $query = "UPDATE borrowers SET \n";
     my $sth;
     my @parameters;  
+    my $plain_password;
     
     # test to know if you must update or not the borrower password
     if (exists $data{password}) {
         if ($data{password} eq '****' or $data{password} eq '') {
             delete $data{password};
         } else {
-            $data{password} = md5_base64($data{password});
+	    if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+		$plain_password = $data{'password'};
+	    }
+            $data{password} = md5_base64($data{password}) if ( $data{password} );
+            delete $data{'password'} if ( $data{password} eq "" );
         }
     }
     my @badkeys;
@@ -636,6 +675,12 @@ sub ModMember {
     $sth = $dbh->prepare($query);
     my $execute_success = $sth->execute(@parameters);
     $sth->finish;
+
+    if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+	use C4::MembersExternal;
+	$data{'password'} = $plain_password;  # password may be stored plaintext
+	ModMember_External( \%data );
+    }
 
 # ok if its an adult (type) it may have borrowers that depend on it as a guarantor
 # so when we update information for an adult we should check for guarantees and update the relevant part
@@ -668,6 +713,10 @@ sub AddMember {
     my (%data) = @_;
     my $dbh = C4::Context->dbh;
 
+    my $plain_password;
+    if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") && $data{'password'} ) {
+	$plain_password = $data{'password'};
+    }
     $data{'password'} = md5_base64( $data{'password'} ) if $data{'password'};
     $data{'password'} = '!' if (not $data{'password'} and $data{'userid'});
     
@@ -745,7 +794,13 @@ sub AddMember {
     # mysql_insertid is probably bad.  not necessarily accurate and mysql-specific at best.
     
     logaction("MEMBERS", "CREATE", $data{'borrowernumber'}, "") if C4::Context->preference("BorrowersLog");
-    
+
+    if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+	use C4::MembersExternal;
+	$data{'password'} = $plain_password if ( $plain_password );
+	AddMember_External( \%data );
+    }
+
     # check for enrollment fee & add it if needed
     $sth = $dbh->prepare("SELECT enrolmentfee FROM categories WHERE categorycode=?");
     $sth->execute($data{'categorycode'});
@@ -762,15 +817,20 @@ sub Check_Userid {
     my $dbh = C4::Context->dbh;
     # Make sure the userid chosen is unique and not theirs if non-empty. If it is not,
     # Then we need to tell the user and have them create a new one.
-    my $sth =
-      $dbh->prepare(
-        "SELECT * FROM borrowers WHERE userid=? AND borrowernumber != ?");
-    $sth->execute( $uid, $member );
-    if ( ( $uid ne '' ) && ( my $row = $sth->fetchrow_hashref ) ) {
-        return 0;
-    }
-    else {
-        return 1;
+    if ( C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	return Check_Userid_External( $uid, $member );
+    } else {
+	my $sth =
+	    $dbh->prepare(
+		"SELECT * FROM borrowers WHERE userid=? AND borrowernumber != ?");
+	$sth->execute( $uid, $member );
+	if ( ( $uid ne '' ) && ( my $row = $sth->fetchrow_hashref ) ) {
+	    return 0;
+	}
+	else {
+	    return 1;
+	}
     }
 }
 
@@ -811,6 +871,14 @@ sub changepassword {
             "update borrowers set userid=?, password=? where borrowernumber=?");
         $sth->execute( $uid, $digest, $member );
         $resultcode=1;
+
+	if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+	    use C4::MembersExternal;
+	    if ( Check_Userid_External( $uid, $member ) ) {
+		warn "MembersExternal can handle hashed passwords." if $debug;
+		#ModMember_External( { userid => $uid, password => $digest, borrowernumber => $member } );
+	    }
+	}
     }
     
     logaction("MEMBERS", "CHANGE PASS", $member, "") if C4::Context->preference("BorrowersLog");
@@ -953,6 +1021,15 @@ sub UpdateGuarantees {
         my $sth3 = $dbh->prepare($guaquery);
         $sth3->execute;
         $sth3->finish;
+
+	if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+	    use C4::MembersExternal;
+	    my $update = {
+		borrowernumber => $guarantees->[$i]->{'borrowernumber'},
+		%data
+	    };
+	    my $borr = ModMember_External( $update );
+	}
     }
 }
 =head2 GetPendingIssues
@@ -1331,6 +1408,12 @@ sub checkuserpassword {
       );
     $sth->execute( $borrowernumber, $userid, $password );
     my $number_rows = $sth->fetchrow;
+    if ( C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	unless ( Check_Userid_External( $userid, $borrowernumber ) ) {
+	    $number_rows++;
+	}
+    }
     return $number_rows;
 
 }
@@ -1678,6 +1761,12 @@ sub DelMember {
     $sth->execute($borrowernumber);
     $sth->finish;
     logaction("MEMBERS", "DELETE", $borrowernumber, "") if C4::Context->preference("BorrowersLog");
+
+    if ( C4::Context->preference("MembersViaExternal") && C4::Context->preference("MembersExternalAllowMod") ) {
+	use C4::MembersExternal;
+	DelMember_External( $borrowernumber );
+    }
+
     return $sth->rows;
 }
 
@@ -1790,6 +1879,7 @@ Returns the mimetype and binary image data of the image for the patron with the 
 sub GetPatronImage {
     my ($cardnumber) = @_;
     warn "Cardnumber passed to GetPatronImage is $cardnumber" if $debug;
+    #  FIXME  Should do a MembersViaExternal check here, cause there could be pictures in the external database, but Im gonna leave it alone for now.
     my $dbh = C4::Context->dbh;
     my $query = 'SELECT mimetype, imagefile FROM patronimage WHERE cardnumber = ?';
     my $sth = $dbh->prepare($query);

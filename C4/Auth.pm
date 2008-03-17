@@ -633,7 +633,9 @@ sub checkauth {
                     LEFT JOIN branches on borrowers.branchcode=branches.branchcode
                     ";
                     my $sth = $dbh->prepare("$select where userid=?");
-                    $sth->execute($userid);
+                    unless ( C4::Context->preference("MembersViaExternal") ) {
+                        $sth->execute($userid);
+                    }
                     unless ($sth->rows) {
                         $debug and print STDERR "AUTH_1: no rows for userid='$userid'\n";
                         $sth = $dbh->prepare("$select where cardnumber=?");
@@ -996,7 +998,9 @@ sub check_api_auth {
                   $dbh->prepare(
 "select borrowernumber, firstname, surname, flags, borrowers.branchcode, branches.branchname as branchname,branches.branchprinter as branchprinter, email from borrowers left join branches on borrowers.branchcode=branches.branchcode where userid=?"
                   );
-                $sth->execute($userid);
+		unless ( C4::Context->preference("MembersViaExternal") ) {
+		    $sth->execute($userid);
+		}
                 (
                     $borrowernumber, $firstname,  $surname,
                     $userflags,      $branchcode, $branchname,
@@ -1230,6 +1234,11 @@ sub checkpw {
         $debug and print STDERR "## checkpw - checking LDAP\n";
         my ($retval,$retcard) = checkpw_ldap(@_);    # EXTERNAL AUTH
         ($retval) and return ($retval,$retcard);
+    }
+    if ( C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+	my ( $retval, $retcard ) = checkpw_external( @_ );
+	( $retval ) and return ( $retval, $retcard );
     }
 
     # INTERNAL AUTH

@@ -1,0 +1,94 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
+<title>Koha &rsaquo; Tools &rsaquo; Syncronize External Patrons</title>
+<!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+</head>
+<body>
+
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="patron-search.inc"-->
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a> &rsaquo; Syncronize External Patrons </div>
+
+<div id="doc3" class="yui-t2">
+    <div id="bd">
+        <div id="yui-main">
+<!-- TMPL_IF name="OP" -->
+    <div class="yui-b">
+        <div class="yui-g">
+            <div class="yui-u first">
+                <div class="dialog message">
+                <h1>Results of Patron Sycnronization</h1>
+                </div>
+	        <ul class="data">
+                    <li><!-- TMPL_VAR NAME ="num_deleted" --> Removed from Koha.</li>
+                    <li><!-- TMPL_VAR NAME="num_added" --> Added to Koha.</li>
+		    <li><!-- TMPL_VAR NAME="num_changed" --> Changed in Koha.</li>
+		    <li><!-- TMPL_VAR NAME="total" --> In External Database.</li>
+                </ul>
+		<table class="data">
+		<thead><tr><th>Cardnumber</th><th>Name</th></th>Report</th></tr></thead>
+                <!-- TMPL_LOOP name="report" -->
+		<tr>
+		<td><!-- TMPL_VAR NAME="cardnumber" --></td>
+		<td><!-- TMPL_VAR NAME="name" --></td>
+		<td>
+		<!-- TMPL_IF NAME="moved" -->Patron not deleted: has moved<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="issues" -->Patron not deleted: has items checked out<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="fines" -->Patron not deleted: has fines<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="reserves" -->Patron not deleted: has holds<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="deleted" -->Patron Deleted<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="added" -->Patron Added<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="changed" -->Patron Changed<!-- /TMPL_IF -->
+		</td>
+		</tr>
+                <!-- /TMPL_LOOP -->
+		</table>
+                <a id="doneupload" href="/cgi-bin/koha/tools/tools-home.pl">Return to Tools</a>
+            </div>
+<!-- TMPL_ELSE -->
+    <div class="yui-b">
+        <div class="yui-g">
+            <div class="yui-u first">
+                <h1>Syncronize External Patrons</h1>
+	        <form method="post" action="/cgi-bin/koha/tools/external-member-sync.pl">
+	            <fieldset class="rows">
+	                <ol>
+                            <li><label for="branch">Branch: </label><!-- TMPL_VAR NAME="branchCGI" --></li>
+			    <li>
+			    <!-- TMPL_IF NAME="typeloop" -->
+			    <label for="category">Category: </label>
+			    <select id="category" name="category">
+			    <!-- TMPL_LOOP NAME="typeloop" -->
+				<!-- TMPL_IF EXPR="typename eq 'C'" --><optgroup label="Child"><!-- /TMPL_IF -->
+				<!-- TMPL_IF EXPR="typename eq 'A'" --><optgroup label="Adult"><!-- /TMPL_IF -->
+				<!-- TMPL_IF EXPR="typename eq 'S'" --><optgroup label="Staff"><!-- /TMPL_IF -->
+				<!-- TMPL_IF EXPR="typename eq 'I'" --><optgroup label="Organisation"><!-- /TMPL_IF -->
+				<!-- TMPL_IF EXPR="typename eq 'P'" --><optgroup label="Professional"><!-- /TMPL_IF -->
+			    <!-- TMPL_LOOP NAME="categoryloop" -->
+				<!-- TMPL_IF NAME="categorycodeselected" -->
+				<option value="<!-- TMPL_VAR NAME="categorycode" -->" selected="selected"><!-- TMPL_VAR NAME="categoryname" --></option>
+				<!-- TMPL_ELSE -->
+				<option value="<!-- TMPL_VAR NAME="categorycode" -->"><!-- TMPL_VAR NAME="categoryname" --></option>
+				<!-- /TMPL_IF -->
+			    <!-- /TMPL_LOOP -->
+			    </optgroup>
+			    <!-- /TMPL_LOOP -->
+			    </select>
+			    <!-- /TMPL_IF -->
+			    </li>
+	                </ol>
+	            </fieldset>
+                    <fieldset class="action"><input type="submit" name="op" value="Sync" class="submit" /> <a href="/cgi-bin/koha/tools/tools-home.pl" class="cancel">Cancel</a>
+                    </fieldset>
+                </form>
+
+            </div>
+<!-- /TMPL_IF -->
+        </div>
+    </div>
+</div>
+<div class="yui-b noprint">
+    <!-- TMPL_INCLUDE NAME="tools-menu.inc" -->
+</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->
