@@ -99,6 +99,30 @@ if ( not defined $data ) {
     exit;
 }
 
+my $sessionID = $input->cookie("CGISESSID") ;
+my $session = C4::Auth::get_session($sessionID);
+my $sounderror;
+my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+my %soundederrors;
+for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
+
+if ( $$data{ debarred } && !$soundederrors{ DBARRED } ) {
+    $sounderror = 1;
+    $soundederrors{ DBARRED } = 1;
+}
+if ( $$data{ gonenoaddress } && !$soundederrors{ GNA } ) {
+    $sounderror = 1;
+    $soundederrors{ GNA } = 1;
+}
+if ( $$data{ lost } && !$soundederrors{ LOST } ) {
+    $sounderror = 1;
+    $soundederrors{ LOST } = 1;
+}
+if ( $$data{ dateexpiry } lt POSIX::strftime( "%Y-%m-%d", localtime ) && !$soundederrors{ EXPIRED } ) {
+    $sounderror = 1;
+    $soundederrors{ EXPIRED } = 1;
+}
+
 # re-reregistration function to automatic calcul of date expiry
 if ( $reregistration eq 'y' ) {
 	$data->{'dateexpiry'} = ExtendMemberSubscriptionTo( $borrowernumber );
@@ -216,6 +240,11 @@ my $lib2 = &GetSortDetails( "Bsort2", $data->{'sort2'} );
 ( $template->param( lib1 => $lib1 ) ) if ($lib1);
 ( $template->param( lib2 => $lib2 ) ) if ($lib2);
 
+if ( $total > 0 && ! $soundederrors{ CHARGES } ) {
+    $sounderror = 1;
+    $soundederrors{ CHARGES } = 1;
+}
+
 # current issues
 #
 my $issue = GetPendingIssues($borrowernumber);
@@ -261,6 +290,11 @@ for ( my $i = 0 ; $i < $count ; $i++ ) {
     if ( $datedue lt $today ) {
         $overdues_exist = 1;
         $row{'red'} = 1;    #print "<font color=red>";
+
+	unless ( $soundederrors{ ODUES } ) {
+	    $sounderror = 1;
+	    $soundederrors{ ODUES } = 1;
+	}
 	}
     #find the charge for an item
     my ( $charge, $itemtype ) =
@@ -411,5 +445,10 @@ $template->param(
 	# 		 reserveloop     => \@reservedata,
 	dateformat    => C4::Context->preference("dateformat"),
 );
+
+$session->param('soundederrors', [ keys %soundederrors ] );
+$template->param(
+    sounderror => $sounderror,
+    );
 
 output_html_with_http_headers $input, $cookie, $template->output;

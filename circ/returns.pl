@@ -77,6 +77,9 @@ my $printer = C4::Context->userenv ? C4::Context->userenv->{'branchprinter'} : "
 my $overduecharges = (C4::Context->preference('finesMode') && C4::Context->preference('finesMode') ne 'off');
 
 my $userenv_branch = C4::Context->userenv->{'branch'} || '';
+
+my $sounderror;
+my $soundok;
 #
 # Some code to handle the error if there is no branch or printer setting.....
 #
@@ -138,6 +141,7 @@ if ( $query->param('resbarcode') ) {
     my ($borr) = GetMemberDetails( $nextreservinfo, 0 );
     my $name   = $borr->{'surname'} . ", " . $borr->{'title'} . " " . $borr->{'firstname'};
     if ( $messages->{'transfert'} ) {
+	$sounderror = 1;
         $template->param(
             itemtitle      => $iteminfo->{'title'},
 			itembiblionumber => $iteminfo->{'biblionumber'},
@@ -204,6 +208,7 @@ if ($barcode and not $query->param('cancel')) {
     );
 
     if ($returned) {
+	$soundok = 1;
         my $duedate = $issueinformation->{'date_due'};
         $returneditems{0}      = $barcode;
         $riborrowernumber{0}   = $borrower->{'borrowernumber'};
@@ -227,6 +232,9 @@ if ($barcode and not $query->param('cancel')) {
             $riborrowernumber{0}   = '&nbsp;';
         }
         push( @inputloop, \%input );
+    }
+    if ( ! $returned ) {
+	$sounderror = 1;
     }
 }
 $template->param( inputloop => \@inputloop );
@@ -293,6 +301,7 @@ if ( $messages->{'WrongTransfer'} and not $messages->{'WasTransfered'}) {
 # reserve found and item arrived at the expected branch
 #
 if ( $messages->{'ResFound'}) {
+    $sounderror = 1;
     my $reserve    = $messages->{'ResFound'};
     my $branchname = $branches->{ $reserve->{'branchcode'} }->{'branchname'};
     my ($borr) = GetMemberDetails( $reserve->{'borrowernumber'}, 0 );
@@ -406,6 +415,7 @@ if ($borrower) {
         $flaginfo{redfont} = ( $flags->{$flag}->{'noissues'} );
         $flaginfo{flag}    = $flag;
         if ( $flag eq 'CHARGES' ) {
+	    $sounderror = 1;
             $flaginfo{msg}            = $flag;
             $flaginfo{charges}        = 1;
             $flaginfo{chargeamount}   = $flags->{$flag}->{amount};
@@ -428,6 +438,7 @@ if ($borrower) {
             $flaginfo{itemloop} = \@waitingitemloop;
         }
         elsif ( $flag eq 'ODUES' ) {
+	    $sounderror = 1;
             my $items = $flags->{$flag}->{'itemlist'};
             my @itemloop;
             foreach my $item ( sort { $a->{'date_due'} cmp $b->{'date_due'} }
@@ -522,6 +533,8 @@ $template->param(
     dropboxmode    => $dropboxmode,
     dropboxdate	   => $dropboxdate->output(),
     overduecharges => $overduecharges,
+    sounderror              => $sounderror,
+    soundok                 => $soundok,
 );
 
 # actually print the page!

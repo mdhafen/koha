@@ -94,6 +94,13 @@ my @failedrenews = $query->param('failedrenew');
 my %renew_failed;
 for (@failedrenews) { $renew_failed{$_} = 1; } 
 
+my $sessionID = $query->cookie("CGISESSID") ;
+my $session = get_session($sessionID);
+my $sounderror;
+my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+my %soundederrors;
+for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
+
 my $findborrower = $query->param('findborrower');
 $findborrower =~ s|,| |g;
 #$findborrower =~ s|'| |g;
@@ -200,6 +207,9 @@ if ( $print eq 'yes' && $borrowernumber ne '' ) {
 my $borrowerslist;
 my $message;
 if ($findborrower) {
+    $session->clear( 'soundederrors' );
+    @soundederrors = ();
+    %soundederrors = ();
     my ($count, $borrowers) = SearchMember($findborrower, 'cardnumber', 'web');
     my @borrowers = @$borrowers;
     if (C4::Context->preference("AddPatronLists")) {
@@ -215,6 +225,7 @@ if ($findborrower) {
     if ( $#borrowers == -1 ) {
         $query->param( 'findborrower', '' );
         $message = "'$findborrower'";
+	$sounderror = 1;
     }
     elsif ( $#borrowers == 0 ) {
         $query->param( 'borrowernumber', $borrowers[0]->{'borrowernumber'} );
@@ -232,6 +243,15 @@ my @lines;
 if ($borrowernumber) {
     $borrower = GetMemberDetails( $borrowernumber, 0 );
     my ( $od, $issue, $fines ) = GetMemberIssuesAndFines( $borrowernumber );
+
+    if ( $od && ! $soundederrors{ ODUES } ) {
+	$sounderror = 1;
+	$soundederrors{ ODUES } = 1;
+    }
+    if ( $fines > 0 && ! $soundederrors{ CHARGES } ) {
+	$sounderror = 1;
+	$soundederrors{ CHARGES } = 1;
+    }
 
     # Warningdate is the date that the warning starts appearing
     my (  $today_year,   $today_month,   $today_day) = Today();
@@ -253,6 +273,10 @@ if ($borrowernumber) {
             expired     => format_date($borrower->{dateexpiry}),
             renewaldate => format_date("$renew_year-$renew_month-$renew_day")
         );
+	unless ( $soundederrors{ EXPIRED } ) {
+	    $sounderror = 1;
+	    $soundederrors{ EXPIRED } = 1;
+	}
     }
     # check for NotifyBorrowerDeparture
     elsif ( C4::Context->preference('NotifyBorrowerDeparture') &&
@@ -321,6 +345,7 @@ if ($barcode) {
                 $stickyduedate = 1;
             }
             $noerror = 0;
+	    $sounderror = 1;
         }
     
   if ($issueconfirmed && $noerror) {
@@ -348,6 +373,7 @@ if ($barcode) {
         	        NEEDSCONFIRMATION  => 1
         	    );
         	    $noquestion = 0;
+		    $sounderror = 1;
         	}
 			# Because of the weird conditional structure (empty elsif block),
 			# if we reached here, $issueconfirmed must be false.
@@ -607,12 +633,24 @@ foreach $flag ( sort keys %$flags ) {
         );
         if ( $flag eq 'GNA' ) {
             $template->param( gna => 'true' );
+	    unless ( $soundederrors{ GNA } ) {
+		$sounderror = 1;
+		$soundederrors{ GNA } = 1;
+	    }
         }
         if ( $flag eq 'LOST' ) {
             $template->param( lost => 'true' );
+	    unless ( $soundederrors{ LOST } ) {
+		$sounderror = 1;
+		$soundederrors{ LOST } = 1;
+	    }
         }
         if ( $flag eq 'DBARRED' ) {
             $template->param( dbarred => 'true' );
+	    unless ( $soundederrors{ DBARRED } ) {
+		$sounderror = 1;
+		$soundederrors{ DBARRED } = 1;
+	    }
         }
         if ( $flag eq 'CHARGES' ) {
             $template->param(
@@ -621,6 +659,10 @@ foreach $flag ( sort keys %$flags ) {
                 chargesamount => $flags->{'CHARGES'}->{'amount'},
                 charges_is_blocker => 1
             );
+	    unless ( $soundederrors{ CHARGES } ) {
+		$sounderror = 1;
+		$soundederrors{ CHARGES } = 1;
+	    }
         }
         if ( $flag eq 'CREDITS' ) {
             $template->param(
@@ -637,6 +679,10 @@ foreach $flag ( sort keys %$flags ) {
                 chargesmsg => $flags->{'CHARGES'}->{'message'},
                 chargesamount => $flags->{'CHARGES'}->{'amount'},
             );
+	    unless ( $soundederrors{ CHARGES } ) {
+		$sounderror = 1;
+		$soundederrors{ CHARGES } = 1;
+	    }
         }
         if ( $flag eq 'CREDITS' ) {
             $template->param(
@@ -650,6 +696,10 @@ foreach $flag ( sort keys %$flags ) {
                 flagged  => 1,
                 oduesmsg => $flags->{'ODUES'}->{'message'}
             );
+	    unless ( $soundederrors{ ODUES } ) {
+		$sounderror = 1;
+		$soundederrors{ ODUES } = 1;
+	    }
 
             my $items = $flags->{$flag}->{'itemlist'};
 # useless ???
@@ -737,6 +787,10 @@ if ($stickyduedate) {
 my ($picture, $dberror) = GetPatronImage($borrower->{'cardnumber'});
 $template->param( picture => 1 ) if $picture;
 
+$session->param('soundederrors', [ keys %soundederrors ] );
+$template->param(
+    sounderror => $sounderror,
+    );
 
 $template->param(
     debt_confirmed            => $debt_confirmed,

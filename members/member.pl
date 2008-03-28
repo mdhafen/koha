@@ -78,6 +78,10 @@ $orderby = "surname,firstname" unless $orderby;
 $member =~ s/,//g;   #remove any commas from search string
 $member =~ s/\*/%/g;
 
+my $sessionID = $input->cookie("CGISESSID") ;
+my $session = C4::Auth::get_session($sessionID);
+$session->clear( 'soundederrors' );
+
 my ($count,$results);
 
 if(length($member) == 1)
