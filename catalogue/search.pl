@@ -203,7 +203,7 @@ if (C4::Context->preference("marcflavour") eq "UNIMARC" ) {
 #}
 
 # load the branches
-my $branches = GetBranches();
+my $branches = GetBranches( C4::Context->preference('IndependantBranches') );
 my @branch_loop;
 
 # we need to know the borrower branch code to set a default branch

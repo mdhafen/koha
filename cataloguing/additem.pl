@@ -389,7 +389,9 @@ foreach my $field (@fields) {
         $this_row{itemnumber} = $subfieldvalue if ($field->tag() eq $itemtagfield && $subfieldcode eq $itemtagsubfield);
     }
     if (%this_row) {
-        push(@big_array, \%this_row);
+	unless ( C4::Context->preference("IndependantBranches") && $this_row{'nomod'} ) {
+	    push(@big_array, \%this_row);
+	}
     }
 }
 

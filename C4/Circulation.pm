@@ -1875,7 +1875,9 @@ tables issues and the firstname,surname & cardnumber from borrowers.
 sub GetBiblioIssues {
     my $biblionumber = shift;
     return undef unless $biblionumber;
+    my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'items.homebranch' : 'items.holdingbranch';
     my $dbh   = C4::Context->dbh;
+    my @bind;
     my $query = "
         SELECT issues.*,items.barcode,biblio.biblionumber,biblio.title, biblio.author,borrowers.cardnumber,borrowers.surname,borrowers.firstname
         FROM issues
@@ -1883,7 +1885,13 @@ sub GetBiblioIssues {
             LEFT JOIN items ON issues.itemnumber = items.itemnumber
             LEFT JOIN biblioitems ON items.itemnumber = biblioitems.biblioitemnumber
             LEFT JOIN biblio ON biblio.biblionumber = items.biblionumber
-        WHERE biblio.biblionumber = ?
+        WHERE biblio.biblionumber = ?";
+    push @bind, $biblionumber;
+    if ( C4::Context->preference("IndependantBranches") ) {
+	$query .= " AND $bfield = ?";
+	push @bind, C4::Context->userenv->{branch};
+    }
+    $query .= "
         UNION ALL
         SELECT old_issues.*,items.barcode,biblio.biblionumber,biblio.title, biblio.author,borrowers.cardnumber,borrowers.surname,borrowers.firstname
         FROM old_issues
@@ -1891,11 +1899,17 @@ sub GetBiblioIssues {
             LEFT JOIN items ON old_issues.itemnumber = items.itemnumber
             LEFT JOIN biblioitems ON items.itemnumber = biblioitems.biblioitemnumber
             LEFT JOIN biblio ON biblio.biblionumber = items.biblionumber
-        WHERE biblio.biblionumber = ?
+        WHERE biblio.biblionumber = ?";
+    push @bind, $biblionumber;
+    if ( C4::Context->preference("IndependantBranches") ) {
+	$query .= " AND $bfield = ?";
+	push @bind, C4::Context->userenv->{branch};
+    }
+    $query .= "
         ORDER BY timestamp
     ";
     my $sth = $dbh->prepare($query);
-    $sth->execute($biblionumber, $biblionumber);
+    $sth->execute( @bind );
 
     my @issues;
     while ( my $data = $sth->fetchrow_hashref ) {

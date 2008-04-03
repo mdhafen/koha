@@ -85,6 +85,15 @@ if (C4::Context->preference('hidelostitems')) {
         push @items, $itm unless $itm->{itemlost};
     }
 }
+if ( C4::Context->preference("IndependantBranches") ) {
+    @all_items = ();
+    my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'homebranch' : 'holdingbranch';
+    for my $item ( @items ) {
+	push @all_items, $item unless (C4::Context->userenv && $item->{$bfield} ne C4::Context->userenv->{branch});
+    }
+    @items = @all_items;
+}
+
 my $dat = &GetBiblioData($biblionumber);
 
 my $itemtypes = GetItemTypes();

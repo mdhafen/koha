@@ -105,6 +105,10 @@ my $norequests = 1;
 my $authvalcode_items_itemlost = GetAuthValCode('items.itemlost',$fw);
 my $authvalcode_items_damaged  = GetAuthValCode('items.damaged', $fw);
 foreach my $item (@items) {
+    my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'homebranch' : 'holdingbranch';
+    if ( C4::Context->preference("IndependantBranches") && $item->{$bfield} ne C4::Context->userenv->{branch} ) {
+	next;
+    }
 
     # can place holds defaults to yes
     $norequests = 0 unless ( ( $item->{'notforloan'} > 0 ) || ( $item->{'itemnotforloan'} > 0 ) );

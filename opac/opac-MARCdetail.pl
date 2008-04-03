@@ -219,11 +219,14 @@ for ( my $tabloop = 0 ; $tabloop <= 10 ; $tabloop++ ) {
 my @fields = $record->fields();
 my %witness
   ; #---- stores the list of subfields used at least once, with the "meaning" of the code
+my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'items.homebranch' : 'items.holdingbranch';
+my ($homebrtagf,$homebrtagsubf) = &GetMarcFromKohaField($bfield,$itemtype);
 my @big_array;
 foreach my $field (@fields) {
     next if ( $field->tag() < 10 );
     my @subf = $field->subfields;
     my %this_row;
+    my $homebranch;
 
     # loop through each subfield
     for my $i ( 0 .. $#subf ) {
@@ -246,9 +249,14 @@ foreach my $field (@fields) {
               GetAuthorisedValueDesc( $field->tag(), $subf[$i][0],
                 $subf[$i][1], '', $tagslib );
         }
+	if ( $subf[$i][0] eq $homebrtagsubf ) {
+	    $homebranch = $subf[$i][1];
+	}
     }
     if (%this_row) {
-        push( @big_array, \%this_row );
+	unless ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && $homebranch ne C4::Context->userenv->{branch} ) {
+	    push( @big_array, \%this_row );
+	}
     }
 }
 my ( $holdingbrtagf, $holdingbrtagsubf ) =
