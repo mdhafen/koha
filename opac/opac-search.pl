@@ -453,6 +453,11 @@ for (my $i=0;$i<=@servers;$i++) {
             exit;
         }
         if ($hits) {
+            # clean up itemcallnumber: remove duplicates
+            foreach ( @newresults ) {
+                my %call_nums = map { $_ => 1 } split ' \| ', $_->{itemcallnumber};
+                $_->{itemcallnumber} = join ' | ', keys %call_nums;
+            }
             $template->param(total => $hits);
             my $limit_cgi_not_availablity = $limit_cgi;
             $limit_cgi_not_availablity =~ s/&limit=available//g if defined $limit_cgi_not_availablity;
