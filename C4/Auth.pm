@@ -291,6 +291,7 @@ sub get_template_and_user {
             noItemTypeImages            => C4::Context->preference("noItemTypeImages"),
             suggestion                  => C4::Context->preference("suggestion"),
             virtualshelves              => C4::Context->preference("virtualshelves"),
+            mylibraryfirst   => C4::Context->preference("SearchMyLibraryFirst"),
         );
     }
     else {

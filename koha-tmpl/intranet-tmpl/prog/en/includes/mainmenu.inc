@@ -36,6 +36,9 @@
                         <label for="navkeyword">
                             Search:&nbsp;
                         </label><input type="text" id="navkeyword" name="q" size="10" accesskey="s" />
+			<!-- TMPL_IF name="mylibraryfirst" -->
+			<input name="limit" value="<!-- TMPL_VAR name="LoginBranchcode" -->" type="hidden" />
+			<!-- /TMPL_IF -->
                         <input type="submit" value=" OK " class="submit" />
                         </form>
                      </li>

@@ -14,6 +14,9 @@
 	<p class="tip">Enter search keywords:</p>
 		<form action="/cgi-bin/koha/catalogue/search.pl"  method="get" id="cat-search-block">
 			 <input type="text" name="q" id="search-form" size="40" value="" title="Enter the terms you wish to search for." class="form-text" />
+		<!-- TMPL_IF name="mylibraryfirst" -->
+				<input name="limit" value="<!-- TMPL_VAR name="LoginBranchcode" -->" type="hidden" />
+		<!-- /TMPL_IF -->
 				<input type="submit" name="op" value="Submit"  class="submit" />
 		</form>
 	</div><!-- /TMPL_IF -->

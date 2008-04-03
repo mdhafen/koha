@@ -203,6 +203,7 @@ if (C4::Context->preference("marcflavour") eq "UNIMARC" ) {
 #}
 
 # load the branches
+my $mybranch = ( C4::Context->preference( 'SearchMyLibraryFirst' ) ) ? C4::Context->userenv->{branch} : '';
 my $branches = GetBranches( C4::Context->preference('IndependantBranches') );
 my @branch_loop;
 
