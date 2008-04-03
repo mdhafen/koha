@@ -1567,6 +1567,14 @@ sub searchResults {
                 $item->{'branchname'} = $branches{$item->{$otherbranch}};
             }
 
+	    # IndependantBranches, etc...  dont show copies at other branches
+	    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv && $item->{$hbranch} ne C4::Context->userenv->{branch} ) {
+		$items_count--;
+		$items_counter--;
+		delete $fields[ $items_counter ];
+		next;
+	    }
+
 			my $prefix = $item->{$hbranch} . '--' . $item->{location} . $item->{itype} . $item->{itemcallnumber};
 # For each grouping of items (onloan, available, unavailable), we build a key to store relevant info about that item
             if ( $item->{onloan} ) {
@@ -1665,6 +1673,18 @@ sub searchResults {
                 }
             }
         }    # notforloan, item level and biblioitem level
+	# There may be empty spots in the items array
+	#  because of IndependantBranches pruning done above
+	#  remove these blank spots here
+	if ( C4::Context->preference('IndependantBranches') ) {
+	    for ( my $c = 0; $c < scalar( @fields ); $c++ ) {
+		unless ( exists $fields[ $c ] ) {
+		    splice @fields, $c, 1;
+		    $c--;
+		}
+	    }
+	}
+
         my ( $availableitemscount, $onloanitemscount, $otheritemscount );
         $maxitems =
           ( C4::Context->preference('maxItemsinSearchResults') )

@@ -80,11 +80,16 @@ $data->{'count'}=$count;
 my $ccodes= GetKohaAuthorisedValues('items.ccode',$fw);
 my $itemtypes = GetItemTypes;
 
+my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'homebranch' : 'holdingbranch';
 $data->{'itemtypename'} = $itemtypes->{$data->{'itemtype'}}->{'description'};
 $results[0]=$data;
 my $itemnumber;
 ($itemnumber) and @items = (grep {$_->{'itemnumber'} == $itemnumber} @items);
 foreach my $item (@items){
+    if ( C4::Context->preference("IndependantBranches") && $item->{$bfield} ne C4::Context->userenv->{branch} ) {
+	undef $item;
+	next;
+    }
     $item->{itemlostloop}= GetAuthorisedValues(GetAuthValCode('items.itemlost',$fw),$item->{itemlost}) if GetAuthValCode('items.itemlost',$fw);
     $item->{itemdamagedloop}= GetAuthorisedValues(GetAuthValCode('items.damaged',$fw),$item->{damaged}) if GetAuthValCode('items.damaged',$fw);
     $item->{'collection'}              = $ccodes->{ $item->{ccode} } if ($ccodes);
@@ -118,6 +123,17 @@ foreach my $item (@items){
         $item->{'issue'}= 1;
     } else {
         $item->{'issue'}= 0;
+    }
+}
+# There may be empty spots in the items array
+#  because of IndependantBranches pruning done above
+#  remove these blank spots here
+if ( C4::Context->preference("IndependantBranches") ) {
+    for ( my $c = 0; $c < scalar( @items ); $c++ ) {
+	unless ( $items[ $c ] ) {
+	    splice @items, $c, 1;
+	    $c--;
+	}
     }
 }
 $template->param(count => $data->{'count'},

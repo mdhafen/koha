@@ -218,6 +218,10 @@ for my $branch_hash (sort { $branches->{$a}->{branchname} cmp $branches->{$b}->{
     push @branch_loop, {value => "$branch_hash" , branchname => $branches->{$branch_hash}->{'branchname'}, selected => $selected};
 }
 
+if ( C4::Branch::onlymine() ) {
+    @branch_loop = grep { $_->{value} eq $user->{branch} } @branch_loop;
+}
+
 my $categories = GetBranchCategories(undef,'searchdomain');
 
 $template->param(branchloop => \@branch_loop, searchdomainloop => $categories);
