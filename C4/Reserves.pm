@@ -612,7 +612,7 @@ sub GetReserveFee {
     my $dbh   = C4::Context->dbh;
     my $const = lc substr( $constraint, 0, 1 );
 
-    my $borrower = GetMember( $borrowernumber, 'borrowernumber' );
+    my $borrower = C4::Members::GetMember( $borrowernumber, 'borrowernumber' );
 
     my $query = qq/
       SELECT * FROM categories
