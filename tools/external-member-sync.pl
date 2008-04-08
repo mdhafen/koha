@@ -65,22 +65,22 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
     #  Check for patrons not in external, and in category
 #warn "checking for deletes...";
     if ( %$dirhash ) {  # to make sure the directory isn't empty.
-	foreach (sort keys %$dbhash) {
-	    next if ( $$dbhash{$_}{categorycode} ne $category );
-	    next if ( $$dirhash{$_} );
+	foreach my $cardnumber (sort keys %$dbhash) {
+	    next if ( $$dbhash{$cardnumber}{categorycode} ne $category );
+	    next if ( $$dirhash{$cardnumber} );
 
 	    my $allow_delete = 1;
 
-	    my $borrnum = $$dbhash{$_}{borrowernumber};
+	    my $borrnum = $$dbhash{$cardnumber}{borrowernumber};
 	    my ( $issues, undef, $fines ) = GetMemberIssuesAndFines( $borrnum );
 	    my ( @reserves ) = GetReservesFromBorrowernumber( $borrnum );
 
 	    # this prevents a delete when a patron has changed branches
-	    my $bordata = GetMemberDetails_External( $_ );
-	    if ( %$bordata && ( $$bordata{'branchcode'} != $branch ) ) {
+	    my $bordata = GetMemberDetails_External( $cardnumber );
+	    if ( $bordata && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
-		$branch_update->execute( $$bordata{'branchcode'}, $_ );
-#		warn "Trying to change branch of $_ to $$bordata{branchcode}";
+		$branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
+		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
 		    cardnumber => $$bordata{'cardnumber'},
@@ -93,7 +93,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 		$allow_delete = 0;
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $_,
+		    cardnumber => $cardnumber,
 		    issues => 1,
 		};
 	    }
@@ -103,7 +103,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 		$allow_delete = 0;
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $_,
+		    cardnumber => $cardnumber,
 		    fines => 1,
 		};
 	    }
@@ -113,13 +113,13 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 		$allow_delete = 0;
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $_,
+		    cardnumber => $cardnumber,
 		    reserves => 1,
 		}
 	    }
 
 	    if ( $allow_delete ) {
-		$deleted{ $_ } = 1;
+		$deleted{ $cardnumber } = 1;
 	    }
 	}
     }
@@ -136,7 +136,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
     undef $dirhash;
 
     # DB Queries
-    my $get = $dbh->prepare( "SELECT borrowernumber, cardnumber, surname, firstname, othernames, branchcode, categorycode FROM borrowers WHERE cardnumber = ?" );
+    my $get = $dbh->prepare( "SELECT borrowernumber, cardnumber, surname, firstname, othernames, branchcode, categorycode, sort1, sort2 FROM borrowers WHERE cardnumber = ?" );
 
     # Handle deleted borrowers
 #warn "Deleting...";
@@ -175,6 +175,9 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 		$$attribs{$attr} =~ s/\s*$//;
 	    }
 	    $$attribs{categorycode} = $category;
+	    $$attribs{'dateenrolled'} = C4::Dates->today('iso');
+	    $$attribs{'dateexpiry'} = GetExpiryDate( $category, $$attribs{'dateenrolled'} );
+
 	    AddMember( %$attribs );
 
 	    push @report, {
@@ -207,6 +210,8 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 	$diff = 1 if ( $$attribs{ 'othernames' } ne $$values{ 'othernames' } );
 	$diff = 1 if ( $$attribs{ 'branchcode' } ne $$values{ 'branchcode' } );
 	$diff = 1 if ( $$attribs{ 'categorycode' } ne $$values{ 'categorycode' } );
+	$diff = 1 if ( $$attribs{ 'sort1' } && $$attribs{ 'sort1' } ne $$values{ 'sort1' } );
+	$diff = 1 if ( $$attribs{ 'sort2' } && $$attribs{ 'sort2' } ne $$values{ 'sort2' } );
 
 	if ( $diff ) {
 	    $$attribs{borrowernumber} = $$values{borrowernumber};
