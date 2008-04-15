@@ -10,6 +10,17 @@ use CGI;
 use C4::Auth;
 
 my $query = new CGI;
+
+my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
+    {
+        template_name   => "catalogue/detail.tmpl",
+        query           => $query,
+        type            => "intranet",
+        authnotrequired => 0,
+        flagsrequired   => { catalogue => 1 },
+    }
+);
+
 my $op=$query->param("op");
 my $format=$query->param("format");
 if ($op eq "export") {
@@ -22,7 +33,7 @@ if ($op eq "export") {
 	}
 	while (my ($marc) = $sth->fetchrow) {
 		if ($marc){
-
+			$marc = marcCleanOtherBranches( $marc );
 			if ($format =~ /endnote/) {
 				$marc = marc2endnote($marc);
 				$format = 'endnote';

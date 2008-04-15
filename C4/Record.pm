@@ -35,6 +35,8 @@ use C4::Koha; #marc2csv
 use YAML; #marcrecords2csv
 use Text::CSV::Encoded; #marc2csv
 
+use C4::Biblio;
+
 use vars qw($VERSION @ISA @EXPORT);
 
 # set the version for version checking
@@ -55,6 +57,7 @@ $VERSION = 3.00;
   &marc2csv
   &html2marcxml
   &html2marc
+  &marcCleanOtherBranches
   &changeEncoding
 );
 
@@ -723,6 +726,53 @@ sub html2marc {
     #warn Dumper($field->{_subfields});
     $record->add_fields($field) if (($field) && $field ne "");
     #warn "HTML2MARC=".$record->as_formatted;
+    return $record;
+}
+
+=head2 marcCleanOtherBranches - Remove from a marc record items at another locations
+
+=over 4
+
+my ( $newrecord ) = marcCleanOtherBranches( $record, $branch );
+
+Removes items from a marc record that are at other locations
+
+=over 2
+
+C<$record> - The record itself
+
+=back
+
+=back
+
+=cut
+
+sub marcCleanOtherBranches {
+    my ( $record ) = @_;
+    my $userenv = C4::Context->userenv;
+    if ( C4::Context->preference("IndependantBranches") && $userenv ) {
+	my $branch = $userenv->{branch};
+	my $marc_record_obj;
+	my $error;
+	unless ( $record =~ /^MARC::Record/ ) { # it's not a MARC::Record object, make it one
+		eval { $marc_record_obj = MARC::Record->new_from_usmarc($record) }; # handle exceptions
+
+		# conversion to MARC::Record object failed, populate $error
+		if ($@) {
+			$error .="\nCreation of MARC::Record object failed: ".$MARC::File::ERROR;
+		}
+	}
+
+	my ($item_tag,$item_subfield) = &GetMarcFromKohaField("items.homebranch",'');
+	unless ( $error ) {
+	    $record = $marc_record_obj;
+	    foreach my $item_field ($record->field($item_tag)) {
+		unless ( $item_field->subfield($item_subfield) eq $branch ) {
+		    $record->delete_field($item_field);
+		}
+	    }
+	}
+    }
     return $record;
 }
 
