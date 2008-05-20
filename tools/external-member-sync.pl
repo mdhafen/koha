@@ -205,19 +205,15 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 	}
 
 	$diff = 1 if ( $$attribs{ 'cardnumber' } ne $$values{ 'cardnumber' } );
-	$diff = 1 if ( $$attribs{ 'surname' } ne $$values{ 'surname' } );
-	$diff = 1 if ( $$attribs{ 'firstname' } ne $$values{ 'firstname' } );
-	$diff = 1 if ( $$attribs{ 'othernames' } ne $$values{ 'othernames' } );
 	$diff = 1 if ( $$attribs{ 'branchcode' } ne $$values{ 'branchcode' } );
-	$diff = 1 if ( $$attribs{ 'categorycode' } ne $$values{ 'categorycode' } );
-	$diff = 1 if ( $$attribs{ 'sort1' } && $$attribs{ 'sort1' } ne $$values{ 'sort1' } );
-	$diff = 1 if ( $$attribs{ 'sort2' } && $$attribs{ 'sort2' } ne $$values{ 'sort2' } );
+	$diff = 1 if ( exists $$attribs{ 'surname' } && $$attribs{ 'surname' } ne $$values{ 'surname' } );
+	$diff = 1 if ( exists $$attribs{ 'firstname' } && $$attribs{ 'firstname' } ne $$values{ 'firstname' } );
+	$diff = 1 if ( exists $$attribs{ 'othernames' } && $$attribs{ 'othernames' } ne $$values{ 'othernames' } );
+	$diff = 1 if ( exists $$attribs{ 'sort1' } && $$attribs{ 'sort1' } && $$attribs{ 'sort1' } ne $$values{ 'sort1' } );
+	$diff = 1 if ( exists $$attribs{ 'sort2' } && $$attribs{ 'sort2' } && $$attribs{ 'sort2' } ne $$values{ 'sort2' } );
 
 	if ( $diff ) {
 	    $$attribs{borrowernumber} = $$values{borrowernumber};
-	    unless ( $$attribs{ 'categorycode' } ) {
-		delete $$attribs{ 'categorycode' };  # foreign key constraint
-	    }
 
 	    ModMember( %$attribs );
 #warn "Updated $$attribs{cardnumber}";
