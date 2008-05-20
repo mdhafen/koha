@@ -582,7 +582,7 @@ sub GetMemberColumns_DBI {
 	while ( my ( $cat ) = $sth->fetchrow ) {
 	    push @all_cats, $cat if ( $cat ne '' );
 	}
-    } elsif ( $sth->rows = 1 ) {
+    } elsif ( $sth->rows == 1 ) {
 	push @all_cats, '';
     } else {
 	warn "GetMemberColumns called but no patron categories mapped" if $debug;
@@ -938,7 +938,7 @@ sub GetMemberColumns_LDAP {
 	while ( my ( $cat ) = $sth->fetchrow ) {
 	    push @all_cats, $cat if ( $cat ne '' );
 	}
-    } elsif ( $sth->rows = 1 ) {
+    } elsif ( $sth->rows == 1 ) {
 	push @all_cats, '';
     } else {
 	warn "GetMemberColumns called but no patron categories mapped" if $debug;
@@ -1089,7 +1089,7 @@ sub Check_Userid_LDAP {
     my $userfield = GetExternalAttrib( 'userid', $category );
     $filter = "$userfield=$userid";
 
-    my $result = ldap_search( $filter, [ $cardfield ] );
+    $result = ldap_search( $filter, [ $cardfield ] );
 
     foreach my $row ( @$result ) {
 	my ( $attrib, $value ) = @$row;
