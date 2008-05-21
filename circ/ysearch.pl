@@ -43,7 +43,7 @@ if ($auth_status ne "ok") {
 my $dbh = C4::Context->dbh;
 my $sql = qq(SELECT surname, firstname, cardnumber, address, city, zipcode 
              FROM borrowers 
-             WHERE surname LIKE ?
+             WHERE ( surname LIKE ?
              OR firstname LIKE ?
              OR cardnumber LIKE ?);
 if (C4::Context->preference("IndependentBranchPatron")){

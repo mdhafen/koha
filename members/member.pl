@@ -74,6 +74,7 @@ if (C4::Context->preference("AddPatronLists")=~/code/){
 
 my $member=$input->param('member');
 my $orderby=$input->param('orderby');
+my $all=$input->param('showallbranches');
 $orderby = "surname,firstname" unless $orderby;
 $member =~ s/,//g;   #remove any commas from search string
 $member =~ s/\*/%/g;
@@ -86,11 +87,11 @@ my ($count,$results);
 
 if(length($member) == 1)
 {
-    ($count,$results)=SearchMember($member,$orderby,"simple");
+    ($count,$results)=SearchMember($member,$orderby,"simple",undef,undef,$all);
 }
 else
 {
-    ($count,$results)=SearchMember($member,$orderby,"advanced");
+    ($count,$results)=SearchMember($member,$orderby,"advanced",undef,undef,$all);
 }
 
 
