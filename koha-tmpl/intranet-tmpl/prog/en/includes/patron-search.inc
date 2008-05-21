@@ -49,6 +49,8 @@ YAHOO.util.Event.onContentReady("header_search", function() {
 	<p class="tip">Enter patron card number or partial name:</p>
 	<form action="/cgi-bin/koha/members/member.pl" method="post">
     <input id="searchmember" size="25" class="focus" name="member" type="text" value="<!--TMPL_VAR Name="member"-->"/>
+    search all branches:
+    <input type="checkbox" name="showallbranches"/>
 	<!--TMPL_IF Name="branchloop"-->
 	<span class="filteraction" id="filteraction_off"> <a href="#" onclick="$('#filters').toggle();$('.filteraction').toggle();">[-]</a></span>
 	<span class="filteraction" id="filteraction_on"> <a href="#" onclick="$('#filters').toggle();$('.filteraction').toggle();">[+]</a></span>

@@ -46,8 +46,13 @@ my $sql = qq(SELECT surname, firstname, cardnumber, address, city, zipcode, coun
              FROM borrowers 
              WHERE surname LIKE ?
              OR firstname LIKE ?
-             OR cardnumber LIKE ?
-             ORDER BY surname, firstname);
+             OR cardnumber LIKE ?);
+if (C4::Context->preference("IndependantBranches")){
+    if (C4::Context->userenv && C4::Context->userenv->{'branch'}){
+	$sql .= qq( AND borrowers.branchcode =) . $dbh->quote(C4::Context->userenv->{'branch'}) unless (C4::Context->userenv->{'branch'} eq "insecure");
+    }
+}
+$sql .= qq(  ORDER BY surname, firstname);
 my $sth = $dbh->prepare( $sql );
 $sth->execute("$query%", "$query%", "$query%");
 

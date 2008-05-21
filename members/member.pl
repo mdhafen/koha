@@ -81,6 +81,14 @@ if (C4::Context->preference("AddPatronLists")=~/code/){
     $categories[0]->{'first'}=1;
 }  
 
+if ( C4::Context->preference('IndependantBranches') ) {
+    my $all = $input->param('showallbranches');
+    my $mybranch = C4::Branch::mybranch();
+    unless ( $patron->{branchcode} || $all ) {
+        $patron->{branchcode} = $mybranch;
+    }
+}
+
 my $member=$input->param('member');
 my $orderbyparams=$input->param('orderby');
 my @orderby;
