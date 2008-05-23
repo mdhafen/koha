@@ -622,11 +622,15 @@ sub GetMemberColumns_DBI {
     }
 
     %attribs = ();
-    foreach my $patron ( values %$data ) {
+    foreach my $patron ( values %$data ) {  # simulate `select distinct` here
 	foreach ( keys %$patron ) {
-	    push @{ $attribs{ $_ } }, $$patron{ $_ };
+	    $attribs{ $_ }{ $$patron{ $_ } } = 1;
 	}
     }
+    foreach ( keys %attribs ) {
+	$attribs{ $_ } = [ keys %{ $attribs{ $_ } } ];
+    }
+
     return \%attribs;
 }
 
@@ -987,10 +991,13 @@ sub GetMemberColumns_LDAP {
     }
 
     %attribs = ();
-    foreach my $patron ( values %$data ) {
+    foreach my $patron ( values %$data ) {  # simulate `select distinct` here
 	foreach ( keys %$patron ) {
-	    push @{ $attribs{ $_ } }, $$patron{ $_ };
+	    $attribs{ $_ }{ $$patron{ $_ } } = 1;
 	}
+    }
+    foreach ( keys %attribs ) {
+	$attribs{ $_ } = [ keys %{ $attribs{ $_ } } ];
     }
     return \%attribs;
 }
