@@ -71,12 +71,24 @@ my $theme = $input->param('theme') || "default";
 
 
 my $member=$input->param('member');
+my $sort1=$input->param('sort1');
+my $sort2=$input->param('sort2');
 my $orderby=$input->param('orderby');
 $orderby = "surname,firstname" unless $orderby;
 $member =~ s/,//g;   #remove any commas from search string
 $member =~ s/\*/%/g;
 
-unless ($member||$category) {
+my ( $sort1_values, $sort2_values ) = GetMemberSortValues();
+my ( $sort1_loop, $sort2_loop );
+foreach ( sort @$sort1_values ) {
+    push @$sort1_loop, { value => $_ } if ( $_ );
+}
+foreach ( sort @$sort2_values ) {
+    push @$sort2_loop, { value => $_ } if ( $_ );
+}
+$template->param( sort1_loop => $sort1_loop, sort2_loop => $sort2_loop );
+
+unless ($member||$category||$sort1||$sort2) {
     $template->param( batch_id => $batch_id, type => $batch_type,);
     output_html_with_http_headers $input, $cookie, $template->output;
     exit;
@@ -88,11 +100,14 @@ if(length($member) == 1)
 {
     ($count,$results)=SearchMember($member,$orderby,"simple");
 }
-else
+elsif($member)
 {
     ($count,$results)=SearchMember($member,$orderby,"advanced",$category);
 }
-
+elsif($sort1 || $sort2)
+{
+    ($count,$results)=SearchMemberSort($sort1,$sort2,$orderby);
+}
 
 my @resultsdata;
 my $to=($count>($startfrom*$resultsperpage)?$startfrom*$resultsperpage:$count);
@@ -125,6 +140,9 @@ for (my $i=($startfrom-1)*$resultsperpage; $i < $to; $i++){
     );
   push(@resultsdata, \%row);
 }
+# URL encode the sort strings
+$sort1 =~ s/\s/\+/g;
+$sort2 =~ s/\s/\+/g;
 my $base_url =
     'pcard-member-search.pl?'
   . join(
@@ -132,6 +150,8 @@ my $base_url =
     map { $_->{term} . '=' . $_->{val} } (
         { term => 'member',         val => $member         },
         { term => 'category',         val => $category         },
+	{ term => 'sort1',          val => $sort1          },
+	{ term => 'sort2',          val => $sort2          },
         { term => 'orderby',        val => $orderby        },
         { term => 'resultsperpage', val => $resultsperpage },
         { term => 'type',           val => $batch_type     },
@@ -154,6 +174,8 @@ $template->param(
         searching       => "1",
         member          => $member,
         category_type   => $category,
+        sort1           => $sort1,
+        sort2           => $sort2,
         numresults      => $count,
         resultsloop     => \@resultsdata,
         batch_id        => $batch_id,

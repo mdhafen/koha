@@ -90,9 +90,32 @@ function add_item3(borrowernumber){
 <input id="category" name="category" />
 <input type="submit" value="Search" /></p>
 </form>
+<!-- TMPL_IF NAME="sort1_loop" -->
+<div class="browse">
+Search by sort1 field:
+ <select name="sort1" onchange="if ( this.options[this.selectedIndex].value != '' ) { window.location = '/cgi-bin/koha/labels/pcard-member-search.pl?sort1='+ this.options[this.selectedIndex].value +'&batch_id=<!-- TMPL_VAR NAME="batch_id" -->&type=<!-- TMPL_VAR NAME="type" -->'; }">
+<option value=""></option>
+<!-- TMPL_LOOP NAME="sort1_loop" -->
+<option value="<!-- TMPL_VAR NAME="value" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="value" --></option>
+<!-- /TMPL_LOOP -->
+</select>
+</div>
+<!-- /TMPL_IF -->
+
+<!-- TMPL_IF NAME="sort2_loop" -->
+<div class="browse">
+Search by sort2 field:
+ <select name="sort2" onchange="if ( this.options[this.selectedIndex].value != '' ) { window.location = '/cgi-bin/koha/labels/pcard-member-search.pl?sort2='+ this.options[this.selectedIndex].value +'&batch_id=<!-- TMPL_VAR NAME="batch_id" -->&type=<!-- TMPL_VAR NAME="type" -->'; }">
+<option value=""></option>
+<!-- TMPL_LOOP NAME="sort2_loop" -->
+<option value="<!-- TMPL_VAR NAME="value" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="value" --></option>
+<!-- /TMPL_LOOP -->
+</select>
+</div>
+<!-- /TMPL_IF -->
 
 <!-- TMPL_IF NAME="resultsloop" -->
-<div id="searchheader"> <h3>Results <!-- TMPL_VAR Name ="from" --> to <!-- TMPL_VAR Name ="to" --> of <!-- TMPL_VAR Name ="numresults" --> found for '<span class="ex"><!-- TMPL_VAR NAME="member" --></span>'</h3></div>
+<div id="searchheader"> <h3>Results <!-- TMPL_VAR Name ="from" --> to <!-- TMPL_VAR Name ="to" --> of <!-- TMPL_VAR Name ="numresults" --> found for '<span class="ex"><!-- TMPL_VAR NAME="member" --> <!-- TMPL_VAR NAME="sort1" --> <!-- TMPL_VAR NAME="sort2" --></span>'</h3></div>
 <!-- TMPL_IF NAME="paginationbar" --><div id="pagination_top"><!-- TMPL_VAR Name ="paginationbar" --></div><!-- /TMPL_IF -->
 <form name="resultform" action="/cgi-bin/koha/labels/pcard-member-search.pl" method="get" class="checkboxed"><div style="float: right; margin-top: .5em;"><input type="submit" class="icon addchecked" value="Add checked" onclick="add_item('checked',<!-- TMPL_VAR NAME="batch_id" -->,'<!-- TMPL_VAR NAME="type" -->'); return false" /> <input type="button" class="close" value="Done" /></div>
 <div style="line-height: 2em; margin-left: .7em;"><a id="CheckAll" href="/cgi-bin/koha/labels/pcard-member-search.pl">Select All</a><a id="CheckNone" href="/cgi-bin/koha/labels/pcard-member-search.pl">Clear All</a></div>
