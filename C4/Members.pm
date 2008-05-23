@@ -39,6 +39,8 @@ BEGIN {
 	#Get data
 	push @EXPORT, qw(
 		&SearchMember 
+		&SearchMemberSort
+		&GetMemberSortValues
 		&GetMemberDetails
 		&GetMember
 
@@ -274,6 +276,120 @@ AND attribute like ?
     }
 
     return ( scalar(@$data), $data );
+}
+
+=head2 SearchMemberSort
+
+  ($count, $borrowers) = &SearchMemberSort($sort1, $sort1, $orderby,$filter,$showallbranches);
+
+Looks up patrons (borrowers) by the sort fields.
+
+C<$sort1> and C<$sort2> are used as search terms.
+  Each term must match the corresponding sort field
+
+C<$filter> is assumed to be a list of elements to filter results on
+
+C<$showallbranches> is used in IndependantBranches Context to display all branches results.
+
+C<&SearchMemberSort> returns a two-element list. C<$borrowers> is a
+reference-to-array; each element is a reference-to-hash, whose keys
+are the fields of the C<borrowers> table in the Koha database.
+C<$count> is the number of elements in C<$borrowers>.
+
+=cut
+
+#'
+#used by member enquiries from the intranet
+#called by member.pl and labels/pcard-member-search.pl
+sub SearchMemberSort {
+    my ($sort1,$sort2,$orderby,$filter,$showallbranches ) = @_;
+    my $dbh   = C4::Context->dbh;
+    my $query = "";
+    my $count;
+    my $data;
+    my @bind = ();
+
+    $query = "SELECT * FROM borrowers
+        LEFT JOIN categories ON borrowers.categorycode=categories.categorycode
+        ";
+
+    #  Copied from SearchMember advancedsearch block
+    $query .= " WHERE ";
+    if (C4::Context->preference("IndependantBranches") && !$showallbranches){
+	if (C4::Context->userenv && C4::Context->userenv->{flags}!=1 && C4::Context->userenv->{'branch'}){
+	    $query.=" borrowers.branchcode =".$dbh->quote(C4::Context->userenv->{'branch'})." AND " unless (C4::Context->userenv->{'branch'} eq "insecure");
+	}
+    }
+
+    if ( $sort1 ) {
+	$query .= "sort1 = ? ";
+	push @bind, $sort1;
+    }
+    if ( $sort2 ) {
+	if ( $sort1 ) {
+	    $query .= "AND ";
+	}
+	$query .= "sort2 = ? ";
+	push @bind, $sort2;
+    }
+
+    $query .= "order by $orderby";
+
+    # FIXME - .= <<EOT;
+
+    my $sth = $dbh->prepare($query);
+
+    $debug and print STDERR "Q $orderby : $query\n";
+    $sth->execute(@bind);
+    my @results;
+    $data = $sth->fetchall_arrayref({});
+
+    $sth->finish;
+
+    return ( scalar(@$data), $data );
+}
+
+=head2 GetMemberSortValues
+
+($sort1, $sort2) = &GetMemberSortValues();
+
+Gathers the values of the two patron sort fields.
+
+Returns two array refs.
+
+=cut
+
+sub GetMemberSortValues {
+    my ( $sort1, $sort2 );
+
+    my $branch = ( C4::Context->preference('IndependantBranches') ) ? C4::Context->userenv->{branch} : '';
+    if ( C4::Context->preference("MembersViaExternal") ) {
+	use C4::MembersExternal;
+
+	my $fields = GetMemberColumns_External( [ 'sort1', 'sort2' ], $branch );
+	$sort1 = $$fields{sort1};
+	$sort2 = $$fields{sort2};
+    } else {
+	my $dbh   = C4::Context->dbh;
+	my $query = "";
+	my $sth;
+
+	$query = "SELECT DISTINCT sort1,sort2 FROM borrowers ";
+	if ( $branch ) {
+	    $query .= "WHERE branchcode = ". $dbh->quote( $branch );
+	}
+
+	$sth = $dbh->prepare;
+
+	$sth->execute;
+
+	while ( my $data = $sth->fetchrow_hashref ) {
+	    push @$sort1, $$data{sort1};
+	    push @$sort2, $$data{sort2};
+	}
+    }
+
+    return ( $sort1, $sort2 );
 }
 
 =head2 GetMemberDetails
