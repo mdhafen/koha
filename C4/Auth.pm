@@ -670,7 +670,13 @@ sub checkauth {
 					if (C4::Context->boolean_preference('IndependantBranches') && C4::Context->boolean_preference('Autolocation')){
 						# we have to check they are coming from the right ip range
 						my $domain = $branches->{$branchcode}->{'branchip'};
-						if ($ip !~ /^$domain/){
+						my $match = 0;
+						foreach my $subdomain ( split /\|/, $domain ) {
+							if ( $ip =~ /^$subdomain/ ) {
+								$match = 1;
+							}
+						}
+						unless ( $match ) {
 							$loggedin=0;
 							$info{'wrongip'} = 1;
 						}
@@ -680,12 +686,14 @@ sub checkauth {
 					foreach my $br ( keys %$branches ) {
 						#     now we work with the treatment of ip
 						my $domain = $branches->{$br}->{'branchip'};
-						if ( $domain && $ip =~ /^$domain/ ) {
-							$branchcode = $branches->{$br}->{'branchcode'};
+						foreach my $subdomain ( split /\|/, $domain ) {
+							if ( $subdomain && $ip =~ /^$subdomain/ ) {
+								$branchcode = $branches->{$br}->{'branchcode'};
 
-							# new op dev : add the branchprinter and branchname in the cookie
-							$branchprinter = $branches->{$br}->{'branchprinter'};
-							$branchname    = $branches->{$br}->{'branchname'};
+								# new op dev : add the branchprinter and branchname in the cookie
+								$branchprinter = $branches->{$br}->{'branchprinter'};
+								$branchname    = $branches->{$br}->{'branchname'};
+							}
 						}
 					}
 					$session->param('number',$borrowernumber);
@@ -1039,12 +1047,14 @@ sub check_api_auth {
                 foreach my $br ( keys %$branches ) {
                     #     now we work with the treatment of ip
                     my $domain = $branches->{$br}->{'branchip'};
-                    if ( $domain && $ip =~ /^$domain/ ) {
-                        $branchcode = $branches->{$br}->{'branchcode'};
+		    foreach my $subdomain ( split /\|/, $domain ) {
+			if ( $subdomain && $ip =~ /^$subdomain/ ) {
+			    $branchcode = $branches->{$br}->{'branchcode'};
 
-                        # new op dev : add the branchprinter and branchname in the cookie
-                        $branchprinter = $branches->{$br}->{'branchprinter'};
-                        $branchname    = $branches->{$br}->{'branchname'};
+			    # new op dev : add the branchprinter and branchname in the cookie
+			    $branchprinter = $branches->{$br}->{'branchprinter'};
+			    $branchname    = $branches->{$br}->{'branchname'};
+			}
                     }
                 }
                 $session->param('number',$borrowernumber);
