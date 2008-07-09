@@ -775,6 +775,39 @@ sub checkauth {
 			$session->param('ip',$session->remote_addr());
 			$session->param('lasttime',time());
 			$session->param('sessiontype','anon');
+
+			# Guess branchcode from ip addr
+			$debug and warn "Looking for anonymous branchcode";
+			my $branchcode = $session->param('branch');
+			my $branches   = GetBranches();
+			my $ip         = $session->remote_addr();
+			if ( ! $branchcode && C4::Context->boolean_preference('SearchMyLibraryFirst') ){
+				#  Let's find their location
+				my @branchesloop;
+				foreach my $br ( keys %$branches ) {
+				#     now we work with the treatment of ip
+					my $domain = $branches->{$br}->{'branchip'};
+					foreach my $subdomain ( split /\|/, $domain ) {
+						if ( $subdomain && $ip =~ /^$subdomain/ ) {
+							$branchcode = $branches->{$br}->{'branchcode'};
+						}
+					}
+				}
+			}
+			if ( $branchcode ) {
+			# Some things have to be set for SearchMyLibraryFirst
+				$debug and warn "got anonymous branchcode: $branchcode";
+				my $branchname = $branches->{$branchcode}->{'branchname'};
+				$session->param('branch',$branchcode);
+				$session->param('branchname',$branchname);
+				C4::Context::set_userenv(
+					undef, undef,
+					undef, undef,
+					undef, $branchcode,
+					$branchname, undef,
+					undef, undef
+				);
+			}
 		}
     }	# END unless ($userid)
     my $insecure = C4::Context->boolean_preference('insecure');
