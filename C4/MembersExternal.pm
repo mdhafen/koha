@@ -825,7 +825,8 @@ sub DBI_BuildQuery {
     if ( %$filters ) {
 	my @filter_array;
 	foreach my $attrib ( keys %$filters ) {
-	    push @filter_array, "$attrib = ". $MembersExternal_Context{ conn }->quote( $$filters{ $attrib } );
+	    my $value = ( $$filters{ $attrib } =~ /\D+/ ) ? $MembersExternal_Context{ conn }->quote( $$filters{ $attrib } ) : $$filters{ $attrib };
+	    push @filter_array, "$attrib = $value";
 	}
 	unless ( $query =~ / WHERE / ) {
 	    $query .= " WHERE ";
