@@ -580,7 +580,7 @@ CREATE TABLE `branches` (
   `branchfax` mediumtext,
   `branchemail` mediumtext,
   `issuing` tinyint(4) default NULL,
-  `branchip` varchar(15) default NULL,
+  `branchip` mediumtext default NULL,
   `branchprinter` varchar(100) default NULL,
   UNIQUE KEY `branchcode` (`branchcode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

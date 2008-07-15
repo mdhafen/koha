@@ -562,7 +562,7 @@ branchphone text,
 branchfax text,
 branchemail text,
 issuing int default NULL,
-branchip varchar(15) default NULL,
+branchip text default NULL,
 branchprinter varchar(100) default NULL
 );
 
