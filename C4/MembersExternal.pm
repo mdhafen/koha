@@ -554,6 +554,7 @@ sub GetMemberDetails_DBI {
     my $filter_field = GetExternalAttrib( 'cardnumber', $category );
     $filter{ $filter_field } = $cardnumber;
     $query = DBI_BuildQuery( $category, \@columns, \%filter );
+    return {} unless ( defined $query );
     $sth = $MembersExternal_Context{ conn }->prepare( $query );
     $sth->execute;
     $data = $sth->fetchrow_hashref;
@@ -610,6 +611,7 @@ sub GetMemberColumns_DBI {
 	$filter{ $branch_attr } = $branch if ( $branch );
 
 	my $query = DBI_BuildQuery( $cat, [ @columns, $cardno_attr ], \%filter );
+	next unless ( defined $query );
 	my $sth = $MembersExternal_Context{ conn }->prepare( $query );
 	$sth->execute;
 	while ( my $patron = $sth->fetchrow_hashref ) {
@@ -649,6 +651,7 @@ sub ListMembers_DBI {
     }
 
     $query = DBI_BuildQuery( $category, [ $cardfield ], \%filter );
+    return {} unless ( defined $query );
     my $sth = $MembersExternal_Context{ conn }->prepare( $query );
     $sth->execute;
     while ( my ( $card ) = $sth->fetchrow ) {
@@ -694,6 +697,7 @@ sub Check_Userid_DBI {
     my $userfield = GetExternalAttrib( 'userid', $category );
     $filter{ $userfield } = $userid;
     $query = DBI_BuildQuery( $category, [ $cardfield ], \%filter );
+    return 1 unless ( defined $query );
     my $sth = $MembersExternal_Context{ conn }->prepare( $query );
     $sth->execute;
     if ( $sth->rows ) {
@@ -720,6 +724,7 @@ sub checkpw_DBI {
 	$cardfield = GetExternalAttrib( 'cardnumber', $cat );
 	$passwd_field = GetExternalAttrib( 'password', $cat );
 	$query = DBI_BuildQuery( $cat, [ $cardfield, $passwd_field ], $filter );
+	return {} unless ( defined $query );
 	$sth = $MembersExternal_Context{ conn }->prepare( $query );
 	$sth->execute;
 	#  Check for uniqueness
@@ -769,7 +774,7 @@ sub DBI_BuildQuery {
 	$MembersExternal_Context{ conn } = DBI->connect( $dsn, $user, $pass );
 	unless ( defined $MembersExternal_Context{ conn } ) {
 	    warn "MembersExternal:  Couldn't connect to external DB!: ". $DBI::errstr if ( $debug );
-	    die;
+	    return undef;
 	}
     }
 
