@@ -578,7 +578,7 @@ branchfax text,
 branchemail text,
 branchurl mediumtext,
 issuing int default NULL,
-branchip varchar(15) default NULL,
+branchip mediumtext default NULL,
 branchprinter varchar(100) default NULL,
 branchnotes mediumtext
 );
