@@ -633,19 +633,18 @@ sub checkauth {
                     FROM borrowers 
                     LEFT JOIN branches on borrowers.branchcode=branches.branchcode
                     ";
-                    my $sth = $dbh->prepare("$select where userid=?");
-                    unless ( C4::Context->preference("MembersViaExternal") ) {
-                        $sth->execute($userid);
-                    }
+                    # With MembersViaExternal on cardnumber is more accurate
+                    my $sth = $dbh->prepare("$select where cardnumber=?");
+                    $sth->execute($cardnumber);
                     unless ($sth->rows) {
-                        $debug and print STDERR "AUTH_1: no rows for userid='$userid'\n";
-                        $sth = $dbh->prepare("$select where cardnumber=?");
-                        $sth->execute($cardnumber);
+                        $debug and print STDERR "AUTH_2a: no rows for cardnumber='$cardnumber'\n";
+                        $sth->execute($userid);
                         unless ($sth->rows) {
-                            $debug and print STDERR "AUTH_2a: no rows for cardnumber='$cardnumber'\n";
+                            $debug and print STDERR "AUTH_2b: no rows for userid='$userid' AS cardnumber\n";
+                            $sth = $dbh->prepare("$select where userid=?");
                             $sth->execute($userid);
                             unless ($sth->rows) {
-                                $debug and print STDERR "AUTH_2b: no rows for userid='$userid' AS cardnumber\n";
+                                $debug and print STDERR "AUTH_1: no rows for userid='$userid'\n";
                             }
                         }
                     }

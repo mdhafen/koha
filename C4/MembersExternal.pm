@@ -724,7 +724,7 @@ sub checkpw_DBI {
 	$cardfield = GetExternalAttrib( 'cardnumber', $cat );
 	$passwd_field = GetExternalAttrib( 'password', $cat );
 	$query = DBI_BuildQuery( $cat, [ $cardfield, $passwd_field ], $filter );
-	return {} unless ( defined $query );
+	return 0 unless ( defined $query );
 	$sth = $MembersExternal_Context{ conn }->prepare( $query );
 	$sth->execute;
 	#  Check for uniqueness
