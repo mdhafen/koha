@@ -198,9 +198,9 @@ sub staging_progress_callback {
     my $job = shift;
     my $dbh = shift;
 
-    if ( $job ) {
-        return sub {
-            my $progress = shift;
+    return sub {
+	my $progress = shift;
+	if ( $job ) {
             $job->progress($progress);
             $dbh->commit();
         }
@@ -211,10 +211,10 @@ sub matching_progress_callback {
     my $job = shift;
     my $dbh = shift;
 
-    if ( $job ) {
-	my $start_progress = $job->progress();
-	return sub {
-	    my $progress = shift;
+    my $start_progress = $job->progress();
+    return sub {
+	my $progress = shift;
+	if ( $job ) {
 	    $job->progress($start_progress + $progress);
 	    $dbh->commit();
 	}

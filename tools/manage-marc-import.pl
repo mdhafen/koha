@@ -297,8 +297,10 @@ sub progress_callback {
     my $dbh = shift;
     return sub {
         my $progress = shift;
-        $job->progress($progress);
-        $dbh->commit();
+	if ( $job ) {
+	    $job->progress($progress);
+	    $dbh->commit();
+	}
     }
 }
 
