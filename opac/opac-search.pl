@@ -229,6 +229,34 @@ if ( $template_type eq 'advsearch' ) {
 
 ### OK, if we're this far, we're performing an actual search
 
+# if SearchMyLibraryFirst is on allow the opac user to switch libraries here
+if ( C4::Context->preference("SearchMyLibraryFirst") ) {
+    foreach ( @params ) {
+        if ( /^branch/ ) {
+            my ( undef, $search_branch ) = split ":";
+            if ( C4::Context::userenv->{branch} ne $search_branch ) {
+                my $branchname = $branches->{$search_branch}->{'branchname'};
+                my $sessionID = $cgi->cookie("CGISESSID");
+                my $session = C4::Auth::get_session($sessionID);
+
+                $session->param('branch',$search_branch);
+                $session->param('branchname',$branchname);
+                C4::Context::set_userenv(
+                    undef, undef,
+                    undef, undef,
+                    undef, $search_branch,
+                    $branchname, undef,
+                    undef, undef
+                    );
+                $template->param(
+                    LoginBranchname => $branchname,
+                    LoginBranchcode => $search_branch,
+                    );
+            }
+        }
+    }
+}
+
 # Fetch the paramater list as a hash in scalar context:
 #  * returns paramater list as tied hash ref
 #  * we can edit the values by changing the key
