@@ -146,6 +146,7 @@ my %parameters=
         (  %$patron
 		, 'orderby'			=> $orderbyparams 
 		, 'resultsperpage'	=> $resultsperpage 
+		, 'showallbranches'	=> $all
         , 'type'=> 'intranet'); 
 my $base_url =
     'member.pl?&amp;'
