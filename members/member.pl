@@ -138,6 +138,7 @@ my $base_url =
         { term => 'orderby', val => $orderby },
         { term => 'resultsperpage', val => $resultsperpage },
         { term => 'type',           val => 'intranet' },
+	{ term => 'showallbranches', val => $all },
     )
   );
 
