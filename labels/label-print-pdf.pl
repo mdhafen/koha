@@ -252,7 +252,8 @@ foreach my $item (@resultsloop) {
         #FIXME: This needs to be paramatized and passed in from the user...
         #Each element of this hash is a separate line on the patron card. Keys are the text to print and the associated data is the point size.
         my $text = {        
-            $patron_data->{'description'}  => $fontsize,
+            #$patron_data->{'description'}  => $fontsize,
+	    $patron_data->{'surname'} .', '. $patron_data->{'firstname'} => $fontsize,
             $patron_data->{'branchname'}   => ($fontsize + 3),
         };
 
