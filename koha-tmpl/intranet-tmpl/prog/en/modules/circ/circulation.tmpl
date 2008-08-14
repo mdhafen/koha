@@ -158,8 +158,7 @@ function refocus(calendar) {
 <!-- /TMPL_IF -->
 
 <!--  INITIAL BLOC : PARAMETERS & BORROWER INFO -->
-<!-- TMPL_IF NAME="sounderror" --><EMBED src="/intranet-tmpl/prog/img/error.swf" quality="high"  WIDTH="1" HEIGHT="1" TYPE="application/x-shockwave-flash" PLUGINSPAGE="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></EMBED><!-- /TMPL_IF -->
-<!-- TMPL_IF NAME="inprocess" --><!-- Sound on successful issueing --><EMBED src="/intranet-tmpl/prog/img/ok.swf" quality="high"  WIDTH="1" HEIGHT="1" TYPE="application/x-shockwave-flash" PLUGINSPAGE="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></EMBED><!-- /TMPL_IF -->
+<!-- TMPL_INCLUDE NAME="sound.inc" -->
 
 <!-- TMPL_IF NAME="dateexpiry" --><div class="dialog message">Patron's account has been renewed until <!-- TMPL_VAR NAME="dateexpiry" --></div><!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="NEEDSCONFIRMATION" -->

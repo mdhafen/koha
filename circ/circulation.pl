@@ -96,7 +96,7 @@ for (@failedrenews) { $renew_failed{$_} = 1; }
 
 my $sessionID = $query->cookie("CGISESSID") ;
 my $session = get_session($sessionID);
-my $sounderror;
+my ( $sounderror, $soundok );
 my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
 my %soundederrors;
 for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
@@ -352,6 +352,7 @@ if ($barcode) {
     # we have no blockers for issuing and any issues needing confirmation have been resolved
         AddIssue( $borrower, $barcode, $datedue, $cancelreserve );
         $inprocess = 1;
+	$soundok = 1;
     }
   elsif ($issueconfirmed){	# FIXME: Do something? Or is this to *intentionally* do nothing?
     if (C4::Context->preference("AllowNotForLoanOverride")){
@@ -383,6 +384,7 @@ if ($barcode) {
 			if ($noquestion) {
 				AddIssue( $borrower, $barcode, $datedue );
 				$inprocess = 1;
+				$soundok = 1;
 			}
    	    }
 		$template->param(
@@ -790,6 +792,7 @@ $template->param( picture => 1 ) if $picture;
 $session->param('soundederrors', [ keys %soundederrors ] );
 $template->param(
     sounderror => $sounderror,
+    soundok => $soundok,
     );
 
 $template->param(
