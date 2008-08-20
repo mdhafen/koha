@@ -23,6 +23,7 @@ package C4::Members;
 
 
 use strict;
+use warnings;
 use vars qw( %MembersExternal_Context );
 use Digest::MD5 qw(md5_base64);
 use C4::Context;
@@ -39,6 +40,7 @@ BEGIN {
 	&GetMemberDetails_External
 	&GetMemberColumns_External
 	&ListMembers_External
+	&GetExternalMappedCategories
 	);
 
     #Modify data
@@ -437,12 +439,8 @@ sub PatronInMappedCategory {
 	( $result ) = $sth->fetchrow;
     }
 
-    $query = "SELECT categorycode FROM borrowers_external_structure GROUP BY categorycode";
-    $sth = $dbh->prepare( $query );
-    $sth->execute;
-    my $mapped_cats_ar = $sth->fetchall_arrayref({});
-    # convert array of hash refs to inverted hash
-    my %mapped_cats = map { $_->{categorycode} => 1 } @$mapped_cats_ar;
+    my @mapped_cats_ar = GetExternalMappedCategories();
+    my %mapped_cats = map { $_ => 1 } @mapped_cats_ar;
 
     $result = ( $mapped_cats{ $result } ) ? $result : undef;
 
@@ -541,6 +539,27 @@ sub GetExternalAllAttribs {
     return values %columns;
 }
 
+=item &GetExternalMappedCategories
+
+=cut
+
+sub GetExternalMappedCategories {
+    my ( @all_cats );
+
+    my $dbh = C4::Context->dbh;
+    my $query = "SELECT categorycode FROM borrowers_external_structure GROUP BY categorycode";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute;
+    unless ( $sth->rows == 0 ) {
+	while ( my ( $cat ) = $sth->fetchrow ) {
+	    push @all_cats, $cat if ( $cat ne '' );
+	}
+    }
+    $sth->finish;
+
+    return @all_cats;
+}
+
 =item &GetMemberDetails_DBI
 
 =cut
@@ -575,21 +594,12 @@ sub GetMemberColumns_DBI {
     my ( $columns, $branch, $data ) = @_;
     my ( %attribs, @all_cats );
 
-    my $dbh = C4::Context->dbh;
-    my $query = "SELECT categorycode FROM borrowers_external_structure GROUP BY categorycode";
-    my $sth = $dbh->prepare( $query );
-    $sth->execute;
-    if ( $sth->rows > 1 ) {
-	while ( my ( $cat ) = $sth->fetchrow ) {
-	    push @all_cats, $cat if ( $cat ne '' );
-	}
-    } elsif ( $sth->rows == 1 ) {
-	push @all_cats, '';
-    } else {
+    @all_cats = GetExternalMappedCategories();
+
+    unless ( @all_cats ) {
 	warn "GetMemberColumns called but no patron categories mapped" if $debug;
 	return $data;
     }
-    $sth->finish;
 
     foreach my $cat ( @all_cats ) {
 	foreach my $col ( @$columns ) {
@@ -940,21 +950,12 @@ sub GetMemberColumns_LDAP {
     my ( $columns, $branch, $data ) = @_;
     my ( %attribs, @all_cats );
 
-    my $dbh = C4::Context->dbh;
-    my $query = "SELECT categorycode FROM borrowers_external_structure GROUP BY categorycode";
-    my $sth = $dbh->prepare( $query );
-    $sth->execute;
-    if ( $sth->rows > 1 ) {
-	while ( my ( $cat ) = $sth->fetchrow ) {
-	    push @all_cats, $cat if ( $cat ne '' );
-	}
-    } elsif ( $sth->rows == 1 ) {
-	push @all_cats, '';
-    } else {
+    @all_cats = GetExternalMappedCategories();
+
+    unless ( @all_cats ) {
 	warn "GetMemberColumns called but no patron categories mapped" if $debug;
 	return $data;
     }
-    $sth->finish;
 
     foreach my $cat ( @all_cats ) {
 	foreach my $col ( @$columns ) {

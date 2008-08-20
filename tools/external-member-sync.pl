@@ -25,13 +25,14 @@ This script get patron lists which are pulled from the Koha database and from an
 =cut
 
 use strict;
+use warnings;
 use CGI;
 use C4::Auth;
 use C4::Output;
 use C4::Branch;  # GetBranches
 use C4::Reserves;  # GetReservesFromBorrowernumber
 use C4::Members;  # MoveMemberToDeleted DelMember AddMember ModMember GetMemberIssuesAndFines GetborCatFromCatType
-use C4::MembersExternal;  # GetMemberDetails_External ListMembers_External
+use C4::MembersExternal;  # GetMemberDetails_External ListMembers_External GetExternalMappedCategories
 
 my $cgi = new CGI;
 
@@ -47,7 +48,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 my $dbh = C4::Context->dbh;
-my $op     = $cgi->param( 'op' );
+my $op     = $cgi->param( 'op' ) || '';
 my $branch = $cgi->param( 'branch' );
 my $category = $cgi->param('category');
 
@@ -99,6 +100,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 	    }
 
 	    # this prevents a delete when a patron has fines
+	    $fines += 0;  #  Force to number
 	    if ( $fines != 0 ) {
 		$allow_delete = 0;
 		push @report, {
@@ -265,26 +267,19 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 					-default => $default,
         );
 
-    my @typeloop;
-    foreach (qw(C A S P I)){
-	my $action="WHERE category_type=?";
-	my ( $categories, $labels ) = GetborCatFromCatType( $_, $action );
-	my @categoryloop;
-	foreach my $cat ( @$categories ){
-	    push @categoryloop,{'categorycode' => $cat,
-				'categoryname' => $labels->{$cat},
-	    };
-	}
-	my %typehash;
-	$typehash{'typename'} = $_;
-	$typehash{'categoryloop'} = \@categoryloop;
-	push @typeloop,{'typename' => $_,
-			'categoryloop' => \@categoryloop};
+    my @categoryloop;
+    my @categories = GetExternalMappedCategories();
+    foreach my $cat ( @categories ) {
+	my $category = &GetBorrowercategory( $cat );
+	push @categoryloop, {
+	    categorycode => $cat,
+	    categoryname => $category->{description},
+	};
     }
 
     $template->param(
 	'branchCGI' => $CGIbranch,
-	'typeloop' => \@typeloop,
+	'categoryloop' => \@categoryloop,
 	);
 }
 
