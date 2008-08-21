@@ -142,6 +142,9 @@ sub barcodedecode {
     $filter or return $barcode;     # ensure filter is defined, else return untouched barcode
 	if ($filter eq 'whitespace') {
 		$barcode =~ s/\s//g;
+	} elsif ($filter eq 'trim-whitespace') {
+		$barcode =~ s/^\s*//;
+		$barcode =~ s/\s*$//;
 	} elsif ($filter eq 'cuecat') {
 		chomp($barcode);
 	    my @fields = split( /\./, $barcode );
