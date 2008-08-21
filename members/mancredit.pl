@@ -40,6 +40,15 @@ my $data=GetMember($borrowernumber,'borrowernumber');
 my $add=$input->param('add');
 
 if ($add){
+	my ($template, $loggedinuser, $cookie)
+	  = get_template_and_user({template_name => "members/mancredit.tmpl",
+					  query => $input,
+					  type => "intranet",
+					  authnotrequired => 0,
+					  flagsrequired => {borrowers => 1},
+					  debug => 1,
+					  });
+
     my $barcode=$input->param('barcode');
     my $itemnum = GetItemnumberFromBarcode($barcode) if $barcode;
     my $desc=$input->param('desc');
