@@ -237,6 +237,7 @@ if ($findborrower) {
     }
 }
 
+LOAD_BORROWER:
 # get the borrower information.....
 my $borrower;
 my @lines;
@@ -360,6 +361,29 @@ if ($barcode) {
         $template->param(IMPOSSIBLE  => 0);
         $inprocess = 1;
     }
+  }
+  elsif ($$error{UNKNOWN_BARCODE}) {
+        # Not a copy barcode.  Check to see if it's a patron barcode
+	if ( checkcardnumber( $barcode ) ) {  #it's a patron
+		# Wish I could get just the borrowernumber here.
+		my $borr = GetMember( $barcode, 'cardnumber' );
+		$borrowernumber = $borr->{borrowernumber};
+		foreach my $impossible ( keys %$error ) {
+			$template->param(
+			    $impossible => 0,
+			    IMPOSSIBLE => 0
+			    );
+			$noerror = 1;
+			$sounderror = 0;
+		}
+		( $barcode, $error, $question ) = ();
+		if ( $borrower && $borrower->{'borrowernumber'} != $borrowernumber ) {
+			$session->clear( 'soundederrors' );
+			@soundederrors = ();
+			%soundederrors = ();
+		}
+		goto LOAD_BORROWER;
+	}
   }
   else {
         my $noquestion = 1;
