@@ -86,8 +86,13 @@ my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ?
 $data->{'itemtypename'} = $itemtypes->{$data->{'itemtype'}}->{'description'};
 $results[0]=$data;
 ($itemnumber) and @items = (grep {$_->{'itemnumber'} == $itemnumber} @items);
+if ( C4::Context->preference("IndependantBranches") ) {
+    @items = (grep { $_->{$bfield} == C4::Context->userenv->{branch} } @items);
+    $count = @items;
+    $data->{'count'}=$count;
+}
 foreach my $item (@items){
-    if ( C4::Context->preference("IndependantBranches") && $item->{$bfield} ne C4::Context->userenv->{branch} ) {
+    if ( $itemnumber && $itemnumber != $item->{'itemnumber'} ) {
 	undef $item;
 	next;
     }
@@ -120,17 +125,6 @@ foreach my $item (@items){
         $item->{'issue'}= 1;
     } else {
         $item->{'issue'}= 0;
-    }
-}
-# There may be empty spots in the items array
-#  because of IndependantBranches pruning done above
-#  remove these blank spots here
-if ( C4::Context->preference("IndependantBranches") ) {
-    for ( my $c = 0; $c < scalar( @items ); $c++ ) {
-	unless ( $items[ $c ] ) {
-	    splice @items, $c, 1;
-	    $c--;
-	}
     }
 }
 $template->param(count => $data->{'count'},
