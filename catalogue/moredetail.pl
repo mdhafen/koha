@@ -91,11 +91,8 @@ if ( C4::Context->preference("IndependantBranches") ) {
     $count = @items;
     $data->{'count'}=$count;
 }
+($itemnumber) and @items = (grep {$_->{'itemnumber'} == $itemnumber} @items);
 foreach my $item (@items){
-    if ( $itemnumber && $itemnumber != $item->{'itemnumber'} ) {
-	undef $item;
-	next;
-    }
     $item->{itemlostloop}= GetAuthorisedValues(GetAuthValCode('items.itemlost',$fw),$item->{itemlost}) if GetAuthValCode('items.itemlost',$fw);
     $item->{itemdamagedloop}= GetAuthorisedValues(GetAuthValCode('items.damaged',$fw),$item->{damaged}) if GetAuthValCode('items.damaged',$fw);
     $item->{'collection'} = $ccodes->{$item->{ccode}};
