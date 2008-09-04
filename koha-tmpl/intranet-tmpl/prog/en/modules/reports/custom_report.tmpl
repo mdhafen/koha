@@ -1,0 +1,153 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
+<title>Koha &rsaquo; Reports &rsaquo; <!-- TMPL_VAR NAME="reporttitle" --></title>
+<!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+<!-- TMPL_INCLUDE NAME="calendar.inc" -->
+</head>
+<body>
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="cat-search.inc" -->
+
+<div id="breadcrumbs" ><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/reports/reports-home.pl">Reports</a> &rsaquo; <!-- TMPL_IF NAME="do_it" --><a href="/cgi-bin/koha/reports/custom/<!-- TMPL_VAR NAME="reportname" -->.pl"><!-- /TMPL_IF --><!-- TMPL_VAR NAME="reporttitle" --><!-- TMPL_IF NAME="do_it" --></a> &rsaquo; Results<!-- /TMPL_IF --></div>
+
+<div id="doc3" class="yui-t2">
+
+     <div id="bd">
+	  <div id="yui-main">
+	  <div class="yui-b">
+
+<!-- TMPL_IF NAME="do_it" -->
+	<!-- TMPL_LOOP NAME="mainloop" -->
+	<!-- TMPL_IF NAME="loopfilter"-->
+	<div id="filters">
+	<h1>Filtered on</h1>
+	<!-- TMPL_LOOP NAME="loopfilter" -->
+	<p><!-- TMPL_VAR NAME="title"--> <!-- TMPL_VAR name="op" --> <!-- TMPL_VAR NAME="value"--></p>
+	<!-- /TMPL_LOOP -->
+	</div>
+	<!-- /TMPL_IF -->
+
+	<table>
+		<thead>
+		<!-- TMPL_LOOP NAME="loopheader" -->
+		<tr>
+		<!-- TMPL_LOOP NAME="values" -->
+		<th<!-- TMPL_IF NAME="width" --> colspan="<!-- TMPL_VAR NAME="width" -->"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="coltitle" --></th>
+		<!-- /TMPL_LOOP -->
+		</tr>
+		<!-- /TMPL_LOOP -->
+		</thead>
+		<tbody>
+		<!-- TMPL_LOOP NAME="looprow" -->
+		<tr<!-- TMPL_UNLESS name="__odd__" --> class="highlighted"<!-- /TMPL_UNLESS --><!-- TMPL_IF NAME="break" --> style="page-break-before:always;"<!-- /TMPL_IF -->>
+			<!-- TMPL_LOOP NAME="values" -->
+			<!-- TMPL_IF NAME="header" --><th <!-- TMPL_IF NAME="width" -->colspan="<!-- TMPL_VAR NAME="width" -->"<!-- /TMPL_IF -->><!-- TMPL_ELSE --><td><!-- /TMPL_IF -->
+				<!-- TMPL_IF Name="value" --><!-- TMPL_VAR NAME="value" --><!-- TMPL_ELSE-->&nbsp;<!-- /TMPL_IF -->
+			<!-- TMPL_IF NAME="header" --></th><!-- TMPL_ELSE --></td><!-- /TMPL_IF -->
+			<!-- /TMPL_LOOP -->
+		</tr>
+		<!-- /TMPL_LOOP -->
+		</tbody>
+	</table>
+	<!-- /TMPL_LOOP -->
+<!-- TMPL_ELSE -->
+     <h1><!-- TMPL_VAR NAME="reporttitle" --></h1>
+	<form method="post" action="/cgi-bin/koha/reports/custom/<!-- TMPL_VAR NAME="reportname" -->.pl">
+	<div class="data">
+	<!-- TMPL_IF NAME="parameter_loop" -->
+	<fieldset class="rows">
+		<ol>
+		<!-- TMPL_LOOP NAME="parameter_loop" -->
+		<li>
+			<label <!-- TMPL_IF NAME="input_name" -->for="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->for="Filter"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="label" --> :</label>
+			<!-- TMPL_IF NAME="select_box" -->
+			<select <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> <!-- TMPL_IF NAME="size" -->size="<!-- TMPL_VAR NAME="size" -->"<!-- /TMPL_IF --> <!-- TMPL_IF NAME="multiple" -->multiple="multiple"<!-- /TMPL_IF --> <!-- TMPL_VAR NAME="onchange" -->>
+				<!-- TMPL_IF NAME="first_blank" -->
+				<option value=""></option>
+				<!-- /TMPL_IF -->
+				<!-- TMPL_LOOP NAME="select_loop" -->
+				<option value="<!-- TMPL_VAR NAME="value" -->"<!-- TMPL_IF NAME="selected" --> selected="selected"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="label" --></option>
+				<!-- /TMPL_LOOP -->
+			</select>
+			<!-- /TMPL_IF -->
+			<!-- TMPL_IF NAME="radio_group" -->
+				<ol>
+				<!-- TMPL_IF NAME="first_blank" -->
+				<li><label></label><input type="radio" <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> value="" <!-- TMPL_VAR NAME="onchange" -->></li>
+				<!-- /TMPL_IF -->
+				<!-- TMPL_LOOP NAME="radio_loop" -->
+				<li><label><!-- TMPL_VAR NAME="label" --></label><input type="radio" <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> value="<!-- TMPL_VAR NAME="value" -->" <!-- TMPL_VAR NAME="onchange" -->></li>
+				<!-- /TMPL_LOOP -->
+				</ol>
+			<!-- /TMPL_IF -->
+			<!-- TMPL_IF NAME="check_box" -->
+				<input type="checkbox"<!-- TMPL_IF NAME="checked" --> checked="checked"<!-- /TMPL_IF --> <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Check<!-- TMPL_VAR NAME="count" -->"<!-- /TMPL_IF -->/>
+			<!-- /TMPL_IF -->
+			<!-- TMPL_IF NAME="calendar" -->
+			     <input type="text" readonly="readonly" size="10" id="<!-- TMPL_VAR NAME="id" -->" <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> />
+			     <img src="<!-- TMPL_VAR NAME="themelang" -->/lib/calendar/cal.gif" alt="Show Calendar" border="0" id="openCalendar<!-- TMPL_VAR NAME="id" -->" style="cursor: pointer;" />
+			     <script language="JavaScript" type="text/javascript">
+				     function validate<!-- TMPL_VAR NAME="count" -->(date) {
+					      var day = date.getDate();
+					      var month = date.getMonth() + 1;
+					      var year = date.getFullYear();
+					      var weekDay = date.getDay();
+					      var dayMonth = month + '-' + day;
+					      var dateString = year + '-' + month + '-' + day;
+					      <!-- TMPL_IF NAME="limit" -->
+					      var dateTo = document.getElementById('<!-- TMPL_VAR NAME="limit" -->').value.split("-");
+					      var limitDate = new Date( dateTo[0], (dateTo[1] - 1), dateTo[2] );
+					      if (date <!-- TMPL_VAR NAME="limit_op" --> limitDate) {
+					        return true;
+					      } else {
+					        return false;
+					      }
+					      <!-- TMPL_ELSE -->
+					      return false;
+					      <!-- /TMPL_IF -->
+				     }
+
+				     Calendar.setup(
+					inputField : "<!-- TMPL_VAR NAME="id" -->",
+					ifFormat : "<!-- TMPL_VAR NAME="DHTMLcalendar_dateformat" -->",
+					button : "openCalendar<!-- TMPL_VAR NAME="id" -->",
+					disableFunc : validate<!-- TMPL_VAR NAME="count" -->,
+					dateStatusFunc : validate<!-- TMPL_VAR NAME="count" -->
+				);
+			     </script>
+			<!-- /TMPL_IF -->
+		</li>
+		<!-- /TMPL_LOOP -->
+	</ol>
+	</fieldset>
+	<!-- /TMPL_IF -->
+
+	<fieldset class="rows">
+	<legend>Output</legend>
+	<ol>
+		<li><label for="outputscreen">To screen into the browser: </label><input type="radio" checked="checked" name="output" id="outputscreen" value="screen" /> </li>
+		<li><label for="outputfile">To a file:</label>  	<input type="radio" name="output" id="outputfile" value="file" /> <label class="inline" for="basename">Named: </label><input type="text" name="basename" id="basename" value="Export" /> for a spreadsheet application
+		<label for="sep" class="inline">With Delimiter</label>
+		<select name="sep" id="sep">
+		<!-- TMPL_LOOP NAME="sep_loop" -->
+		<option value="<!-- TMPL_VAR NAME="value" -->"<!-- TMPL_IF NAME="selected" --> selected="selected"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="value" --></option>
+		<!-- /TMPL_LOOP -->
+		</select></li>
+	</ol>
+	</fieldset>
+
+	<fieldset class="action">
+	<input type="submit" value="Generate Report" class="submit" />
+	<input type="hidden" name="do_it" value="1" />
+	</fieldset>
+	</div>
+	</form>
+
+<!-- /TMPL_IF -->
+</div>
+</div>
+
+<div class="yui-b">
+<!-- TMPL_INCLUDE NAME="reports-menu.inc" -->
+</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->
