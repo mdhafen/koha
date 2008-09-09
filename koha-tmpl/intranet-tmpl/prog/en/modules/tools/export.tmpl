@@ -109,6 +109,17 @@ Calendar.setup(
         <label for="strip_nonlocal_items">Remove non-local items</label>
         <input id="strip_nonlocal_items" type="checkbox" name="strip_nonlocal_items" />
         </li>
+	<li>
+	<label for="strip_nonlocal_biblios">Remove non-local biblios</label>
+	<input id="strip_nonlocal_biblios" name="strip_nonlocal_biblios" type="checkbox" />
+	</li>
+	<li>
+	<label for="item_format">Item Format</label>
+	<select id="item_format" name="item_format">
+		<option value="MARC21">MARC 21</option>
+		<option value="KOHA">Koha</option>
+	</select>
+	</li>
         <li>
         <label for="dont_export_fields">Don't export fields</label>
         <input id="dont_export_fields" type="text" name="dont_export_fields" />

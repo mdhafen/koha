@@ -72,6 +72,8 @@ if ($op eq "export") {
     my $end_accession        = ($query->param("end_accession")) ? C4::Dates->new($query->param("end_accession")) : '' ;
     my $dont_export_items     = $query->param("dont_export_item");
     my $strip_nonlocal_items   = $query->param("strip_nonlocal_items");
+    my $strip_nonlocal_biblios = $query->param("strip_nonlocal_biblios");
+    my $item_format           = $query->param("item_format");
     my $dont_export_fields    = $query->param("dont_export_fields");
     my @sql_params;
     
@@ -135,14 +137,49 @@ if ($op eq "export") {
             next;
         }
         next if not defined $record;
-        if ( $dont_export_items || $strip_nonlocal_items || $limit_ind_branch) {
+        if ( $dont_export_items || $strip_nonlocal_items || $limit_ind_branch || $strip_nonlocal_biblios ) {
+            my $local_bib;
             my ( $homebranchfield, $homebranchsubfield ) =
                 GetMarcFromKohaField( 'items.homebranch', '' );
 			for my $itemfield ($record->field($homebranchfield)){
 				# if stripping nonlocal items, use loggedinuser's branch if they didn't select one
 				$branch = C4::Context->userenv->{'branch'} unless $branch;
                 $record->delete_field($itemfield) if($dont_export_items || ($itemfield->subfield($homebranchsubfield) ne $branch) ) ;
+                $local_bib = 1 if ( $itemfield->subfield($homebranchsubfield) eq $branch );
             }
+	    if ( $strip_nonlocal_biblios && ! $local_bib ) {
+		next;
+	    }
+	    if ( ! $dont_export_items ) {
+		my ($b_tag,$b_sub) = &GetMarcFromKohaField("items.barcode",'');
+		my ($h_tag,$h_sub) = &GetMarcFromKohaField("items.homebranch",'');
+		my ($p_tag,$p_sub) = &GetMarcFromKohaField("items.price",'');
+		my ($p2_tag,$p2_sub) = &GetMarcFromKohaField("items.replacementprice",'');
+		my ($c_tag,$c_sub) = &GetMarcFromKohaField("items.itemcallnumber",'');
+		my ($n_tag,$n_sub) = &GetMarcFromKohaField("items.itemnotes",'');
+		if ( $item_format eq 'MARC21' ) {
+		    for my $itemfield ( $record->field( $homebranchfield ) ) {
+			my $barcode = $itemfield->subfield( $b_sub );
+			my $branch = $itemfield->subfield( $h_sub );
+			my $price = $itemfield->subfield( $p_sub ) || $itemfield->subfield( $p2_sub );
+			my $callnum = $itemfield->subfield( $c_sub );
+			my $notes = $itemfield->subfield( $n_sub );
+
+			my @subs;
+			@subs = (
+			    'p', $barcode,
+			    'b', $branch,
+			    '9', $price,
+			    'h', $callnum,
+			    'z', $notes,
+			    );
+			my $temp_field = MARC::Field->new( '852', '1', '0', @subs );
+			$record->append_fields($temp_field);
+
+			$record->delete_field( $itemfield );
+		    }
+		}
+	    }
         }
         
         if ( $dont_export_fields ) {
