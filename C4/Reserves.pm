@@ -267,6 +267,9 @@ sub GetReservesFromBiblionumber {
     unless ( $all_dates ) {
         $query .= "AND reservedate <= CURRENT_DATE()";
     }
+    if ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && C4::Context->userenv->{branch} ) {
+        $query .= "AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} ) ." ";
+    }
     $query .= "ORDER BY priority";
     my $sth = $dbh->prepare($query);
     $sth->execute($biblionumber);
@@ -1645,6 +1648,9 @@ sub _Findgroupreserve {
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
           AND reserves.reservedate <= CURRENT_DATE()
     /;
+    if ( C4::Context->preference('IndependantBranches') ) {
+        $query .= "AND reserves.branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     $sth = $dbh->prepare($query);
     $sth->execute( $biblio, $bibitem, $itemnumber );
     @results = ();
