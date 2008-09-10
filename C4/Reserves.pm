@@ -335,8 +335,11 @@ sub GetReservesFromBiblionumber {
                 itemnumber,
                 reservenotes
         FROM     reserves
-        WHERE biblionumber = ?
-        ORDER BY priority";
+        WHERE biblionumber = ? ";
+    if ( C4::Context->preference("IndependantBranches") ) {
+        $query .= "AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} ) ." ";
+    }
+    $query .= "ORDER BY priority";
     my $sth = $dbh->prepare($query);
     $sth->execute($biblionumber);
     my @results;
@@ -1574,6 +1577,9 @@ sub _Findgroupreserve {
           OR  reserves.constrainttype='a' )
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
     /;
+    if ( C4::Context->preference('IndependantBranches') ) {
+        $query .= "AND reserves.branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     $sth = $dbh->prepare($query);
     $sth->execute( $biblio, $bibitem, $itemnumber );
     $data = $sth->fetchall_arrayref({});

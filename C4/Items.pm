@@ -1445,6 +1445,10 @@ sub get_itemnumbers_of {
         FROM items
         WHERE biblionumber IN (?' . ( ',?' x scalar @biblionumbers - 1 ) . ')
     ';
+    if ( C4::Context->preference( "IndependantBranches" ) ) {
+	my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+        $query .= "AND $hbranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     my $sth = $dbh->prepare($query);
     $sth->execute(@biblionumbers);
 
