@@ -8,6 +8,7 @@
 	</li>
 	
 <!-- TMPL_LOOP NAME="facets_loop" -->
+<!-- TMPL_IF NAME="IndependantBranches" --><!-- TMPL_IF NAME="type_label_Libraries" --><!-- <!-- /TMPL_IF --><!-- /TMPL_IF -->
 <li id="<!-- TMPL_VAR NAME="type_id" -->">
 <!-- TMPL_IF NAME="type_label_Authors" -->Authors<!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="type_label_Titles" -->Titles<!-- /TMPL_IF -->
@@ -22,6 +23,7 @@
         <li class="showmore"><a href="/cgi-bin/koha/opac-search.pl?<!-- TMPL_VAR NAME="query_cgi" --><!-- TMPL_VAR NAME="limit_cgi" -->&amp;sort_by=<!-- TMPL_VAR NAME="sort_by" -->&amp;offset=<!-- TMPL_VAR NAME="offset" -->&amp;expand=<!-- TMPL_VAR NAME="expand" -->#<!-- TMPL_VAR NAME="type_id" -->">Show More</a></li>
 <!-- /TMPL_IF -->
 </ul></li>
+<!-- TMPL_IF NAME="IndependantBranches" --><!-- TMPL_IF NAME="type_label_Libraries" --> --><!-- /TMPL_IF --><!-- /TMPL_IF -->
 <!-- /TMPL_LOOP -->
 </ul>
 </div>
