@@ -651,6 +651,7 @@ $template->param(
             total => $total,
             opacfacets => 1,
             facets_loop => $facets,
+            IndependantBranches => C4::Context->preference("IndependantBranches"),
             scan => $scan,
             search_error => $error,
 );
