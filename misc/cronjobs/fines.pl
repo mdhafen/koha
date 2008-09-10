@@ -111,7 +111,10 @@ for (my $i=0; $i<scalar(@$data); $i++) {
     my ($amount,$type,$daycounttotal,$daycount)=
   		CalcFine($data->[$i], $borrower->{'categorycode'}, $branchcode,undef,undef, $datedue, $today);
         # FIXME: $type NEVER gets populated by anything.
-    (defined $type) or $type = '';
+	$type = 'Overdue';
+	if ( C4::Context->preference('IndependantBranches') ) {
+		$type .= " at $branchcode";
+	}
 	# Don't update the fine if today is a holiday.  
   	# This ensures that dropbox mode will remove the correct amount of fine.
 	if ($mode eq 'production' and  ! $isHoliday) {
