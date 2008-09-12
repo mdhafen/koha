@@ -362,14 +362,13 @@ sub AddItemsToImportBiblio {
 	    my %tags;
 	    my ( $call, $notes, $bar, $price );
 
-	    if ( $call = $item_field->subfield( 'h' ) ) {
-		$call .= " ". $item_field->subfield( 'i' );
-	    } else {
-		$call = $item_field->subfield( 'k' );
-		$call .= " ". $item_field->subfield( 'l' );
-		$call .= " ". $item_field->subfield( 'm' );
-	    }
+	    $call = $item_field->subfield( 'k' ) ." ";
+	    $call .= $item_field->subfield( 'h' ) ." ";
+	    $call .= $item_field->subfield( 'i' ) ." ";
+	    $call .= $item_field->subfield( 'm' );
+	    $call =~ s/^\s+//; # trim leading space
 	    $call =~ s/\s+$//; # trim trailing spaces
+	    $call =~ s/\s+/ /; # collapse spaces
 
 	    $price = $item_field->subfield('9') or $item_field->subfield('r');
 	    $price =~ s/[^\d\.]//g; # chop price down to just decimal number
