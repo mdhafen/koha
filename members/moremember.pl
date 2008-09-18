@@ -114,10 +114,40 @@ my $borrowernumber = $input->param('borrowernumber');
 my $data           = GetMember( 'borrowernumber' => $borrowernumber );
 my $reregistration = $input->param('reregistration');
 
+my $sessionID = $input->cookie("CGISESSID") ;
+my $session = C4::Auth::get_session($sessionID);
+my $sounderror;
+my ( @soundederrors, %soundederrors );
+if ( $borrowernumber != $session->param( 'borrowernumber' ) ) {
+    $session->param( 'borrowernumber', $borrowernumber );
+    $session->clear( 'soundederrors' );
+} else {
+    @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+    %soundederrors;
+    for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
+}
+
 if ( not defined $data ) {
     $template->param (unknowuser => 1);
 	output_html_with_http_headers $input, $cookie, $template->output;
     exit;
+}
+
+if ( $$data{ debarred } && !$soundederrors{ DBARRED } ) {
+    $sounderror = 1;
+    $soundederrors{ DBARRED } = 1;
+}
+if ( $$data{ gonenoaddress } && !$soundederrors{ GNA } ) {
+    $sounderror = 1;
+    $soundederrors{ GNA } = 1;
+}
+if ( $$data{ lost } && !$soundederrors{ LOST } ) {
+    $sounderror = 1;
+    $soundederrors{ LOST } = 1;
+}
+if ( $$data{ dateexpiry } lt POSIX::strftime( "%Y-%m-%d", localtime ) && !$soundederrors{ EXPIRED } ) {
+    $sounderror = 1;
+    $soundederrors{ EXPIRED } = 1;
 }
 
 # re-reregistration function to automatic calcul of date expiry

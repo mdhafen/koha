@@ -74,6 +74,9 @@ foreach ( $input->param ) {
 my $sessionID = $input->cookie("CGISESSID") ;
 my $session = get_session($sessionID);
 my ( $soundok, $sounderror );
+my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+my %soundederrors;
+for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
 my $branch = C4::Context->userenv->{'branch'};
 my $overduecharges = ( C4::Context->preference('finesMode') && C4::Context->preference('finesMode') ne 'off' );
 my $calendar = C4::Calendar->new( branchcode => $branch );
@@ -106,21 +109,36 @@ if ( $barcode ) {
 
 	# Simple Patron Checks
 	my ($borrower) = C4::Members::GetMemberDetails( $borrowernumber, 0 );
+	if ( $borrower->{borrowernumber} != $session->param( 'borrowernumber' ) ) {
+	    $session->clear( 'soundederrors' );
+	    @soundederrors = ();
+	    %soundederrors = ();
+	    $session->param( 'borrowernumber', $borrower->{borrowernumber} );
+	}
 	my $flags = $borrower->{'flags'};
 	foreach my $flag ( sort keys %$flags ) {
 	    my %flaginfo;
 	    if ( $flag eq 'CHARGES' ) {
-		$sounderror = 1;
+		unless ( $soundederrors{ CHARGES } ) {
+		    $sounderror = 1;
+		    $soundederrors{ CHARGES } = 1;
+		}
 		$flaginfo{charges} = 1;
 		$flaginfo{msg} = $flag;
 	    }
 	    elsif ( $flag eq 'WAITING' ) {
-		$sounderror = 1;
+		unless ( $soundederrors{ WAITING } ) {
+		    $sounderror = 1;
+		    $soundederrors{ WAITING } = 1;
+		}
 		$flaginfo{waiting} = 1;
 		$flaginfo{msg}     = $flag;
 	    }
 	    elsif ( $flag eq 'ODUES' ) {
-		$sounderror = 1;
+		unless ( $soundederrors{ ODUES } ) {
+		    $sounderror = 1;
+		    $soundederrors{ ODUES } = 1;
+		}
 		$flaginfo{overdue}  = 1;
 		$flaginfo{msg} = $flag;
 	    }
@@ -172,6 +190,7 @@ foreach my $ri ( @inputloop ) {
     push @riloop, $ri;
 }
 
+$session->param('soundederrors', [ keys %soundederrors ] );
 $template->param(
     overduecharges => $overduecharges,
     dropboxmode => $dropboxmode,

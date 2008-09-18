@@ -49,6 +49,16 @@ use Date::Calc qw(
 #
 my $query = new CGI;
 
+my ( $template, $loggedinuser, $cookie ) = get_template_and_user (
+    {
+        template_name   => 'circ/circulation.tmpl',
+        query           => $query,
+        type            => "intranet",
+        authnotrequired => 0,
+        flagsrequired   => { circulate => 'circulate_remaining_permissions' },
+    }
+);
+
 my $sessionID = $query->cookie("CGISESSID") ;
 my $session = get_session($sessionID);
 
@@ -76,16 +86,6 @@ if (!C4::Context->userenv && !$branch){
     }
 }
 
-my ( $template, $loggedinuser, $cookie ) = get_template_and_user (
-    {
-        template_name   => 'circ/circulation.tmpl',
-        query           => $query,
-        type            => "intranet",
-        authnotrequired => 0,
-        flagsrequired   => { circulate => 'circulate_remaining_permissions' },
-    }
-);
-
 my $branches = GetBranches();
 
 my @failedrenews = $query->param('failedrenew');    # expected to be itemnumbers 
@@ -94,7 +94,7 @@ for (@failedrenews) { $renew_failed{$_} = 1; }
 
 my $findborrower = $query->param('findborrower');
 $findborrower =~ s|,| |g;
-my $borrowernumber = $query->param('borrowernumber');
+my $borrowernumber = $query->param('borrowernumber') || $session->param( 'borrowernumber' );
 
 $branch  = C4::Context->userenv->{'branch'};  
 $printer = C4::Context->userenv->{'branchprinter'};
@@ -197,6 +197,11 @@ if ( $print eq 'yes' && $borrowernumber ne '' ) {
 my $borrowerslist;
 my $message;
 if ($findborrower) {
+    $session->clear( 'soundederrors' );
+    $session->clear( 'borrowernumber' );
+    $borrowernumber = 0;
+    @soundederrors = ();
+    %soundederrors = ();
     my ($count, $borrowers) = SearchMember($findborrower, 'cardnumber', 'web');
     my @borrowers = @$borrowers;
     if (C4::Context->preference("AddPatronLists")) {
@@ -686,6 +691,10 @@ $template->param(
 # save stickyduedate to session
 if ($stickyduedate) {
     $session->param( 'stickyduedate', $duedatespec );
+}
+
+if ( $borrowernumber && $borrowernumber != $session->param( 'borrowernumber' ) ) {
+    $session->param( 'borrowernumber', $borrowernumber );
 }
 
 my ($picture, $dberror) = GetPatronImage($borrower->{'cardnumber'});
