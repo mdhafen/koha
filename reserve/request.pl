@@ -72,6 +72,16 @@ my $messageborrower;
 my $warnings;
 my $messages;
 
+my $sessionID = $input->cookie("CGISESSID") ;
+my $session = C4::Auth::get_session($sessionID);
+if ( $session->param( 'borrowernumber' ) && !$cardnumber ) {
+    my $patron = GetMemberDetails( $session->param('borrowernumber') );
+    $cardnumber = $patron->{cardnumber};
+} elsif ( $cardnumber ) {
+    $session->clear( 'borrowernumber' );
+    $session->clear( 'soundederrors' );
+}
+
 my $date = C4::Dates->today('iso');
 
 if ($findborrower) {
@@ -86,6 +96,7 @@ if ($findborrower) {
     }
     elsif ( $#borrowers == 0 ) {
         $input->param( 'cardnumber', $borrowers[0]->{'cardnumber'} );
+        $session->param( 'borrowernumber', $borrowers[0]->{'borrowernumber'} );
         $cardnumber = $borrowers[0]->{'cardnumber'};
     }
     else {

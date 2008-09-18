@@ -102,9 +102,15 @@ if ( not defined $data ) {
 my $sessionID = $input->cookie("CGISESSID") ;
 my $session = C4::Auth::get_session($sessionID);
 my $sounderror;
-my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
-my %soundederrors;
-for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
+my ( @soundederrors, %soundederrors );
+if ( $borrowernumber != $session->param( 'borrowernumber' ) ) {
+    $session->param( 'borrowernumber', $borrowernumber );
+    $session->clear( 'soundederrors' );
+} else {
+    @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+    %soundederrors;
+    for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
+}
 
 if ( $$data{ debarred } && !$soundederrors{ DBARRED } ) {
     $sounderror = 1;

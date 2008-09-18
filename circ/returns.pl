@@ -46,9 +46,9 @@ use C4::Koha;   # FIXME : is it still useful ?
 
 my $query = new CGI;
 
+my $sessionID = $query->cookie("CGISESSID");
+my $session = get_session($sessionID);
 if (!C4::Context->userenv){
-	my $sessionID = $query->cookie("CGISESSID");
-	my $session = get_session($sessionID);
 	if ($session->param('branch') eq 'NO_LIBRARY_SET'){
 		# no branch set we can't return
 		print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
@@ -80,6 +80,9 @@ my $userenv_branch = C4::Context->userenv->{'branch'} || '';
 
 my $sounderror;
 my $soundok;
+my @soundederrors = @{ $session->param( 'soundederrors' ) } if ( $session->param( 'soundederrors' ) );
+my %soundederrors;
+for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
 #
 # Some code to handle the error if there is no branch or printer setting.....
 #
@@ -213,6 +216,12 @@ if ($barcode and not $query->param('cancel')) {
         $returneditems{0}      = $barcode;
         $riborrowernumber{0}   = $borrower->{'borrowernumber'};
         $riduedate{0}          = $duedate;
+	if ( $borrower->{borrowernumber} != $session->param( 'borrowernumber' ) ) {
+	    $session->clear( 'soundederrors' );
+	    @soundederrors = ();
+	    %soundederrors = ();
+	    $session->param( 'borrowernumber', $borrower->{borrowernumber} );
+	}
         $input{borrowernumber} = $borrower->{'borrowernumber'};
         $input{duedate}        = $duedate;
         $input{return_overdue} = 1 if ($duedate and $duedate lt $today->output('iso'));
@@ -301,8 +310,11 @@ if ( $messages->{'WrongTransfer'} and not $messages->{'WasTransfered'}) {
 # reserve found and item arrived at the expected branch
 #
 if ( $messages->{'ResFound'}) {
-    $sounderror = 1;
     my $reserve    = $messages->{'ResFound'};
+    unless ( $soundederrors{ RESFOUND } ) {
+        $sounderror = 1;
+        $soundederrors{ RESFOUND } = 1;
+    }
     my $branchname = $branches->{ $reserve->{'branchcode'} }->{'branchname'};
     my ($borr) = GetMemberDetails( $reserve->{'borrowernumber'}, 0 );
 
@@ -415,7 +427,10 @@ if ($borrower) {
         $flaginfo{redfont} = ( $flags->{$flag}->{'noissues'} );
         $flaginfo{flag}    = $flag;
         if ( $flag eq 'CHARGES' ) {
-	    $sounderror = 1;
+            unless ( $soundederrors{ CHARGES } ) {
+                $sounderror = 1;
+                $soundederrors{ CHARGES } = 1;
+            }
             $flaginfo{msg}            = $flag;
             $flaginfo{charges}        = 1;
             $flaginfo{chargeamount}   = $flags->{$flag}->{amount};
@@ -438,7 +453,10 @@ if ($borrower) {
             $flaginfo{itemloop} = \@waitingitemloop;
         }
         elsif ( $flag eq 'ODUES' ) {
-	    $sounderror = 1;
+            unless ( $soundederrors{ ODUES } ) {
+                $sounderror = 1;
+                $soundederrors{ ODUES } = 1;
+            }
             my $items = $flags->{$flag}->{'itemlist'};
             my @itemloop;
             foreach my $item ( sort { $a->{'date_due'} cmp $b->{'date_due'} }
@@ -522,6 +540,7 @@ foreach ( sort { $a <=> $b } keys %returneditems ) {
     push( @riloop, \%ri );
 }
 
+$session->param('soundederrors', [ keys %soundederrors ] );
 $template->param(
     riloop         => \@riloop,
     genbrname      => $branches->{$userenv_branch}->{'branchname'},

@@ -104,7 +104,7 @@ for ( @soundederrors ) { $soundederrors{ $_ } = 1; }
 my $findborrower = $query->param('findborrower');
 $findborrower =~ s|,| |g;
 #$findborrower =~ s|'| |g;
-my $borrowernumber = $query->param('borrowernumber');
+my $borrowernumber = $query->param('borrowernumber') || $session->param( 'borrowernumber' );
 
 $branch  = C4::Context->userenv->{'branch'};  
 $printer = C4::Context->userenv->{'branchprinter'};
@@ -208,6 +208,8 @@ my $borrowerslist;
 my $message;
 if ($findborrower) {
     $session->clear( 'soundederrors' );
+    $session->clear( 'borrowernumber' );
+    $borrowernumber = 0;
     @soundederrors = ();
     %soundederrors = ();
     my ($count, $borrowers) = SearchMember($findborrower, 'cardnumber', 'web');
@@ -807,6 +809,10 @@ if ($stickyduedate) {
     $template->param(
         duedatespec => $duedatespec,
     );
+}
+
+if ( $borrowernumber && $borrowernumber != $session->param( 'borrowernumber' ) ) {
+    $session->param( 'borrowernumber', $borrowernumber );
 }
 
 #if ($branchcookie) {
