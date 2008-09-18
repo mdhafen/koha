@@ -1,0 +1,137 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
+<title>Koha &rsaquo; Circulation &rsaquo; Renew <!-- TMPL_VAR Name="title" --></title>
+<!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+<!-- TMPL_INCLUDE NAME="calendar.inc" -->
+<script type="text/javascript">
+//<![CDATA[
+function Dopop(link) {
+    var newin=window.open(link,'popup','width=600,height=400,resizable=1,toolbar=0,scrollbars=1,top');
+}
+		<!-- TMPL_IF NAME="overduecharges" -->$("#barcode").focus(function(){
+			if(($("#exemptcheck").attr("checked") == true)||($("#dropboxcheck").attr("checked") == true)){
+				$("#barcode").addClass("alert");
+			} else {
+				$("#barcode").removeClass("alert");
+			}
+		});
+		$("#barcode").blur(function(){
+			$("#barcode").removeClass("alert");
+		});<!-- /TMPL_IF -->
+	 });
+//]]>
+</script>
+</head>
+<body>
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="circ-search.inc" -->
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/circ/circulation-home.pl">Circulation</a> &rsaquo; Renew</div>
+
+<div id="doc" class="yui-t7">
+
+   <div id="bd">
+	<div id="yui-main">
+
+<!-- TMPL_IF NAME="messages" -->
+<div class="yui-g">
+    <div class="dialog message">
+        <!-- TMPL_LOOP Name="messages" -->
+            <!-- TMPL_IF Name="badbarcode" -->
+                <p class="problem">No Item with barcode: <!-- TMPL_VAR Name="msg" --></p>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="norenew" -->
+                <p class="problem">Item Not Renewable: <!-- TMPL_VAR Name="msg" --></p>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="notissued" -->
+                <p class="problem">Not checked out.</p>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="charges" -->
+                <p class="problem">Patron has fines.</p>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="waiting" -->
+                <p class="problem">Patron has hold(s) waiting.</p>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="overdue" -->
+                <p class="problem">Patron has overdue copies.</p>
+            <!-- /TMPL_IF -->
+        <!-- /TMPL_LOOP -->
+    </div>
+</div>
+<!-- /TMPL_IF -->
+
+<div class="yui-g">
+    <form method="post" action="/cgi-bin/koha/circ/renew.pl" >
+    <div class="yui-u first">
+        <fieldset>
+            <legend>Renew</legend>
+            <label for="barcode">Enter item barcode: </label>
+            <!-- TMPL_IF NAME="exemptfine" -->
+            <input name="barcode" id="barcode" size="14" class="focus alert"/>
+            <!-- TMPL_ELSIF NAME="dropboxmode"-->
+            <input name="barcode" id="barcode" size="14" class="focus alert"/>
+            <!-- TMPL_ELSE -->
+            <input name="barcode" id="barcode" size="14" class="focus"/>
+            <!-- /TMPL_IF -->
+            <input type="submit" class="submit" value="Submit" />
+
+	    <div class="date-select">
+            <div class="hint">Renewal due date:</div> <input type="text" size="8" id="newduedate" name="newduedate" value="<!-- TMPL_VAR NAME="newduedate" -->" />
+            <img src="<!-- TMPL_VAR Name="themelang" -->/lib/calendar/cal.gif" id="newduedate_button" alt="Show Calendar" />
+            <script type="text/javascript">
+                //<![CDATA[
+                Calendar.setup({
+                    inputField : "newduedate",
+                    ifFormat : "<!-- TMPL_VAR NAME="DHTMLcalendar_dateformat" -->",
+                    button : "newduedate_button"
+                });
+                //]]>
+            </script>
+
+            <label for="stickyduedate"> Remember for Session:</label>
+<!-- TMPL_IF NAME="stickyduedate" -->
+<input type="checkbox" id="stickyduedate" onclick="this.form.barcode.focus();" name="stickyduedate" checked="1" />
+<!-- TMPL_ELSE -->
+<input type="checkbox" id="stickyduedate" onclick="this.form.barcode.focus();" name="stickyduedate" />
+<!-- /TMPL_IF -->
+	    </div>
+
+            <!-- TMPL_LOOP Name="riloop" -->
+                <input type="hidden" name="ri-<!-- TMPL_VAR Name="counter" -->" value="<!-- TMPL_VAR Name="barcode" -->" />
+                <input type="hidden" name="dd-<!-- TMPL_VAR Name="counter" -->" value="<!-- TMPL_VAR Name="duedate" -->" />
+                <input type="hidden" name="bn-<!-- TMPL_VAR Name="counter" -->" value="<!-- TMPL_VAR Name="borrowernumber" -->" />
+            <!-- /TMPL_LOOP -->
+        </fieldset>
+    </div>
+    </form>
+</div>
+
+<!-- Tmpl_INCLUDE NAME="sound.inc" -->
+<!-- TMPL_IF Name="riloop" -->
+    <h2>Renewed items</h2>
+    <table>
+	<tr><th>Due Date</th>	<th>Title</th>	<th>Author</th>	<th>Barcode</th>	<th>Type</th>	<th>Patron</th><th>Note</th></tr>
+
+        <!-- TMPL_LOOP Name="riloop" -->
+            <tr>
+            <td><!-- TMPL_IF Name="duedate" --><!-- TMPL_VAR NAME="duedate" --><!-- TMPL_ELSE -->Not checked out<!-- /TMPL_IF --></td>
+            <td><a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR Name="itembiblionumber" -->">
+                    <!-- TMPL_VAR Name="itemtitle" --></a></td>
+			<td><!-- TMPL_VAR Name="itemauthor" --></td>
+            <td><a href="/cgi-bin/koha/catalogue/moredetail.pl?biblionumber=<!-- TMPL_VAR NAME="itembiblionumber" -->&itemnumber=<!-- TMPL_VAR NAME="itemnumber" -->#item<!-- TMPL_VAR NAME="itemnumber" -->"><!-- TMPL_VAR Name="barcode" --></a></td>
+            <td><!-- TMPL_VAR Name="itemtype" --> <!-- TMPL_VAR Name="ccode" --></td>
+			 <td><!-- TMPL_IF Name="duedate" -->
+                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR Name="borrowernumber" -->">
+                    <!-- TMPL_VAR Name="borsurname" -->, <!-- TMPL_VAR Name="borfirstname" -->
+                </a>
+            <!-- TMPL_ELSE -->Not checked out<!-- /TMPL_IF --></td>
+            <td><!-- TMPL_IF name="bornote" --><span class="circ-hlt"><!-- TMPL_VAR name="bornote" --><br /></span><!-- /TMPL_IF -->
+            <!-- TMPL_IF name="itemnote" --><span class="circ-hlt"><!-- TMPL_VAR name="itemnote" --></span><!-- /TMPL_IF -->
+            </td>
+           </tr>
+        <!-- /TMPL_LOOP -->
+    </table></div>
+<!-- /TMPL_IF -->
+
+</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->
