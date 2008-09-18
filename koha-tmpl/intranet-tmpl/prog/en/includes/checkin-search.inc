@@ -2,6 +2,22 @@
 <h1 id="logo"><a href="/cgi-bin/koha/mainpage.pl"><!-- TMPL_VAR NAME="LibraryName" --></a></h1><!-- Begin Checkin Resident Search Box -->
 <div id="header_search">
 <!-- TMPL_INCLUDE NAME="patron-search-box.inc" -->
+<!-- TMPL_IF NAME="CAN_user_circulate" -->
+<div id="checkin_search" class="residentsearch">
+    <p class="tip">Scan a barcode to check in:</p>
+    <form method="post" action="/cgi-bin/koha/circ/returns.pl">
+        <input name="barcode" id="ret_barcode" size="40" />
+        <input value="Submit" class="submit" type="submit" />
+    </form>
+</div>
+<div id="renew_search" class="residentsearch" style="display:none;">
+    <p class="tip">Scan a barcode to renew:</p>
+    <form method="post" action="/cgi-bin/koha/circ/renew.pl">
+        <input name="barcode" id="ren_barcode" size="40" accesskey="n" />
+        <input value="Submit" class="submit" type="submit" />
+    </form>
+</div>
+<!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="CAN_user_catalogue" -->
 <div id="catalog_search" class="residentsearch" style="display:none;">
     <p class="tip">Enter search keywords:</p>
@@ -16,6 +32,8 @@
 <!-- /TMPL_IF -->
 <ul>
     <!-- TMPL_IF NAME="CAN_user_circulate" --><li><a href="/cgi-bin/koha/circ/circulation.pl#circ_search">Check Out</a></li><!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_circulate" --><li class="ui-tabs-selected"><a href="/cgi-bin/koha/circ/returns.pl#checkin_search">Check In</a></li><!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_circulate" --><li><a href="/cgi-bin/koha/circ/renew.pl#renew_search">Renew</a></li><!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_catalogue" --><li><a href="/cgi-bin/koha/catalogue/search.pl#catalog_search">Search the Catalog</a></li><!-- /TMPL_IF -->
 </ul>   
 
