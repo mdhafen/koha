@@ -120,9 +120,9 @@ if ($type eq 'str8' && $borrowernumber ne ''){
         if ($bad_bibs) {
             $biblionumbers .= $bad_bibs;
         }
-        print $input->redirect("request.pl?biblionumbers=$biblionumbers&multi_hold=1");
+        print $input->redirect("request.pl?biblionumbers=$biblionumbers&success=1&multi_hold=1");
     } else {
-        print $input->redirect("request.pl?biblionumber=$biblionumber");
+        print $input->redirect("request.pl?biblionumber=$biblionumber&success=1");
     }
 } elsif ($borrowernumber eq ''){
 	print $input->header();
