@@ -86,7 +86,7 @@ if ($type eq 'str8' && $borrowernumber ne ''){
             AddReserve($branch,$borrowernumber->{'borrowernumber'},$biblionumber,'a',\@realbi,$rank[0],$notes,$title,$checkitem, $found, "intranet");
 	}
 	
-print $input->redirect("request.pl?biblionumber=$biblionumber");
+print $input->redirect("request.pl?biblionumber=$biblionumber&success=1");
 } elsif ($borrowernumber eq ''){
 	print $input->header();
 	print "Invalid card number please try again";

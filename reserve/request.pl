@@ -208,7 +208,7 @@ foreach my $res (@$reserves) {
         $count--;
     }
 
-    if ( $borrowerinfo->{borrowernumber} eq $res->{borrowernumber} ) {
+    if ( $borrowerinfo->{borrowernumber} eq $res->{borrowernumber} && !$input->param('success') ) {
 		$warnings = 1;
         $alreadyreserved = 1;
     }
