@@ -89,6 +89,7 @@ my $datedue;
 if ( $duedatespec ) {
     $datedue = C4::Dates->new( $duedatespec );
 }
+my $override_limit = $input->param("override_limit") || 0;
 my $barcode = $input->param('barcode');
 $barcode = barcodedecode( $barcode ) if ( $barcode && C4::Context->preference('itemBarcodeInputFilter') );
 
@@ -103,7 +104,7 @@ my @messages;
 
 # check status before renewing issue
 if ( $barcode ) {
-    my ( $renewokay, $error ) = CanBookBeRenewed( $borrowernumber, $itemno );
+    my ( $renewokay, $error ) = CanBookBeRenewed( $borrowernumber, $itemno, $override_limit );
     if ( $renewokay ) {
 	AddRenewal( $borrowernumber, $itemno, $branch, $datedue );
 
@@ -195,6 +196,7 @@ $template->param(
     overduecharges => $overduecharges,
     dropboxmode => $dropboxmode,
     dropboxdate	=> $dropboxdate->output(),
+    AllowRenewalLimitOverride => C4::Context->preference("AllowRenewalLimitOverride"),
     DHTMLcalendar_dateformat=>C4::Dates->DHTMLcalendar(),
     stickyduedate => $stickyduedate,
     messages => \@messages,

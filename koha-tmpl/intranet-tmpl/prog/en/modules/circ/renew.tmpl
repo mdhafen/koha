@@ -62,7 +62,7 @@ function Dopop(link) {
 <div class="yui-g">
     <form method="post" action="/cgi-bin/koha/circ/renew.pl" >
     <div class="yui-u first">
-        <fieldset>
+        <fieldset id="circ_circulation_issue">
             <legend>Renew</legend>
             <label for="barcode">Enter item barcode: </label>
             <!-- TMPL_IF NAME="exemptfine" -->
@@ -74,6 +74,12 @@ function Dopop(link) {
             <!-- /TMPL_IF -->
             <input type="submit" class="submit" value="Submit" />
 
+            <!-- TMPL_IF NAME="AllowRenewalLimitOverride" -->
+	    <div class="hint date-select">
+	    <label for="override_limit">Override Renewal Limit:</label>
+            <input type="checkbox" name="override_limit" id="override_limit" />
+	    </div>
+            <!-- /TMPL_IF -->
 	    <div class="date-select">
             <div class="hint">Renewal due date:</div> <input type="text" size="8" id="newduedate" name="newduedate" value="<!-- TMPL_VAR NAME="newduedate" -->" />
             <img src="<!-- TMPL_VAR Name="themelang" -->/lib/calendar/cal.gif" id="newduedate_button" alt="Show Calendar" />
