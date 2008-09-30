@@ -350,7 +350,6 @@ sub SearchMemberSort {
 }
 
 =head2 GetMemberSortValues
-
 ($sort1, $sort2) = &GetMemberSortValues();
 
 Gathers the values of the two patron sort fields.
@@ -360,7 +359,7 @@ Returns two array refs.
 =cut
 
 sub GetMemberSortValues {
-    my ( $sort1, $sort2 );
+    my ( $sort1, $sort2 ) = ( [], [] );
 
     my $branch = ( C4::Context->preference('IndependantBranches') ) ? C4::Context->userenv->{branch} : '';
     if ( C4::Context->preference("MembersViaExternal") ) {
@@ -370,6 +369,7 @@ sub GetMemberSortValues {
 	$sort1 = $$fields{sort1};
 	$sort2 = $$fields{sort2};
     } else {
+	my ( %sort1, %sort2 );
 	my $dbh   = C4::Context->dbh;
 	my $query = "";
 	my $sth;
@@ -379,14 +379,16 @@ sub GetMemberSortValues {
 	    $query .= "WHERE branchcode = ". $dbh->quote( $branch );
 	}
 
-	$sth = $dbh->prepare;
+	$sth = $dbh->prepare( $query );
 
 	$sth->execute;
 
 	while ( my $data = $sth->fetchrow_hashref ) {
-	    push @$sort1, $$data{sort1};
-	    push @$sort2, $$data{sort2};
+	    $sort1{ $$data{sort1} } = 1;
+	    $sort2{ $$data{sort2} } = 1;
 	}
+	@$sort1 = sort keys %sort1;
+	@$sort2 = sort keys %sort2;
     }
 
     return ( $sort1, $sort2 );
