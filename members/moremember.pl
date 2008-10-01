@@ -314,7 +314,7 @@ for ( my $i = 0 ; $i < $count ; $i++ ) {
 
 	my ( $renewokay,$renewerror ) = CanBookBeRenewed( $borrowernumber, $issue->[$i]{'itemnumber'}, $override_limit );
 	$row{'norenew'} = !$renewokay;
-	$row{'can_confirm'} = ( !$renewokay && $renewerror ne 'on_reserve' );
+	$row{'can_confirm'} = ( !$renewokay );
 	$row{"norenew_reason_$renewerror"} = 1 if $renewerror;
 	$row{'renew_failed'} = $renew_failed{ $issue->[$i]{'itemnumber'} };
 	$row{'return_failed'} = $return_failed{$issue->[$i]{'barcode'}};   

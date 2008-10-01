@@ -555,7 +555,7 @@ if ($borrower) {
         $it->{"renew_error_${can_renew_error}"} = 1 if defined $can_renew_error;
         my ( $restype, $reserves ) = CheckReserves( $it->{'itemnumber'} );
 		$it->{'can_renew'} = $can_renew;
-		$it->{'can_confirm'} = !$can_renew && !$restype;
+		$it->{'can_confirm'} = !$can_renew;
 		$it->{'renew_error'} = $restype;
 
         $it->{'dd'} = format_date($it->{'date_due'});
