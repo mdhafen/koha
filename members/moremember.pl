@@ -449,6 +449,7 @@ if (C4::Context->preference('EnhancedMessagingPreferences')) {
 $template->param(
     detailview => 1,
     AllowRenewalLimitOverride => C4::Context->preference("AllowRenewalLimitOverride"),
+    NoBorrowerContactOnPrintPage => C4::Context->preference("NoBorrowerContactOnPrintPage"),
     DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
     CANDELETEUSER    => $candeleteuser,
     roaddetails     => $roaddetails,
