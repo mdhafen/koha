@@ -11,13 +11,12 @@
 	<li><a href="/cgi-bin/koha/admin/itemtypes.pl">Item types</a></li>
 </ul>
 
-<h5>Patrons and circulation</h5>
+<h5>Patrons</h5>
 <ul>
 	<li><a href="/cgi-bin/koha/admin/categorie.pl">Patron types and categories</a></li>
 	<li><a href="/cgi-bin/koha/admin/cities.pl">Cities and towns</a></li>
 	<li><a href="/cgi-bin/koha/admin/roadtype.pl">Road types</a></li>
 	<li><a href="/cgi-bin/koha/admin/patron-attr-types.pl">Patron attribute types</a></li>
-	<li><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and fines rules</a></li>
 </ul>
 
 <h5>Catalog</h5>

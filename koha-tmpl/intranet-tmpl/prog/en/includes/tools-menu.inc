@@ -13,6 +13,9 @@
     <!-- TMPL_IF NAME="CAN_user_tools_label_creator" -->
 	<li><a href="/cgi-bin/koha/labels/label-home.pl">Labels (spine and barcode)</a></li>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools_smart_rules" -->
+	<li><a href="/cgi-bin/koha/tools/smart-rules.pl">Circulation and fines rules</a></li>
+    <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_edit_calendar" -->
 	<li><a href="/cgi-bin/koha/tools/holidays.pl">Calendar</a></li>
     <!-- /TMPL_IF -->

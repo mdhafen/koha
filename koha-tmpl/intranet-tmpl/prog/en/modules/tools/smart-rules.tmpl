@@ -1,5 +1,5 @@
 <!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
-<title>Koha &rsaquo; Administration &rsaquo; Issuing Rules</title>
+<title>Koha &rsaquo; Tools &rsaquo; Issuing Rules</title>
 <!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
 
 <script type="text/javascript">
@@ -18,7 +18,7 @@ $(document).ready(function() {
 <!-- TMPL_INCLUDE NAME="header.inc" -->
 <!-- TMPL_INCLUDE NAME="cat-search.inc" -->
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/admin/admin-home.pl">Administration</a> &rsaquo;  Issuing Rules</div>
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a> &rsaquo;  Issuing Rules</div>
 
 <div id="doc3" class="yui-t1">
 
@@ -47,7 +47,7 @@ $(document).ready(function() {
         <p>To modify a rule, create a new one with the same patron type and item type.</p>
     </div>
     <div id="bloc100">
-        <form method="get" action="/cgi-bin/koha/admin/smart-rules.pl" id="selectlibrary">
+        <form method="get" action="/cgi-bin/koha/tools/smart-rules.pl" id="selectlibrary">
         Select a library :
             <select name="branch" id="branch" style="width:20em;">
                 <option value="*">Default</option>
@@ -58,7 +58,7 @@ $(document).ready(function() {
         </form>
 		<br />
 		<br />
-        <form method="post" action="/cgi-bin/koha/admin/smart-rules.pl">
+        <form method="post" action="/cgi-bin/koha/tools/smart-rules.pl">
             <input type="hidden" name="op" value="add" />
             <table>
             <tr>
@@ -105,7 +105,7 @@ $(document).ready(function() {
                     </td>
                     <td><!-- TMPL_IF NAME="issuelength" --><!-- TMPL_VAR NAME="issuelength" --> day(s)<!-- /TMPL_IF --></td>
                     <td>
-                        <a class="button" href="/cgi-bin/koha/admin/smart-rules.pl?op=delete&amp;itemtype=<!-- TMPL_VAR NAME="itemtype" -->&amp;categorycode=<!-- TMPL_VAR NAME="categorycode" -->&amp;branch=<!-- TMPL_VAR NAME="branch" -->">Delete</a>
+                        <a class="button" href="/cgi-bin/koha/tools/smart-rules.pl?op=delete&amp;itemtype=<!-- TMPL_VAR NAME="itemtype" -->&amp;categorycode=<!-- TMPL_VAR NAME="categorycode" -->&amp;branch=<!-- TMPL_VAR NAME="branch" -->">Delete</a>
                     </td>
                 </tr>
             <!-- /TMPL_LOOP -->
@@ -139,7 +139,7 @@ $(document).ready(function() {
     </div>
     <!-- TMPL_IF NAME="show_branch_cat_rule_form" -->
     <div class="help">
-        <p>For this library, you can specify the maximum number of loans that 
+        <p>For this library, you can specify the maximum number of loans that
             a patron of a given category can make, regardless of the item type.
         </p>
         <p>If the total amount loanable for a given patron category is left blank,
@@ -147,7 +147,7 @@ $(document).ready(function() {
         </p>
     </div>
     <div>
-        <form method="post" action="/cgi-bin/koha/admin/smart-rules.pl">
+        <form method="post" action="/cgi-bin/koha/tools/smart-rules.pl">
             <input type="hidden" name="op" value="add-branch-cat" />
             <input type="hidden" name="branch" value="<!-- TMPL_VAR NAME="branch" -->"/>
             <table>
@@ -175,7 +175,7 @@ $(document).ready(function() {
                             <!-- /TMPL_IF -->
                         </td>
                         <td>
-                            <a class="button" href="/cgi-bin/koha/admin/smart-rules.pl?op=delete-branch-cat&amp;categorycode=<!-- TMPL_VAR NAME="categorycode" -->&amp;branch=<!-- TMPL_VAR NAME="branch" -->">Delete</a>
+                            <a class="button" href="/cgi-bin/koha/tools/smart-rules.pl?op=delete-branch-cat&amp;categorycode=<!-- TMPL_VAR NAME="categorycode" -->&amp;branch=<!-- TMPL_VAR NAME="branch" -->">Delete</a>
                         </td>
                     </tr>
                 <!-- /TMPL_LOOP -->
@@ -277,7 +277,7 @@ $(document).ready(function() {
 
 </div>
 <div class="yui-b">
-<!-- TMPL_INCLUDE NAME="admin-menu.inc" -->
+<!-- TMPL_INCLUDE NAME="tools-menu.inc" -->
 </div>
 </div>
 <!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->

@@ -36,11 +36,11 @@ my $op = $input->param('op');
 # my $flagsrequired;
 # $flagsrequired->{circulation}=1;
 my ($template, $loggedinuser, $cookie)
-    = get_template_and_user({template_name => "admin/smart-rules.tmpl",
+    = get_template_and_user({template_name => "tools/smart-rules.tmpl",
                             query => $input,
                             type => "intranet",
                             authnotrequired => 0,
-                            flagsrequired => {parameters => 1},
+                            flagsrequired => { management => 1, tools => 1 },
                             debug => 1,
                             });
 
@@ -101,7 +101,7 @@ elsif ($op eq 'add') {
     my $sth_search = $dbh->prepare("SELECT COUNT(*) AS total FROM issuingrules WHERE branchcode=? AND categorycode=? AND itemtype=?");
     my $sth_insert = $dbh->prepare("INSERT INTO issuingrules (branchcode, categorycode, itemtype, maxissueqty, issuelength, fine, finedays, firstremind, chargeperiod) VALUES(?,?,?,?,?,?,?,?,?)");
     my $sth_update=$dbh->prepare("UPDATE issuingrules SET fine=?, finedays=?, firstremind=?, chargeperiod=?, maxissueqty=?, issuelength=? WHERE branchcode=? AND categorycode=? AND itemtype=?");
-    
+
     my $br = $branch; # branch
     my $bor  = $input->param('categorycode'); # borrower category
     my $cat  = $input->param('itemtype');     # item type
@@ -122,7 +122,7 @@ elsif ($op eq 'add') {
     } else {
         $sth_insert->execute($br,$bor,$cat,$maxissueqty,$issuelength,$fine,$finedays,$firstremind,$chargeperiod);
     }
-} 
+}
 elsif ($op eq "add-branch-cat") {
     my $categorycode  = $input->param('categorycode');
     my $maxissueqty   = $input->param('maxissueqty');
@@ -284,7 +284,11 @@ elsif ($op eq "add-branch-item") {
     }
 }
 
-my $branches = GetBranches();
+my $onlymine=C4::Context->preference('IndependantBranches') &&
+             C4::Context->userenv &&
+             C4::Context->userenv->{flags}!=1 &&
+             C4::Context->userenv->{branch};
+my $branches = GetBranches( $onlymine );
 my @branchloop;
 for my $thisbranch (sort { $branches->{$a}->{branchname} cmp $branches->{$b}->{branchname} } keys %$branches) {
     my $selected = 1 if $thisbranch eq $branch;
@@ -341,7 +345,7 @@ if ($branch eq "*") {
         SELECT default_borrower_circ_rules.*, categories.description AS humancategorycode
         FROM default_borrower_circ_rules
         JOIN categories USING (categorycode)
-        
+
     ");
     $sth_branch_cat->execute();
 } else {
@@ -363,19 +367,19 @@ my @sorted_branch_cat_rules = sort { $a->{'humancategorycode'} cmp $b->{'humanca
 my $sth_branch_default;
 if ($branch eq "*") {
     # add global default
-    $sth_branch_default = $dbh->prepare("SELECT maxissueqty 
+    $sth_branch_default = $dbh->prepare("SELECT maxissueqty
                                          FROM default_circ_rules");
     $sth_branch_default->execute();
 } else {
     # add default for branch
-    $sth_branch_default = $dbh->prepare("SELECT maxissueqty 
+    $sth_branch_default = $dbh->prepare("SELECT maxissueqty
                                          FROM default_branch_circ_rules
                                          WHERE branchcode = ?");
     $sth_branch_default->execute($branch);
 }
 
 if (my ($default_maxissueqty) = $sth_branch_default->fetchrow_array()) {
-    push @sorted_branch_cat_rules, { 
+    push @sorted_branch_cat_rules, {
                                       default_humancategorycode => 1,
                                       categorycode => '*',
                                       maxissueqty => $default_maxissueqty,
