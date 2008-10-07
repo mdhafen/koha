@@ -55,8 +55,8 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "circ_issued";
 my $reporttitle = "Checked Out Copies";
-my @columns = ( "issues.date_due", "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "branches.branchname", "biblio.title", "items.itemcallnumber", "items.barcode", "items.replacementprice", "items.itemnotes", "borrowers.cardnumber" );
-my @column_titles = ( "Date Due", "Borrower", "Borrowers School", "Title", "Call Number", "Barcode", "Replacement Price", "Copy notes" );
+my @columns = ( "borrowers.sort2", "issues.date_due", "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "branches.branchname", "biblio.title", "items.itemcallnumber", "items.barcode", "items.replacementprice", "items.itemnotes", "borrowers.cardnumber" );
+my @column_titles = ( "Homeroom Teacher", "Date Due", "Borrower", "Borrowers School", "Title", "Call Number", "Barcode", "Replacement Price", "Copy notes" );
 my @tables = ( "issues",
 	       [ # Cross Joined Tables
 	         {
@@ -92,13 +92,11 @@ my @queryfilter = ();
 
 if ( $filters[0] ) {
     push @queryfilter, { crit => "borrowers.sort1", op => "=", filter => $dbh->quote( $filters[0] ), title => "Graduation Date", value => $filters[0] };
-    unshift @columns, "borrowers.sort1";
-    unshift @column_titles, "Graduation Date";
+    @columns = ( @columns[0], "borrowers.sort1", @columns[1..$#columns] );
+    @column_titles = ( @column_titles[0], "Graduation Date", @column_titles[1..$#column_titles] );
 }
 if ( $filters[1] ) {
     push @queryfilter, { crit => "borrowers.sort2", op => "=", filter => $dbh->quote( $filters[1] ), title => "Homeroom Teacher", value => $filters[1] };
-    unshift @columns, "borrowers.sort2";
-    unshift @column_titles, "Homeroom Teacher";
 }
 
 my @types_array = $input->param( "ItemTypes" );
@@ -381,13 +379,13 @@ CALC_MAIN_LOOP:
 	#  This is necessary if MembersViaExternal is on and
 	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
 
-	if ( $order =~ /sort2/ ) {
-	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
+	if ( $accesses_borrowers && $order =~ /sort2/ ) {
+	    my $num = 0;  # fields might be offset by sort1
 	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
-	    my $sort_func = sub {
-		( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
+	    my $sort_func = sub { # branch,sort2,borrower,title
+		( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
 		    ( uc $$a[0] cmp uc $$b[0] ) ||
-		    ( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
+		    ( uc $$a[ $num+2 ] cmp uc $$b[ $num+2 ] ) ||
 		    ( uc $$a[ $num+4 ] cmp uc $$b[ $num+4 ] )
 	    };
 	    @big_loop = sort $sort_func @big_loop;
