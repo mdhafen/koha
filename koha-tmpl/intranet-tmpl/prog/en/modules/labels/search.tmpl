@@ -19,6 +19,9 @@ to add to Batch <!-- TMPL_VAR NAME="batch_id" -->
 	<input type="hidden" name="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->" />
 	<input type="hidden" name="type" value="<!-- TMPL_VAR NAME="type" -->" />
 
+	<!-- TMPL_IF name="mylibraryfirst" -->
+	<input name="limit" value="branch:<!-- TMPL_VAR name="LoginBranchcode" -->" type="hidden" />
+	<!-- /TMPL_IF -->
 	<fieldset class="rows">
 <ol><li>
 <select name="idx" >   <!-- FIXME: script does keyword search regardless -->

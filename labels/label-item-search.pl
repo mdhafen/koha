@@ -65,7 +65,7 @@ my $startfrom = $query->param('startfrom') || 1;
 my ( $template, $loggedinuser, $cookie );
 my (
     $total_hits,  $orderby, $results,  $total,  $error,
-    $marcresults, $idx,     $datefrom, $dateto, $ccl_textbox
+    $marcresults, $idx,     $datefrom, $dateto, $ccl_textbox, $limit
 );
 
 my $resultsperpage = C4::Context->preference('numSearchResults') || '20';
@@ -93,6 +93,13 @@ if ($op eq "do_search") {
         $ccl_query .= ' and ' if ($ccl_textbox || $datefrom) ;
 		$ccl_query .= "acqdate,st-date-normalized,le=".  $dateto->output("iso");
 	}
+
+    $limit = $query->param('limit');
+    if ($limit) {
+        $limit =~ s|:|=|;
+        $ccl_query .= ' and ' if ( $ccl_textbox || $datefrom || $dateto );
+        $ccl_query .= $limit;
+    }
 
     my $offset =    $startfrom > 1 ? $startfrom - 1 : 0;
 	($error, $marcresults, $total_hits) =
