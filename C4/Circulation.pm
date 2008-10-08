@@ -2027,7 +2027,7 @@ sub CanBookBeRenewed {
 		}
         $sth2->finish;
         my ( $resfound, $resrec ) = C4::Reserves::CheckReserves($itemnumber);
-        if ($resfound) {
+        if ($resfound && !$override_limit) {
             $renewokay = 0;
 			$error="on_reserve"
         }
