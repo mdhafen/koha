@@ -46,7 +46,7 @@ function Dopop(link) {
                 <p class="problem">Not checked out.</p>
             <!-- /TMPL_IF -->
             <!-- TMPL_IF Name="charges" -->
-                <p class="problem">Patron has fines.</p>
+                <p class="problem">Patron has fines<!-- TMPL_IF NAME="chargeamount" --> of $<!-- TMPL_VAR NAME="chargeamount" --><!-- /TMPL_IF -->.</p>
             <!-- /TMPL_IF -->
             <!-- TMPL_IF Name="waiting" -->
                 <p class="problem">Patron has hold(s) waiting.</p>

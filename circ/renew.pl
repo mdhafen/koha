@@ -126,6 +126,7 @@ if ( $barcode ) {
 		}
 		$flaginfo{charges} = 1;
 		$flaginfo{msg} = $flag;
+		$flaginfo{chargeamount} = $flags->{ $flag }->{amount};
 	    }
 	    elsif ( $flag eq 'WAITING' ) {
 		unless ( $soundederrors{ WAITING } ) {
