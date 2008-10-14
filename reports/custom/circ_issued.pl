@@ -286,6 +286,7 @@ sub calculate {
 
 	my $table = shift @$tables;
 	my $column = join ',', @$columns;
+	my %columns_reverse_hash = map { $_ => $break_index++ } @$columns;
 
 	my $query = "SELECT DISTINCT $column FROM $table ";
 	if ( @$tables ) {
@@ -367,8 +368,15 @@ CALC_MAIN_LOOP:
 		    my $cardnumber = $values[ $#values ];
 		    my $temp = GetMemberDetails_External( $cardnumber );
 
-		    foreach ( sort keys %external_bor_fields ) {
-			next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
+		    if ( ref $temp eq 'HASH' && %$temp ) { # not empty hash ref
+			foreach ( sort keys %external_bor_fields ) {
+			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
+			}
+		    } else { # non-external patron, compare against @values
+			foreach ( sort keys %external_bor_fields ) {
+			    my $index = $columns_reverse_hash{ $_ };
+			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $values[ $index ] );
+			}
 		    }
 		}
 	    }
@@ -393,6 +401,7 @@ CALC_MAIN_LOOP:
 
 	if ( $page_breaks ) {
 	    $break = 'break';
+	    $break_index = 0;
 	    foreach my $index ( 0..$#$columns ) {
 		if ( $$columns[ $index ] =~ /borrower/ ) {
 		    $break_index = $index;
