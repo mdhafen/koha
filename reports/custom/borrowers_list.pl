@@ -30,9 +30,8 @@ use C4::Branch;  # GetBranches GetBranchInfo
 use C4::Members;  # GetMemberSortValues
 use C4::Koha;
 use C4::Circulation;
-use C4::Dates qw/format_date_in_iso/;
 
-my $accesses_borrowers = 0;  # bool to indicate this report uses the borrowers table
+my $accesses_borrowers = 1;  # bool to indicate this report uses the borrowers table
 
 if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
     use C4::MembersExternal;
@@ -44,6 +43,15 @@ if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
 
 my $input = new CGI;
 my $dbh = C4::Context->dbh;
+
+my ($template, $borrowernumber, $cookie)
+	= get_template_and_user({template_name => "reports/custom_report.tmpl",
+				query => $input,
+				type => "intranet",
+				authnotrequired => 0,
+				flagsrequired => {management => 1, tools => 1},
+				debug => 0,
+				});
 
 my $reportname = "borrowers_list";  # ie "collection_itemnums"
 my $reporttitle = "Borrowers List";  # ie "Item Number by Branch"
@@ -82,9 +90,14 @@ if ( $filters[1] ) {
     unshift @column_titles, "Homeroom Teacher";
 }
 
+if ( C4::Context->preference("IndependantBranches") ) {
+    my $branch = C4::Context->userenv->{branch};
+    push @queryfilter, { crit => "branchcode", op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+}
+
 my @loopfilter = ();
 
-my $where = "1 = 1";
+my $where;
 my $order = "$columns[0]";
 
 if ( $order = $input->param("Order") ) {
@@ -105,22 +118,12 @@ my $sep = $input->param( "sep" );
 #my $mime = $input->param("MIME");
 my $mime = 'application/vnd.sun.xml.calc';  # There is really only one option
 
-my ($template, $borrowernumber, $cookie)
-	= get_template_and_user({template_name => "reports/custom_report.tmpl",
-				query => $input,
-				type => "intranet",
-				authnotrequired => 0,
-				flagsrequired => {management => 1, tools => 1},
-				debug => 0,
-				});
-
 my $userenv = C4::Context->userenv;
 
 $template->param(
 		 do_it => $do_it,
 		 reportname => $reportname,
 		 reporttitle => $reporttitle,
-		 DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
 		 );
 
 if ($do_it) {
@@ -213,17 +216,19 @@ sub calculate {
 	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
+	my @wheres;
 	my @looprow;
 	my @loopheader;
 	my %globalline;
 	my @mainloop;
 	my $grantotal = 0;
 	my @big_loop;
+	my $break;
+	my $break_index;
 
 	my $table = shift @$tables;
 	my $column = join ',', @$columns;
-
-	$where = "1" unless ( $where );
+	my %columns_reverse_hash = map { $_ => $break_index++ } @$columns;
 
 	my $query = "SELECT DISTINCT $column FROM $table ";
 	if ( @$tables ) {
@@ -252,7 +257,8 @@ sub calculate {
 		}
 	    }
 	}
-	$query .= "WHERE $where ";
+	$query .= "WHERE ";
+	$query .= "$where AND " if ( $where );
 
 	if ( @$qfilters ) {
 	    foreach ( @$qfilters ) {
@@ -271,13 +277,14 @@ sub calculate {
 			$$_{filter} =~ s/^\'(.*)\'$/$1/;
 			push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
 		    } else {
-			$query .= "AND $$_{crit} $$_{op} $$_{filter} ";
+			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
 		    }
 		} else {
-		    $query .= "AND $$_{crit} $$_{op} $$_{filter} ";
+		    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
 		}
 	    }
 	}
+	$query .= join "AND ", @wheres;
 
 	$query .= "ORDER BY $order" if ( $order );
 
@@ -303,8 +310,15 @@ CALC_MAIN_LOOP:
 		    my $cardnumber = $values[ $#values ];
 		    my $temp = GetMemberDetails_External( $cardnumber );
 
-		    foreach ( sort keys %external_bor_fields ) {
-			next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
+		    if ( ref $temp eq 'HASH' && %$temp ) { # not empty hash ref
+			foreach ( sort keys %external_bor_fields ) {
+			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
+			}
+		    } else { # non-external patron, compare against @values
+			foreach ( sort keys %external_bor_fields ) {
+			    my $index = $columns_reverse_hash{ $_ };
+			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $values[ $index ] );
+			}
 		    }
 		}
 	    }
@@ -315,12 +329,12 @@ CALC_MAIN_LOOP:
 	#  This is necessary if MembersViaExternal is on and
 	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
 
-	if ( $order =~ /sort2/ ) {
+	if ( $accesses_borrowers && $order =~ /sort2/ ) {
 	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
 	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
 	    my $sort_func = sub {
 		( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
-		    ( uc $$a[0] cmp uc $$b[0] ) ||
+		    ( uc $$a[ 0 ] cmp uc $$b[ 0 ] ) ||
 		    ( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
 		    ( uc $$a[ $num+4 ] cmp uc $$b[ $num+4 ] )
 	    };

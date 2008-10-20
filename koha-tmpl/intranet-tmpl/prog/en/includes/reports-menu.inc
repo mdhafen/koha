@@ -1,7 +1,7 @@
 <h5>Custom Reports</h5>
 	<ul>
 		<li><a href="/cgi-bin/koha/reports/custom/circ_issued.pl">Checked Out Books</a></li>
-		<li><a href="/cgi-bin/koha/reports/custom/borrowers_list.pl>List Borrowers</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/borrowers_list.pl">List Borrowers</a></li>
 	</ul>
 <h5>Guided Reports</h5>
 	<ul>
