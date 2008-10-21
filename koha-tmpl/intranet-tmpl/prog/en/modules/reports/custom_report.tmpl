@@ -83,7 +83,7 @@
 				<input type="checkbox"<!-- TMPL_IF NAME="checked" --> checked="checked"<!-- /TMPL_IF --> <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Check<!-- TMPL_VAR NAME="count" -->"<!-- /TMPL_IF -->/>
 			<!-- /TMPL_IF -->
 			<!-- TMPL_IF NAME="calendar" -->
-			     <input type="text" readonly="readonly" size="10" id="<!-- TMPL_VAR NAME="id" -->" <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> />
+			     <input type="text" readonly="readonly" size="10" id="<!-- TMPL_VAR NAME="id" -->" <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> value="<!-- TMPL_VAR NAME="value" -->" />
 			     <img src="<!-- TMPL_VAR NAME="themelang" -->/lib/calendar/cal.gif" alt="Show Calendar" border="0" id="openCalendar<!-- TMPL_VAR NAME="id" -->" style="cursor: pointer;" />
 			     <script language="JavaScript" type="text/javascript">
 				     function validate<!-- TMPL_VAR NAME="count" -->(date) {
@@ -94,7 +94,7 @@
 					      var dayMonth = month + '-' + day;
 					      var dateString = year + '-' + month + '-' + day;
 					      <!-- TMPL_IF NAME="limit" -->
-					      var dateTo = document.getElementById('<!-- TMPL_VAR NAME="limit" -->').value.split("-");
+					      var dateTo = document.getElementById('<!-- TMPL_VAR NAME="limit" -->').value.split('-');
 					      var limitDate = new Date( dateTo[0], (dateTo[1] - 1), dateTo[2] );
 					      if (date <!-- TMPL_VAR NAME="limit_op" --> limitDate) {
 					        return true;
@@ -106,13 +106,13 @@
 					      <!-- /TMPL_IF -->
 				     }
 
-				     Calendar.setup(
+				     Calendar.setup({
 					inputField : "<!-- TMPL_VAR NAME="id" -->",
 					ifFormat : "<!-- TMPL_VAR NAME="DHTMLcalendar_dateformat" -->",
 					button : "openCalendar<!-- TMPL_VAR NAME="id" -->",
 					disableFunc : validate<!-- TMPL_VAR NAME="count" -->,
 					dateStatusFunc : validate<!-- TMPL_VAR NAME="count" -->
-				);
+				});
 			     </script>
 			<!-- /TMPL_IF -->
 		</li>
