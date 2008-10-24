@@ -51,7 +51,7 @@ my ($template, $borrowernumber, $cookie)
 				query => $input,
 				type => "intranet",
 				authnotrequired => 0,
-				flagsrequired => {management => 1, tools => 1},
+				flagsrequired => {reports => 1},
 				debug => 0,
 				});
 
