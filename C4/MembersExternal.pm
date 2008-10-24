@@ -780,7 +780,7 @@ sub DBI_BuildQuery {
 	my $schema = $MembersExternal_Context{ schema };
 	my $user = $MembersExternal_Context{ user };
 	my $pass = $MembersExternal_Context{ pass };
-	my $dsn = "DBI:$engine:server=$host;database=$schema";
+	my $dsn = "DBI:$engine:server=$host;host=$host;database=$schema;sid=$schema";
 	$MembersExternal_Context{ conn } = DBI->connect( $dsn, $user, $pass );
 	unless ( defined $MembersExternal_Context{ conn } ) {
 	    warn "MembersExternal:  Couldn't connect to external DB!: ". $DBI::errstr if ( $debug );
