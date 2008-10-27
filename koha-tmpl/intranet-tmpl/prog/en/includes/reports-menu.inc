@@ -3,6 +3,7 @@
 		<li><a href="/cgi-bin/koha/reports/custom/circ_issued.pl">Checked Out Books</a></li>
 <!--		<li><a href="/cgi-bin/koha/reports/custom/circ_stats_noissues.pl">Copies With No Checkouts</a></li> -->
 		<li><a href="/cgi-bin/koha/reports/custom/account_fines.pl">Fines</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/cat_items_noitype.pl">Items With No Item Type</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/borrowers_list.pl">List Borrowers</a></li>
 	</ul>
 <h5>Guided Reports</h5>
