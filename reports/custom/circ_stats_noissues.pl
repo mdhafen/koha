@@ -68,11 +68,6 @@ my @tables = ( "items",
 	           table => 'biblio',  # Table name
 	           using => 'biblionumber',  # Using column
 	         },
-	         {
-		   join => "LEFT",
-	           table => 'old_issues',  # Table name
-	           using => 'itemnumber',  # Using column
-	         },
 		 {
 		   join => "LEFT",
 		   table => "issues",
@@ -85,9 +80,9 @@ my @tables = ( "items",
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
-push @queryfilter, { crit => "returndate", op => "<", filter => $dbh->quote( format_date_in_iso( $filters[0] ) ), title => "Not issued After", value => $filters[0] } if ( $filters[0] );
+push @queryfilter, { crit => "returndate", op => " ", filter => "IS NULL", title => "Not issued After", value => $filters[0] } if ( $filters[0] );
 
-push @queryfilter, { crit => "issuedate", op => ">", filter => $dbh->quote( format_date_in_iso( $filters[1] ) ), title => "Not issued Before", value => $filters[1] } if ( $filters[1] );
+push @queryfilter, { crit => "( issuedate", op => " ", filter => "< ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." OR issuedate IS NULL )", title => "Not issued Before", value => $filters[1] } if ( $filters[1] );
 
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     my $branch = $filters[2] || C4::Context->userenv->{branch};
@@ -96,7 +91,20 @@ if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
 
 my @loopfilter = ();
 
-my $where = "old_issues.date_due IS NULL AND issues.date_due IS NULL";
+my $where = "itemnumber NOT IN ( SELECT DISTINCT itemnumber FROM old_issues ";
+if ( $filters[0] ) {
+    $where .= "WHERE issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) ) ." ";
+}
+if ( $filters[1] ) {
+    if ( $where =~ /WHERE/ ) {
+	$where .= "AND ";
+    } else {
+	$where .= "WHERE ";
+    }
+    $where .= "returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." ";
+}
+$where .= ")";
+
 my $order = "$columns[0]";
 my $page_breaks;
 
@@ -259,7 +267,8 @@ sub calculate {
 	    }
 	}
 	$query .= "WHERE ";
-	$query .= "$where AND " if ( $where );
+	$query .= "$where" if ( $where );
+	$query .= " AND " if ( $where and @$qfilters );
 
 	if ( @$qfilters ) {
 	    foreach ( @$qfilters ) {
