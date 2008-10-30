@@ -113,9 +113,11 @@ if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
 
 my @loopfilter = ();
 
-my $where = [ "accountlines.amountoutstanding <> 0", "date_due < NOW()" ];
+my $where = [ "accountlines.amountoutstanding <> 0" ];
 my $order = "sort2,patron";
 my $page_breaks = ( $input->param( 'Options' ) ) ? 1 : 0 ;
+
+push @$where, "date_due < NOW()" unless ( $input->param( 'Options2' ) );
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -230,6 +232,13 @@ if ($do_it) {
 	    count => 1,
 	    input_name => "Options",
 	    label => "One Patron Per Page",
+	};
+
+	push @parameters, {
+	    check_box => 1,
+	    count => 2,
+	    input_name => "Options2",
+	    label => "Show All Checked Out Copies",
 	};
 
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
