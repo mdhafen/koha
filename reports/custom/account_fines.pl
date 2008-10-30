@@ -350,8 +350,8 @@ CALC_MAIN_LOOP:
 	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
 	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
 	    my $sort_func = sub {
-		( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
-		    ( uc $$a[0] cmp uc $$b[0] ) ||
+		( uc $$a[0] cmp uc $$b[0] ) ||
+		    ( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
 		    ( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
 		    ( uc $$a[ $num+4 ] cmp uc $$b[ $num+4 ] )
 	    };
