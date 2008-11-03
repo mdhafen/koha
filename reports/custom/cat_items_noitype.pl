@@ -59,7 +59,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_items_noitype";  # ie "collection_itemnums"
 my $reporttitle = "Items With No Item Type";  # ie "Item Number by Branch"
-my @columns = ( "$hbranch", "items.barcode", "items.itemcallnumber", "CONCAT_WS(' ',biblio.title,biblio.seriestitle) AS title", "items.itemnumber" );
+my @columns = ( "$hbranch", "items.barcode", "items.itemcallnumber", "CONCAT_WS(' ',biblio.title,biblio.seriestitle) AS title", "items.itemnumber", "items.biblionumber" );
 my @column_titles = ( "Library", "Barcode", "Call Number", "Title" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -348,6 +348,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
+	    $mapped_values[1] = { value => "<a href='/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[5] ."&itemnumber=". $values[4] ."'>". $values[1] ."</a>" };
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
