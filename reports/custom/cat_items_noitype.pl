@@ -269,7 +269,6 @@ sub calculate {
 
 	$query .= "ORDER BY $order" if ( $order );
 
-warn $query;
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
 
