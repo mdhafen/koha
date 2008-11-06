@@ -92,6 +92,11 @@
     <dd>Export bibliographic and holdings data</dd>
     <!-- /TMPL_IF -->
 
+    <!-- TMPL_IF NAME="CAN_user_tools" -->
+    <dt><a href="/cgi-bin/koha/tools/set-itype.pl">Set Item Type on copies</a></dt>
+    <dd>Set the item type on copies where it isn't set.  Also set the item type on biblio records of those copies if it isn't set there.</dd>
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
     <dt><a href="/cgi-bin/koha/tools/import_borrowers.pl">Import patrons</a></dt>
     <dd>Import patron data</dd>
