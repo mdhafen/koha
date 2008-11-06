@@ -71,6 +71,11 @@ my @tables = ( "accountlines",  # ie "items"
 	           table => 'borrowers',  # Table name
 	           using => 'borrowernumber',  # Using column
 	         },
+		 {
+		   join => 'LEFT',
+		   table => 'items',
+		   using => 'itemnumber',
+		 },
 	       ],
 	       "issues",  # Union Table
 	       [  # columns
@@ -106,9 +111,9 @@ my @queryfilter = ();
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
-    my $hbranch = 'borrowers.branchcode';
+    my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
     my $branch = $filters[2] || C4::Context->userenv->{branch};
-    push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR $hbranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
 my @loopfilter = ();
