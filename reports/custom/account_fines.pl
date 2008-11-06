@@ -84,7 +84,7 @@ my @queryfilter = ();
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
-    my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
+    my $hbranch = 'borrowers.branchcode';
     my $branch = $filters[2] || C4::Context->userenv->{branch};
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
