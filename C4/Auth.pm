@@ -1336,7 +1336,7 @@ sub checkpw {
 
 # Koha superuser account
 #     C4::Context->set_userenv(0,0,C4::Context->config('user'),C4::Context->config('user'),C4::Context->config('user'),"",1);
-        return 2;
+        return 2, $userid;
     }
     if (   $userid && $userid eq 'demo'
         && "$password" eq 'demo'
@@ -1345,7 +1345,7 @@ sub checkpw {
 
 # DEMO => the demo user is allowed to do everything (if demo set to 1 in koha.conf
 # some features won't be effective : modify systempref, modify MARC structure,
-        return 2;
+        return 2, $userid;
     }
     return 0;
 }
