@@ -440,10 +440,10 @@ CALC_MAIN_LOOP:
 
 	if ( $page_breaks ) {
 	    $break = 'break';
-	    $break_index = 0;
+	    $break_index = 1;
 	    foreach my $index ( 0..$#$columns ) {
-		if ( $$columns[ $index ] =~ /sort2/ ) {
-		    $break_index = $index;
+		if ( $$columns[ $index ] =~ /sort1/ ) {
+		    $break_index = 2;  # 0 is sort2, 1 might be sort1 or name
 		}
 	    }
 	}
