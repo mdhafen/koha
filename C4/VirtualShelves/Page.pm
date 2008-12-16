@@ -230,6 +230,21 @@ sub shelfpage ($$$$$) {
                             });
                     }
 
+                    # Pull all item callnumbers too.
+                    # Should pull this from
+                    #  biblioitems.cn_[class+item+suffix],
+                    #  but I'm not sure they will be populated.
+                    my $query = "
+SELECT DISTINCT itemcallnumber
+  FROM items
+ WHERE itemcallnumber IS NOT NULL
+   AND itemcallnumber <> ''
+   AND biblionumber = ". $this_item->{'biblionumber'};
+                    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv->{branch} ) {
+                        $query .= " AND homebranch = ". C4::Context->dbh->quote( C4::Context->userenv->{branch} );
+                    }
+                    my $callnums = C4::Context->dbh->selectcol_arrayref( $query );
+                    $this_item->{'callnumbers'} = join ' | ', @$callnums;
                 }
                 push @paramsloop, { display => 'privateshelves' } if $category == 1;
                 $showadd = 1;
