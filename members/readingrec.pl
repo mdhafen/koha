@@ -68,6 +68,7 @@ for (my $i=0;$i<$count;$i++){
 	$line{title}=$issues->[$i]->{'title'};
 	$line{author}=$issues->[$i]->{'author'};
 	$line{classification} = $issues->[$i]->{'classification'} || $issues->[$i]->{'itemcallnumber'};
+	$line{issuedate}=format_date($issues->[$i]->{'issuedate'});
 	$line{date_due}=format_date($issues->[$i]->{'date_due'});
 	$line{returndate}=format_date($issues->[$i]->{'returndate'});
 	$line{renewals}=$issues->[$i]->{'renewals'};
