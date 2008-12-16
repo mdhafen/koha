@@ -139,6 +139,7 @@ $(document).ready(function(){
                 <!-- TMPL_UNLESS NAME="item-level_itypes" --><th>Item Type</th><!-- /TMPL_UNLESS -->
                 <th>Title</th>
                 <th>Author</th>
+		<th>Call Numbers</th>
                 <th>Date Added</th>
                 <th>&nbsp;</th>
             </tr>
@@ -176,6 +177,7 @@ $(document).ready(function(){
 			<!-- TMPL_VAR NAME="title" escape="html" --> <!-- TMPL_VAR NAME="subtitle" --></a>
 			</td>
 			<td><!-- TMPL_VAR NAME="author" --></td>
+			<td><!-- TMPL_VAR NAME="callnumbers" --></td>
 			<td><!-- TMPL_VAR NAME="dateadded" --></td>
 			<td>
 			<!-- TMPL_UNLESS name="notforloan" -->

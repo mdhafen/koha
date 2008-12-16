@@ -125,6 +125,7 @@ $(function() {
                     <th>Title</th>
                     <th>Author</th>
                     <th>Year</th>
+                    <th>Call Numbers</th>
                   </tr></thead>
                   <tbody>
          <!-- TMPL_LOOP NAME="itemsloop" -->
@@ -154,6 +155,7 @@ $(function() {
             			<td>
             	<!-- TMPL_IF NAME="publicationyear" --> <!-- TMPL_VAR NAME="publicationyear" --> <!-- TMPL_ELSE --> <!-- TMPL_VAR NAME="copyrightdate" --> <!-- /TMPL_IF -->
             			</td>
+                               <td><!-- TMPL_VAR NAME="callnumbers" --></td>
         		 	</tr>
        <!-- /TMPL_LOOP -->
 	</tbody><!-- /itemsloop -->
