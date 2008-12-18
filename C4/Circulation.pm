@@ -957,6 +957,16 @@ sub AddIssue {
 						$res->{'borrowernumber'},
 						$res->{'branchcode'}
 					);
+
+					#  Check if this patron happens to have a hold on this title
+					my $canceled = 0;
+					my ( undef, $reserves ) = GetReservesFromBiblionumber($res->{'biblionumber'});
+					foreach my $reserve ( @$reserves ) {
+						if ( $reserve->{'borrowernumber'} == $borrower->{'borrowernumber'} ) {
+							# Going to check it out, don't need that reserve anymore
+							ModReserveFill( $reserve );
+						}
+					}
 				}
 			}
 
