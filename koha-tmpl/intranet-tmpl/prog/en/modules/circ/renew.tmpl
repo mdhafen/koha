@@ -54,6 +54,9 @@ function Dopop(link) {
             <!-- TMPL_IF Name="overdue" -->
                 <p class="problem">Patron has overdue copies.</p>
             <!-- /TMPL_IF -->
+            <!-- TMPL_IF Name="waslost" -->
+                <p class="problem">Item was lost, now found.</p>
+            <!-- /TMPL_IF -->
         <!-- /TMPL_LOOP -->
     </div>
 </div>

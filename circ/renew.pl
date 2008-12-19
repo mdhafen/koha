@@ -146,6 +146,16 @@ if ( $barcode ) {
 	    }
 	    push( @messages, \%flaginfo ) if ( %flaginfo );
 	}
+
+	# Item checks
+	my $item = GetItem( $itemno );
+	# was it lost?
+	if ( $item->{lost} ) {
+	    ModItem({'itemlost' => 0}, $item->{biblionumber}, $item->{itemnumber});
+	    C4::Circulation::_FixAccountForLostAndReturned($item->{itemnumber}, $borrower, $barcode);
+	    push @messages, { waslost => 1 };
+	}
+
 	$soundok = 1 unless ( $sounderror );
 
 	foreach my $ri ( @inputloop ) {
