@@ -555,7 +555,7 @@ sub ModDateLastSeen {
     my ($itemnumber) = @_;
     
     my $today = C4::Dates->new();    
-    ModItem({ itemlost => 0, datelastseen => $today->output("iso") }, undef, $itemnumber);
+    ModItem({ datelastseen => $today->output("iso") }, undef, $itemnumber);
 }
 
 =head2 DelItem
