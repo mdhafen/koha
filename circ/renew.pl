@@ -96,14 +96,14 @@ $barcode = barcodedecode( $barcode ) if ( $barcode && C4::Context->preference('i
 #
 # renew items
 #
-my $itemno = GetItemnumberFromBarcode( $barcode );
-my $itemissue = GetItemIssue( $itemno );
-my $borrowernumber = $itemissue->{borrowernumber};
-
 my @messages;
 
 # check status before renewing issue
 if ( $barcode ) {
+    my $itemno = GetItemnumberFromBarcode( $barcode );
+    my $itemissue = ( $itemno ) ? GetItemIssue( $itemno ) : 0;
+    my $borrowernumber = ( $itemissue && defined( $itemissue->{borrowernumber} ) ) ? $itemissue->{borrowernumber} : 0;
+
     my ( $renewokay, $error ) = CanBookBeRenewed( $borrowernumber, $itemno, $override_limit );
     if ( $renewokay ) {
 	AddRenewal( $borrowernumber, $itemno, $branch, $datedue );
