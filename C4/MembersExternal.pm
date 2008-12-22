@@ -574,7 +574,7 @@ sub GetMemberDetails_DBI {
     $filter{ $filter_field } = $cardnumber;
     $query = DBI_BuildQuery( $category, \@columns, \%filter );
     return {} unless ( defined $query );
-    $sth = $MembersExternal_Context{ conn }->prepare( $query );
+    $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return {};
     $sth->execute;
     $data = $sth->fetchrow_hashref;
 
@@ -735,7 +735,7 @@ sub checkpw_DBI {
 	$passwd_field = GetExternalAttrib( 'password', $cat );
 	$query = DBI_BuildQuery( $cat, [ $cardfield, $passwd_field ], $filter );
 	return 0 unless ( defined $query );
-	$sth = $MembersExternal_Context{ conn }->prepare( $query );
+	$sth = $MembersExternal_Context{ conn }->prepare( $query ) or return 0;
 	$sth->execute;
 	#  Check for uniqueness
 	if ( $sth->rows > 1 ) {
