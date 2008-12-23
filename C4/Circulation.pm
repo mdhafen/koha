@@ -1741,7 +1741,7 @@ sub FixAccountForLostAndReturned {
 			(borrowernumber, accountno, offsetaccount,  offsetamount)
 			VALUES (?,?,?,?)");
 		$usth->execute($borrower->{'borrowernumber'},$data->{'accountno'},$nextaccntno,$offset);
-        ModItem({ paidfor => '' }, undef, $itm);
+        ModItem({ paidfor => '', itemlost => 0 }, undef, $itm);
 	}
 	$sth->finish;
 	return;
