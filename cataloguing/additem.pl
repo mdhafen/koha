@@ -213,6 +213,17 @@ sub generate_subfield_form {
 }
 
 
+sub get_item_lost_status {
+    my ( $itemnumber ) = @_;
+    my $dbh = C4::Context->dbh;
+    my $result;
+    my $query = "SELECT itemlost from items where itemnumber = ?";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute( $itemnumber );
+    ( $result ) = $sth->fetchrow;
+    return $result;
+}
+
 my $input = new CGI;
 my $dbh = C4::Context->dbh;
 my $error        = $input->param('error');
@@ -335,6 +346,19 @@ if ($op eq "additem") {
     if ($exist_itemnumber && $exist_itemnumber != $itemnumber) {
         push @errors,"barcode_not_unique";
     } else {
+        # check if Lost was change.
+        my $exist_lost = get_item_lost_status( $itemnumber );
+        if ( $exist_lost != $addedolditem->{'itemlost'} ) {
+            if ( $exist_lost == 0 && $addedolditem->{'itemlost'} == 1 ) {
+                C4::Accounts::chargelostitem($itemnumber)
+            } elsif ( $exist_lost == 1 && (
+                          $addedolditem->{'itemlost'} == 0 ||
+                          $addedolditem->{'itemlost'} == '' ) ) {
+                # FIXME Should check if the previous borrower lost the item,
+                # and pass their info here instead of an empty hash
+                C4::Circulation::FixAccountForLostAndReturned( $addedolditem, {} );
+            }
+        }
         my ($oldbiblionumber,$oldbibnum,$oldbibitemnum) = ModItemFromMarc($itemtosave,$biblionumber,$itemnumber);
         $itemnumber="";
     }
