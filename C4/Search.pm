@@ -1543,9 +1543,7 @@ sub searchResults {
 
 	    # IndependantBranches, etc...  dont show copies at other branches
 	    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv && $item->{$hbranch} ne C4::Context->userenv->{branch} ) {
-		$items_count--;
-		$items_counter--;
-		delete $fields[ $items_counter ];
+		undef $field;
 		next;
 	    }
 
@@ -1668,11 +1666,12 @@ sub searchResults {
 	#  remove these blank spots here
 	if ( C4::Context->preference('IndependantBranches') ) {
 	    for ( my $c = 0; $c < scalar( @fields ); $c++ ) {
-		unless ( exists $fields[ $c ] ) {
+		unless ( defined $fields[ $c ] ) {
 		    splice @fields, $c, 1;
 		    $c--;
 		}
 	    }
+            $items_count = scalar(@fields);
 	}
 
         my ( $availableitemscount, $onloanitemscount, $notforloanitemscount,$otheritemscount );
