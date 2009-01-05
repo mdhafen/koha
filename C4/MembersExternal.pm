@@ -1,8 +1,7 @@
-
 # -*- tab-width: 4 -*-
 # NOTE: This file uses 4-character tabs; do not change the tab size!
 
-package C4::Members;
+package C4::MembersExternal;
 
 # Copyright 2008 Michael Hafen
 #
@@ -622,7 +621,7 @@ sub GetMemberColumns_DBI {
 
 	my $query = DBI_BuildQuery( $cat, [ @columns, $cardno_attr ], \%filter );
 	next unless ( defined $query );
-	my $sth = $MembersExternal_Context{ conn }->prepare( $query );
+	my $sth = $MembersExternal_Context{ conn }->prepare( $query ) or next;
 	$sth->execute;
 	while ( my $patron = $sth->fetchrow_hashref ) {
 	    my $cardnumber = $$patron{ $cardno_attr };
@@ -708,7 +707,7 @@ sub Check_Userid_DBI {
     $filter{ $userfield } = $userid;
     $query = DBI_BuildQuery( $category, [ $cardfield ], \%filter );
     return 1 unless ( defined $query );
-    my $sth = $MembersExternal_Context{ conn }->prepare( $query );
+    my $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return 1;
     $sth->execute;
     if ( $sth->rows ) {
 	while ( my ( $found ) = $sth->fetchrow ) {
