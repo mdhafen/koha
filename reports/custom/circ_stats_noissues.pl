@@ -85,23 +85,22 @@ push @queryfilter, { crit => "returndate", op => " ", filter => "IS NULL", title
 push @queryfilter, { crit => "( issuedate", op => " ", filter => "< ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." OR issuedate IS NULL )", title => "Not issued Before", value => $filters[1] } if ( $filters[1] );
 
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
-    my $branch = $filters[2] || C4::Context->userenv->{branch};
+    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
 my @loopfilter = ();
 
-my $where = "itemnumber NOT IN ( SELECT DISTINCT itemnumber FROM old_issues ";
+my $where = "itemnumber NOT IN ( SELECT DISTINCT itemnumber FROM old_issues WHERE itemnumber IS NOT NULL ";
 if ( $filters[0] ) {
-    $where .= "WHERE issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) ) ." ";
+    $where .= "AND issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) ) ." ";
 }
 if ( $filters[1] ) {
-    if ( $where =~ /WHERE/ ) {
-	$where .= "AND ";
-    } else {
-	$where .= "WHERE ";
-    }
-    $where .= "returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." ";
+    $where .= "AND returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." ";
+}
+if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
+    $where .= "AND branchcode = ". $dbh->quote( $branch ) ." ";
 }
 $where .= ")";
 
