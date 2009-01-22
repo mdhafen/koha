@@ -177,7 +177,7 @@ foreach my $ri ( @inputloop ) {
     $$ri{bortitle}       = $borrower->{'title'};
     $$ri{bornote}        = $borrower->{'borrowernotes'};
 
-    my $biblio = GetBiblioFromItemNumber(GetItemnumberFromBarcode($barcode));
+    my $biblio = GetBiblioFromItemNumber(GetItemnumberFromBarcode($$ri{barcode}));
     # fix up item type for display
     $biblio->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $biblio->{'itype'} : $biblio->{'itemtype'};
     $$ri{itembiblionumber} = $biblio->{'biblionumber'};
