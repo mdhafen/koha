@@ -117,6 +117,11 @@
 	<dd>Syncronize some patron information with an external database</dd>
     <!-- /TMPL_IF -->
 
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+    <dt><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar Fined Patrons</a></dt>
+	<dd>Mark Patrons debarred who have more than a certain amount of fines.</dd>
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="CAN_user_tools_schedule_tasks" -->
     <dt><a href="/cgi-bin/koha/tools/scheduler.pl">Task Scheduler</a></dt>
     <dd>Schedule tasks to run</dd>

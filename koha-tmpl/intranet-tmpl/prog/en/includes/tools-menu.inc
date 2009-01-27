@@ -60,6 +60,9 @@
     <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
 	<li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Syncronize External Patrons</a></li>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+	<li><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar Fined Patrons</a></li>
+    <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_schedule_tasks" -->
 	<li><a href="/cgi-bin/koha/tools/scheduler.pl">Task Scheduler</a></li>
     <!-- /TMPL_IF -->
