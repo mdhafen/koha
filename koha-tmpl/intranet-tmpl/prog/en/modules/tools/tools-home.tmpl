@@ -30,6 +30,11 @@
     <dd>Synchronize some patron information with information from a database other than koha</dd>
     <!-- /TMPL_IF -->
 
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+    <dt><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar Fined Patrons</a></dt>
+	<dd>Mark Patrons debarred who have more than a certain amount of fines.</dd>
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notices" -->
     <dt><a href="/cgi-bin/koha/tools/letter.pl">Notices</a></dt>
     <dd>Define notices (print and email notification messages for overdues, etc.)</dd>
