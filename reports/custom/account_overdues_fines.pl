@@ -56,10 +56,11 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "account_overdues_fines";  # ie "collection_itemnums"
 my $reporttitle = "Overdue Copies And Fines";  # ie "Item Number by Branch"
-my @column_titles = ( "Homeroom Teacher", "Patron", "Description", "Amount Outstanding" );
+my @column_titles = ( "Homeroom Teacher", "Card Number", "Patron", "Description", "Amount Outstanding" );
 my @tables = ( "accountlines",  # ie "items"
 	       [  # columns
 		  "borrowers.sort2",
+		  "borrowers.cardnumber",
 		  "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron",
 		  "description",
 		  "amountoutstanding",
@@ -80,6 +81,7 @@ my @tables = ( "accountlines",  # ie "items"
 	       "issues",  # Union Table
 	       [  # columns
 		  "borrowers.sort2",
+		  "borrowers.cardnumber",
 		  "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron",
 		  "CONCAT_WS( '<br>', biblio.title, CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( 'Replacement Price: ', replacementprice ) ) AS description",
 		  "NULL",
