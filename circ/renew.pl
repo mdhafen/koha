@@ -188,6 +188,10 @@ foreach my $ri ( @inputloop ) {
     $$ri{ccode}            = $biblio->{'ccode'};
     $$ri{itemnumber}       = $biblio->{'itemnumber'};
 
+    if ( $biblio->{'remainderoftitle'} ) {
+	$$ri{itemtitle} .= " ". $biblio->{'remainderoftitle'};
+    }
+
     $count++;
     push @riloop, $ri;
 }

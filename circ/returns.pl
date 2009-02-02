@@ -146,7 +146,7 @@ if ( $query->param('resbarcode') ) {
     if ( $messages->{'transfert'} ) {
 	$sounderror = 1;
         $template->param(
-            itemtitle      => $iteminfo->{'title'},
+            itemtitle      => $iteminfo->{'title'} ." ". $iteminfo->{'remainderoftitle'},
 			itembiblionumber => $iteminfo->{'biblionumber'},
             iteminfo       => $iteminfo->{'author'},
             tobranchname   => GetBranchName($messages->{'transfert'}),

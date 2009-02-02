@@ -354,6 +354,7 @@ CREATE TABLE `biblio` (
   `frameworkcode` varchar(4) NOT NULL default '',
   `author` mediumtext,
   `title` mediumtext,
+  `remainderoftitle` mediumtext,
   `unititle` mediumtext,
   `notes` mediumtext,
   `serial` tinyint(1) default NULL,

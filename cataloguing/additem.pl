@@ -493,7 +493,7 @@ foreach my $tag ( keys %{$tagslib}){
 $template->param( title => $record->title() ) if ($record ne "-1");
 $template->param(
     biblionumber => $biblionumber,
-    title        => $oldrecord->{title},
+    title        => $oldrecord->{title} ." ". $oldrecord->{remainderoftitle},
     author       => $oldrecord->{author},
     item_loop        => \@item_value_loop,
     item_header_loop => \@header_value_loop,

@@ -494,7 +494,7 @@ INSERT INTO `marc_subfield_structure` (`tagfield`, `tagsubfield`, `liblibrarian`
 		('200', 'b', 'General Material Designation', 'General Material Designation', 0, 0, '', 2, '', '', '', 0, 0, '', '', '', NULL),
 		('200', 'c', 'Title Proper by Another Author', 'Title Proper by Another Author', 0, 0, '', 2, '', '', '', 0, 0, '', '', '', NULL),
 		('200', 'd', 'Paralel Title Proper', 'Paralel Title Proper', 0, 0, '', 2, '', '', '', 0, 0, '', '', '', NULL),
-		('200', 'e', 'Other Title Information', 'Other Title Information', 0, 1, '', 2, '', '', '', 0, 0, '', '', '', NULL),
+		('200', 'e', 'Other Title Information', 'Other Title Information', 0, 1, 'biblio.remainderoftitle', 2, '', '', '', 0, 0, '', '', '', NULL),
 		('200', 'f', 'First Statement of Responsibility', 'First Statement of Responsibility', 0, 0, 'biblio.author', 2, '', '', '', 0, 0, '', '', '', NULL),
 		('200', 'g', 'Subsequent Statement of Responsibility', 'Subsequent Statement of Responsibility', 0, 0, '', 2, '', '', '', 0, 0, '', '', '', NULL),
 		('200', 'h', 'Number of a Part', 'Number of a Part', 0, 0, '', 2, '', '', '', 0, 0, '', '', '', NULL),

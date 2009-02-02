@@ -104,7 +104,7 @@ if (alreadyreserved > "0"){
 <!-- TMPL_INCLUDE NAME="header.inc" -->
 <!-- TMPL_INCLUDE NAME="circ-search.inc" -->
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/catalogue/search.pl">Catalog</a> &rsaquo; <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR NAME="title" escape="html" --></a> &rsaquo; Place a hold on <!-- TMPL_VAR NAME="title" escape="html" --></div>
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/catalogue/search.pl">Catalog</a> &rsaquo; <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR NAME="title" escape="html" --></a> <!-- TMPL_VAR NAME="remainderoftitle" --> &rsaquo; Place a hold on <!-- TMPL_VAR NAME="title" escape="html" --></div>
 
  <div id="doc3" class="yui-t2">
 
@@ -126,7 +126,7 @@ if (alreadyreserved > "0"){
 			</form>
 		</div>
 	<!-- /TMPL_IF -->
-<h1>Place a hold on <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR NAME="title" escape="html" --></a></h1>
+<h1>Place a hold on <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR NAME="title" escape="html" --></a> <!-- TMPL_VAR NAME="remainderoftitle" --></h1>
 
 <!-- TMPL_UNLESS NAME="cardnumber"-->
     <!-- TMPL_IF NAME="messageborrower" -->                                    
