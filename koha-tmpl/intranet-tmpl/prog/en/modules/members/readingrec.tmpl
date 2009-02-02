@@ -68,7 +68,10 @@
         <td>
             <!-- TMPL_VAR name="issuestimestamp" -->
         </td>
-        <td><a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR name="title" escape="html" --></a></td>
+        <td>
+            <a href="/cgi-bin/koha/catalogue/detail.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"><!-- TMPL_VAR name="title" escape="html" --></a>
+            <!-- TMPL_VAR NAME="subtitle" escape="html" -->
+        </td>
 
         <td><!-- TMPL_VAR name="author" --></td>
 

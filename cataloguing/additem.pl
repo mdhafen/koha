@@ -653,9 +653,11 @@ foreach my $tag ( keys %{$tagslib}){
 
 # what's the next op ? it's what we are not in : an add if we're editing, otherwise, and edit.
 $template->param( title => $record->title() ) if ($record ne "-1");
+my $subtitle = GetRecordValue( 'subtitle', $record, $frameworkcode );
 $template->param(
     biblionumber => $biblionumber,
     title        => $oldrecord->{title},
+    subtitle     => $subtitle,
     author       => $oldrecord->{author},
     item_loop        => \@item_value_loop,
     item_header_loop => \@header_value_loop,

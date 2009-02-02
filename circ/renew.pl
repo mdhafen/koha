@@ -192,6 +192,9 @@ foreach my $ri ( @inputloop ) {
     $biblio->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $biblio->{'itype'} : $biblio->{'itemtype'};
     $$ri{itembiblionumber} = $biblio->{'biblionumber'};
     $$ri{itemtitle}        = $biblio->{'title'};
+    my $record = GetMarcBiblio( $biblio->{'biblionumber'} );
+    my $fw = GetFrameworkCode( $biblio->{'biblionumber'} );
+    $$ri{itemsubtitle}     = GetRecordValue( 'subtitle', $record, $fw );
     $$ri{itemauthor}       = $biblio->{'author'};
     $$ri{itemtype}         = $biblio->{'itemtype'};
     $$ri{itemnote}         = $biblio->{'itemnotes'};

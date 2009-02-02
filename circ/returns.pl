@@ -142,6 +142,9 @@ if ( $query->param('resbarcode') ) {
     my $iteminfo   = GetBiblioFromItemNumber($item);
     # fix up item type for display
     $iteminfo->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $iteminfo->{'itype'} : $iteminfo->{'itemtype'};
+    # add subtitle
+    my $record = GetMarcBiblio( $iteminfo->{'biblionumber'} );
+    my $subtitle = GetRecordValue( 'subtitle', $record, $iteminfo->{'frameworkcode'} );
     my $diffBranchSend = ($userenv_branch ne $diffBranchReturned) ? $diffBranchReturned : undef;
 # diffBranchSend tells ModReserveAffect whether document is expected in this library or not,
 # i.e., whether to apply waiting status
@@ -154,6 +157,7 @@ if ( $query->param('resbarcode') ) {
     if ( $messages->{'transfert'} ) {
         $template->param(
             itemtitle      => $iteminfo->{'title'},
+            itemsubtitle   => $subtitle,
             itembiblionumber => $iteminfo->{'biblionumber'},
             iteminfo       => $iteminfo->{'author'},
             tobranchname   => GetBranchName($messages->{'transfert'}),
@@ -219,9 +223,11 @@ if ($barcode) {
     my $biblio = GetBiblioFromItemNumber($itemnumber);
     # fix up item type for display
     $biblio->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $biblio->{'itype'} : $biblio->{'itemtype'};
+    my $record = GetMarcRecord( $biblio->{'biblionumber'} );
 
     $template->param(
         title            => $biblio->{'title'},
+        subtitle         => GetRecordValue( 'subtitle', $record, $biblio->{'frameworkcode'} ),
         homebranch       => $biblio->{'homebranch'},
         homebranchname   => GetBranchName( $biblio->{$homeorholdingbranchreturn} ),
         author           => $biblio->{'author'},
@@ -469,10 +475,12 @@ if ($borrower) {
             my $items = $flags->{$flag}->{'itemlist'};
             foreach my $item (@$items) {
                 my $biblio = GetBiblioFromItemNumber( $item->{'itemnumber'});
+                my $record = GetMarcRecord( $biblio->{'biblionumber'} );
                 push @waitingitemloop, {
                     biblionum => $biblio->{'biblionumber'},
                     barcode   => $biblio->{'barcode'},
                     title     => $biblio->{'title'},
+                    subtitle  => GetRecordValue( 'subtitle', $record, $biblio->{'frameworkcode'} ),
                     brname    => $branches->{ $biblio->{'holdingbranch'} }->{'branchname'},
                 };
             }
@@ -489,11 +497,13 @@ if ($borrower) {
                 @$items )
             {
                 my $biblio = GetBiblioFromItemNumber( $item->{'itemnumber'});
+                my $record = GetMarcBiblio( $biblio->{'biblionumber'} );
                 push @itemloop, {
                     duedate   => format_date($item->{'date_due'}),
                     biblionum => $biblio->{'biblionumber'},
                     barcode   => $biblio->{'barcode'},
                     title     => $biblio->{'title'},
+                    subtitle  => GetRecordValue( 'subtitle', $record, $biblio->{'frameworkcode'} ),
                     brname    => $branches->{ $biblio->{'holdingbranch'} }->{'branchname'},
                 };
             }
@@ -548,10 +558,12 @@ foreach ( sort { $a <=> $b } keys %returneditems ) {
 
         #        my %ri;
         my $biblio = GetBiblioFromItemNumber(GetItemnumberFromBarcode($bar_code));
+        my $record = GetMarcBiblio( $biblio->{'biblionumber'} );
         # fix up item type for display
         $biblio->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $biblio->{'itype'} : $biblio->{'itemtype'};
         $ri{itembiblionumber} = $biblio->{'biblionumber'};
         $ri{itemtitle}        = $biblio->{'title'};
+        $ri{itemsubtitle}     = GetRecordValue( 'subtitle', $record, $biblio->{'frameworkcode'} );
         $ri{itemauthor}       = $biblio->{'author'};
         $ri{itemtype}         = $biblio->{'itemtype'};
         $ri{itemnote}         = $biblio->{'itemnotes'};
