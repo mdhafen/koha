@@ -49,6 +49,7 @@ my $dbh = C4::Context->dbh;
 my $op     = $cgi->param( 'op' ) || '';
 my $branch = $cgi->param( 'branch' );
 my $amount = $cgi->param( 'amount' );
+my $rebar  = $cgi->param( 'rebar' );
 
 if ( $op eq 'Debar' ) {
     my $count = 0;
@@ -79,6 +80,37 @@ if ( $op eq 'Debar' ) {
         op => $op,
         debarred => $count,
         );
+
+    if ( $rebar ) {
+	my $recount = 0;
+	my @bind = ( $amount );
+	my $query = "
+     SELECT accountlines.borrowernumber
+       FROM accountlines
+ CROSS JOIN borrowers USING ( borrowernumber )
+      WHERE borrowers.debarred > 0";
+	if ( $branch ) {
+	    $query .= "
+        AND borrowers.branchcode = ?";
+	    unshift @bind, $branch;
+	}
+	$query .= "
+   GROUP BY accountlines.borrowernumber
+     HAVING SUM(amountoutstanding) < ?";
+
+	my $sth = $dbh->prepare( $query );
+	$sth->execute( @bind );
+
+	while ( my ( $borrnum ) = $sth->fetchrow_array ) {
+	    my %work = ( 'debarred' => 0, 'borrowernumber' => $borrnum );
+	    ModMember( %work );
+	    $recount++;
+	}
+
+	$template->param(
+	    rebarred => $recount,
+	    );
+    }
 }
 
 #get Branches
