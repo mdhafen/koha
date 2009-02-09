@@ -61,6 +61,13 @@ function verify_images() {
             <!-- TMPL_IF name="unititle" --><p><!-- TMPL_VAR name="unititle" escape="html" --></p><!-- /TMPL_IF -->
             <!-- TMPL_IF NAME="author" --><p>By <a href="/cgi-bin/koha/catalogue/search.pl?idx=au,phr&amp;q=<!-- TMPL_VAR NAME="author" ESCAPE="url" -->"><!-- TMPL_VAR NAME="author" --></a></p><!-- /TMPL_IF -->
         <ul>
+        <!-- TMPL_IF NAME="MARCADDEDTITLES" -->
+            <li><strong>Additional Titles:</strong><ul>
+            <!-- TMPL_LOOP NAME="MARCADDEDTITLES" -->
+                <li><!-- TMPL_VAR NAME="value" --></li>
+            <!-- /TMPL_LOOP -->
+            </ul></li>
+        <!-- /TMPL_IF -->
         <!-- TMPL_IF name="MARCAUTHORS" -->
             <li><strong>Additional Authors:</strong><ul>
             <!-- TMPL_LOOP NAME="MARCAUTHORS" -->

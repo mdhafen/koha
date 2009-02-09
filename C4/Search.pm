@@ -1491,6 +1491,8 @@ sub searchResults {
             $oldbiblio->{summary} = $newsummary;
         }
 
+	$oldbiblio->{MARCADDEDTITLES} = GetMarcAdditionalTitles( $marcrecord, '' );
+
         # Pull out the items fields
         my @fields = $marcrecord->field($itemtag);
 

@@ -77,6 +77,7 @@ BEGIN {
 		&GetMarcAuthors
 		&GetMarcSeries
 		GetMarcUrls
+		&GetMarcAdditionalTitles
 		&GetUsedMarcStructure
 		&GetXmlBiblio
 		&GetCOinSBiblio
@@ -1643,6 +1644,40 @@ sub GetMarcUrls {
     }
     return \@marcurls;
 }
+
+=head2 GetMarcAdditionalTitles
+
+=over 4
+
+$marcaddedtitles = GetMarcAdditionalTitles($record,$marcflavour);
+Returns arrayref of additional titles from MARC data, suitable to pass to tmpl
+loop.
+
+=back
+
+=cut
+
+sub GetMarcAdditionalTitles {
+    my ($record, $marcflavour) = @_;
+    my @marcaddedtitles = ();
+    my %uniquetitles = ();
+    $marcflavour = 'MARC21' unless ( $marcflavour );
+    if ( $marcflavour eq 'MARC21' ) {
+	foreach my $field ( $record->field('740') ) {
+	    foreach my $title ( $field->subfield('a') ) {
+		$uniquetitles{ uc $title } = { value => $title };
+	    }
+	    foreach my $title ( $field->subfield('p') ) {
+		$uniquetitles{ uc $title } = { value => $title };
+	    }
+	}
+    } else {  # Unimarc
+    }
+
+    @marcaddedtitles = sort { $a->{value} cmp $b->{value} } values %uniquetitles;
+
+    return \@marcaddedtitles;
+}  #end GetMarcAdditionalTitles
 
 =head2 GetMarcSeries
 

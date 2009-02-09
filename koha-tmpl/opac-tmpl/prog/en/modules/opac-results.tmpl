@@ -353,6 +353,14 @@ $("span.addto").html(param1);
 				<span class="results_summary">
 				<!-- TMPL_IF name="seriestitle" --> <!-- TMPL_VAR name="seriestitle" --><!-- /TMPL_IF --><!-- TMPL_IF name="volume" -->, <!-- TMPL_VAR name="volume" --><!-- /TMPL_IF --><!-- TMPL_IF name="volumeddesc" -->, <!-- TMPL_VAR name="volumeddesc" --><!-- /TMPL_IF --><!-- TMPL_IF name="number" -->, <!-- TMPL_VAR name="number" --><!-- /TMPL_IF -->
 				</span>
+				<!-- TMPL_IF NAME="MARCADDEDTITLES" -->
+				<span class="results_summary">
+				<span class="label">Additional titles:</span>
+				<!-- TMPL_LOOP NAME="MARCADDEDTITLES" -->
+				<!-- TMPL_VAR NAME="value" --><!-- TMPL_UNLESS NAME="__last__" -->, <!-- /TMPL_UNLESS -->
+				<!-- /TMPL_LOOP -->
+				</span>
+				<!-- /TMPL_IF -->
 				<span class="results_summary">
 				<span class="label">Publication:</span>
                         <!-- TMPL_IF name="place" --><!-- TMPL_VAR name="place" --> <!-- /TMPL_IF --><!-- TMPL_IF name="publishercode" --><!-- TMPL_VAR name="publishercode" --><!-- /TMPL_IF --><!-- TMPL_IF name="publicationyear" --> <!-- TMPL_VAR name="publicationyear" -->

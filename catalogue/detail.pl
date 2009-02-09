@@ -67,6 +67,7 @@ my $marcsubjctsarray = GetMarcSubjects( $record, $marcflavour );
 my $marcseriesarray  = GetMarcSeries($record,$marcflavour);
 my $marcurlsarray    = GetMarcUrls    ($record,$marcflavour);
 my $subtitle         = GetRecordValue('subtitle', $record, $fw);
+my $marcaddedtitlesarray = GetMarcAdditionalTitles( $record, $marcflavour );
 
 # Get Branches, Itemtypes and Locations
 my $branches = GetBranches();
@@ -177,6 +178,7 @@ $template->param(
 	MARCSERIES  => $marcseriesarray,
 	MARCURLS => $marcurlsarray,
 	subtitle    => $subtitle,
+	MARCADDEDTITLES => $marcaddedtitlesarray,
 	itemdata_ccode      => $itemfields{ccode},
 	itemdata_enumchron  => $itemfields{enumchron},
 	itemdata_uri        => $itemfields{uri},

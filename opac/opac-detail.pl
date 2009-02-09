@@ -193,6 +193,7 @@ my $marcsubjctsarray = GetMarcSubjects  ($record,$marcflavour);
 my $marcseriesarray  = GetMarcSeries    ($record,$marcflavour);
 my $marcurlsarray    = GetMarcUrls      ($record,$marcflavour);
 my $subtitle         = GetRecordValue('subtitle', $record, GetFrameworkCode($biblionumber));
+my $marcaddedtitlesarray = GetMarcAdditionalTitles( $record, $marcflavour );
 
     $template->param(
                      normalized_oclc         => GetNormalizedOCLCNumber($record,$marcflavour),
@@ -203,6 +204,7 @@ my $subtitle         = GetRecordValue('subtitle', $record, GetFrameworkCode($bib
                      MARCAUTHORS             => $marcauthorsarray,
                      MARCSERIES              => $marcseriesarray,
                      MARCURLS                => $marcurlsarray,
+                     MARCADDEDTITLES         => $marcaddedtitlesarray,
                      norequests              => $norequests,
                      RequestOnOpac           => C4::Context->preference("RequestOnOpac"),
                      itemdata_ccode          => $itemfields{ccode},

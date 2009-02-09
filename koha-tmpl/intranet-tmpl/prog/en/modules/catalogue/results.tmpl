@@ -373,6 +373,14 @@ function yuiZ3950button() {
                                         <!-- TMPL_IF name="timestamp" --> <i>(modified on <!-- TMPL_VAR name="timestamp" -->)</i><!-- /TMPL_IF -->
                                         <!-- TMPL_IF name="cn_class" -->[<a href="/cgi-bin/koha/catalogue/search.pl?q=callnum:<!-- TMPL_VAR NAME="cn_class" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="cn_class" --></a>]<!-- /TMPL_IF -->
                                     </p>
+                                    <!-- TMPL_IF NAME="MARCADDEDTITLES" -->
+                                    <p>Additional Titles:
+                                        <!-- TMPL_LOOP NAME="MARCADDEDTITLES" -->
+                                        <!-- TMPL_VAR NAME="value" -->
+					<!-- TMPL_UNLESS NAME="__last__" --> | <!-- /TMPL_UNLESS -->
+                                        <!-- /TMPL_LOOP -->
+                                    </p>
+                                    <!-- /TMPL_IF -->
                                     <p class="searchhighlightblob"><!-- TMPL_VAR NAME="searchhighlightblob" --></p>
 
                                     <!-- TMPL_IF NAME="authorised_value_images" -->
