@@ -167,6 +167,13 @@ YAHOO.util.Event.onContentReady("furtherm", function () {
     </span>
     <!-- /TMPL_IF -->
 
+    <!-- TMPL_IF NAME="additionaltitles" -->
+    <span class="results_summary"><span class="label">Additonal Titles:</span>
+        <!-- TMPL_LOOP NAME="additionaltitles" -->
+        <!-- TMPL_VAR NAME="subfield" --> ;
+        <!-- /TMPL_LOOP -->
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="MARCSUBJCTS" -->
             <span class="results_summary"><span class="label">Subject(s):</span> 
                 <!-- TMPL_LOOP NAME="MARCSUBJCTS" -->

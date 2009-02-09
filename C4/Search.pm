@@ -1453,6 +1453,7 @@ sub searchResults {
                : GetFrameworkCode($marcrecord->subfield($bibliotag,$bibliosubf));
         my $oldbiblio = TransformMarcToKoha( $dbh, $marcrecord, $fw );
         $oldbiblio->{subtitle} = GetRecordValue('subtitle', $marcrecord, $fw);
+	$oldbiblio->{additionaltitles} = GetRecordValue( 'additionaltitles', $marcrecord, $fw );
         $oldbiblio->{result_number} = $i + 1;
 
         # add imageurl to itemtype if there is one

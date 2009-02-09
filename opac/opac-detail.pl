@@ -214,6 +214,7 @@ my $marcsubjctsarray = GetMarcSubjects($record,$marcflavour);
 my $marcseriesarray  = GetMarcSeries  ($record,$marcflavour);
 my $marcurlsarray    = GetMarcUrls    ($record,$marcflavour);
 my $subtitle         = GetRecordValue('subtitle', $record, GetFrameworkCode($biblionumber));
+my $additionaltitles = GetRecordValue( 'additionaltitles', $record, GetFrameworkCode($biblionumber) );
 
     $template->param(
                      MARCNOTES               => $marcnotesarray,
@@ -231,6 +232,7 @@ my $subtitle         = GetRecordValue('subtitle', $record, GetFrameworkCode($bib
                      itemdata_itemnotes          => $itemfields{itemnotes},
                      authorised_value_images => $biblio_authorised_value_images,
                      subtitle                => $subtitle,
+                     additionaltitles        => $additionaltitles,
     );
 
 foreach ( keys %{$dat} ) {
