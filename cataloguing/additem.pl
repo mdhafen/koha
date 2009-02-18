@@ -424,18 +424,56 @@ my ($holdingbrtagf,$holdingbrtagsubf) = &GetMarcFromKohaField("items.holdingbran
 
 # now, construct template !
 # First, the existing items for display
+my %subfield_order = ( # the order I want them in
+    '0' => 29, # wthdrawn
+    '1' => 28, # itemlost
+    '2' => 19, # cn_source
+    '3' => 10, # materials
+    '4' => 27, # damaged
+    '5' => 26, # restricted
+    '7' => 25, # notforloan
+    '8' => 18, # ccode
+    'a' => 0,  # homebranch
+    'b' => 1,  # holdingbranch
+    'c' => 8,  # location
+    'd' => 20, # dateaccessioned
+    'e' => 15, # booksellerid
+    'f' => 17, # Coded location qualifier
+    'g' => 5,  # price
+    'h' => 16, # enumchron
+    'j' => 9 , # stack
+    'l' => 30, # issues
+    'm' => 31, # renewals
+    'n' => 32, # reserves
+    'o' => 4,  # itemcallnumber
+    'p' => 3,  # barcode
+    'q' => 24, # onloan
+    'r' => 21, # datelastseen
+    's' => 22, # datelastborrowed
+    't' => 11, # copynumber
+    'u' => 12, # uri
+    'v' => 6,  # replacementprice
+    'w' => 23, # replacementpricedate
+    'x' => 14, # paidfor
+    'y' => 7,  # itype
+    'z' => 13, # itemnotes
+    );
+my $sort = sub {
+    $subfield_order{ $a } <=> $subfield_order{ $b };
+};
+
 my @item_value_loop;
 my @header_value_loop;
 for my $row ( @big_array ) {
     my %row_data;
-    my @item_fields = map +{ field => $_ || '' }, @$row{ sort keys(%witness) };
+    my @item_fields = map +{ field => $_ || '' }, @$row{ sort $sort keys(%witness) };
     $row_data{item_value} = [ @item_fields ];
     $row_data{itemnumber} = $row->{itemnumber};
     #reporting this_row values
     $row_data{'nomod'} = $row->{'nomod'};
     push(@item_value_loop,\%row_data);
 }
-foreach my $subfield_code (sort keys(%witness)) {
+foreach my $subfield_code (sort $sort keys(%witness)) {
     my %header_value;
     $header_value{header_value} = $witness{$subfield_code};
     push(@header_value_loop, \%header_value);
