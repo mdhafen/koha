@@ -233,6 +233,7 @@ if ($findborrower) {
         $query->param( 'borrowernumber', $borrowers[0]->{'borrowernumber'} );
         $query->param( 'barcode',           '' );
         $borrowernumber = $borrowers[0]->{'borrowernumber'};
+	$soundok = 1;
     }
     else {
         $borrowerslist = \@borrowers;
@@ -248,10 +249,12 @@ if ($borrowernumber) {
     my ( $od, $issue, $fines ) = GetMemberIssuesAndFines( $borrowernumber );
 
     if ( $od && ! $soundederrors{ ODUES } ) {
+	$soundok = 0;  # thinks are not ok
 	$sounderror = 1;
 	$soundederrors{ ODUES } = 1;
     }
     if ( $fines > 0 && ! $soundederrors{ CHARGES } ) {
+	$soundok = 0;
 	$sounderror = 1;
 	$soundederrors{ CHARGES } = 1;
     }
@@ -662,6 +665,7 @@ foreach $flag ( sort keys %$flags ) {
         if ( $flag eq 'GNA' ) {
             $template->param( gna => 'true' );
 	    unless ( $soundederrors{ GNA } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ GNA } = 1;
 	    }
@@ -669,6 +673,7 @@ foreach $flag ( sort keys %$flags ) {
         if ( $flag eq 'LOST' ) {
             $template->param( lost => 'true' );
 	    unless ( $soundederrors{ LOST } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ LOST } = 1;
 	    }
@@ -676,6 +681,7 @@ foreach $flag ( sort keys %$flags ) {
         if ( $flag eq 'DBARRED' ) {
             $template->param( dbarred => 'true' );
 	    unless ( $soundederrors{ DBARRED } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ DBARRED } = 1;
 	    }
@@ -688,6 +694,7 @@ foreach $flag ( sort keys %$flags ) {
                 charges_is_blocker => 1
             );
 	    unless ( $soundederrors{ CHARGES } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ CHARGES } = 1;
 	    }
@@ -708,6 +715,7 @@ foreach $flag ( sort keys %$flags ) {
                 chargesamount => $flags->{'CHARGES'}->{'amount'},
             );
 	    unless ( $soundederrors{ CHARGES } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ CHARGES } = 1;
 	    }
@@ -725,6 +733,7 @@ foreach $flag ( sort keys %$flags ) {
                 oduesmsg => $flags->{'ODUES'}->{'message'}
             );
 	    unless ( $soundederrors{ ODUES } ) {
+		$soundok = 0;
 		$sounderror = 1;
 		$soundederrors{ ODUES } = 1;
 	    }
