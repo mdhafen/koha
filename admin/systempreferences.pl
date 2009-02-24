@@ -200,6 +200,7 @@ $tabsysprefs{language}      = "I18N/L10N";
 $tabsysprefs{defaultSortField}        = "Searching";
 $tabsysprefs{defaultSortOrder}        = "Searching";
 $tabsysprefs{numSearchResults}        = "Searching";
+$tabsysprefs{maxItemsinSearchResults} = "Searching";
 $tabsysprefs{OPACdefaultSortField}    = "Searching";
 $tabsysprefs{OPACdefaultSortOrder}    = "Searching";
 $tabsysprefs{OPACItemsResultsDisplay} = "Searching";

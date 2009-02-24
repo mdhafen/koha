@@ -1520,10 +1520,6 @@ sub searchResults {
         my $item_in_transit_count = 0;
         my $can_place_holds       = 0;
         my $items_count           = scalar(@fields);
-        my $maxitems =
-          ( C4::Context->preference('maxItemsinSearchResults') )
-          ? C4::Context->preference('maxItemsinSearchResults') - 1
-          : 1;
 
         # loop through every item
         foreach my $field (@fields) {
@@ -1677,7 +1673,7 @@ sub searchResults {
 	}
 
         my ( $availableitemscount, $onloanitemscount, $notforloanitemscount,$otheritemscount );
-        $maxitems =
+        my $maxitems =
           ( C4::Context->preference('maxItemsinSearchResults') )
           ? C4::Context->preference('maxItemsinSearchResults') - 1
           : 1;
