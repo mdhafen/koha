@@ -253,8 +253,8 @@ foreach my $item (@resultsloop) {
         #Each element of this hash is a separate line on the patron card. Keys are the text to print and the associated data is the point size.
         my $text = {        
             #$patron_data->{'description'}  => $fontsize,
-	    $patron_data->{'surname'} .', '. $patron_data->{'firstname'} => $fontsize,
-            $patron_data->{'branchname'}   => ($fontsize + 3),
+	    $patron_data->{'surname'} .', '. $patron_data->{'firstname'} => $fontsize + 3,
+            $patron_data->{'branchname'}   => ($fontsize),
         };
 
         $DEBUG and warn "Generating patron card for cardnumber $patron_data->{'cardnumber'}";
