@@ -132,6 +132,7 @@ $tabsysprefs{patronimages}                   = "Circulation";
 $tabsysprefs{printcirculationslips}          = "Circulation";
 $tabsysprefs{ReturnBeforeExpiry}             = "Circulation";
 $tabsysprefs{SpecifyDueDate}                 = "Circulation";
+$tabsysprefs{ceilingDueDate}                 = "Circulation";
 $tabsysprefs{AutomaticItemReturn}            = "Circulation";
 $tabsysprefs{ReservesMaxPickUpDelay}         = "Circulation";
 $tabsysprefs{TransfersMaxDaysWarning}        = "Circulation";
