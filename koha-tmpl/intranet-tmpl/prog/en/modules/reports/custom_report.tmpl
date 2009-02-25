@@ -58,7 +58,7 @@
 		<ol>
 		<!-- TMPL_LOOP NAME="parameter_loop" -->
 		<li <!-- TMPL_IF NAME="li_id" -->id="<!-- TMPL_VAR NAME="li_id" -->"<!-- /TMPL_IF --><!-- TMPL_IF NAME="style" --> style="<!-- TMPL_VAR NAME="style" -->"<!-- /TMPL_IF -->>
-			<label <!-- TMPL_IF NAME="input_name" -->for="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->for="Filter"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="label" --> :</label>
+			<label <!-- TMPL_IF NAME="input_name" -->for="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE --><!-- TMPL_IF NAME="check_box" -->for="Check<!-- TMPL_VAR NAME="count" -->"<!-- TMPL_ELSE -->for="Filter"<!-- /TMPL_IF --><!-- /TMPL_IF -->><!-- TMPL_VAR NAME="label" --> :</label>
 			<!-- TMPL_IF NAME="input_box" -->
 			<input <!-- TMPL_IF NAME="input_name" -->name="<!-- TMPL_VAR NAME="input_name" -->"<!-- TMPL_ELSE -->name="Filter"<!-- /TMPL_IF --> <!-- TMPL_IF NAME="size" -->size="<!-- TMPL_VAR NAME="size" -->"<!-- /TMPL_IF --> value="<!-- TMPL_VAR NAME="value" -->" <!-- TMPL_VAR NAME="onchange" -->/>
 			<!-- /TMPL_IF -->
