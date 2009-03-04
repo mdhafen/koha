@@ -354,16 +354,18 @@ sub manualinvoice {
     my $accountno  = getnextacctno($borrowernumber);
     my $amountleft = $amount;
 
-#    if (   $type eq 'CS'
-#        || $type eq 'CB'
-#        || $type eq 'CW'
-#        || $type eq 'CF'
-#        || $type eq 'CL' )
-#    {
-#        my $amount2 = $amount * -1;    # FIXME - $amount2 = -$amount
-#        $amountleft =
-#          fixcredit( $borrowernumber, $amount2, $itemnum, $type, $user );
-#    }
+    if (   $type eq 'C'
+        || $type eq 'CS'
+        || $type eq 'CB'
+        || $type eq 'CW'
+        || $type eq 'CF'
+        || $type eq 'CL'
+        || $type eq 'FOR' )
+    {
+        my $amount2 = -$amount;
+        $amountleft =
+          fixcredit( $borrowernumber, $amount2, $itemnum, $type, $user );
+    }
     if ( $type eq 'N' ) {
         $desc .= " New Card";
     }
@@ -414,7 +416,7 @@ sub manualinvoice {
 
 =head2 fixcredit #### DEPRECATED
 
- $amountleft = &fixcredit($borrowernumber, $data, $barcode, $type, $user);
+ $amountleft = &fixcredit($borrowernumber, $data, $itemnum, $type, $user);
 
  This function is only used internally, not exported.
 
@@ -425,13 +427,13 @@ sub manualinvoice {
 sub fixcredit {
 
     #here we update both the accountoffsets and the account lines
-    my ( $borrowernumber, $data, $barcode, $type, $user ) = @_;
+    my ( $borrowernumber, $data, $itemnum, $type, $user ) = @_;
     my $dbh        = C4::Context->dbh;
     my $newamtos   = 0;
     my $accdata    = "";
     my $amountleft = $data;
-    if ( $barcode ne '' ) {
-        my $item        = GetBiblioFromItemNumber( '', $barcode );
+    if ( $itemnum ne '' ) {
+        my $item        = C4::Biblio::GetBiblioFromItemNumber( $itemnum );
         my $nextaccntno = getnextacctno($borrowernumber);
         my $query       = "SELECT * FROM accountlines WHERE (borrowernumber=?
     AND itemnumber=? AND amountoutstanding > 0)";
@@ -475,6 +477,7 @@ sub fixcredit {
             $nextaccntno, $newamtos );
         $usth->finish;
     }
+    return $amountleft unless ( $amountleft );
 
     # begin transaction
     my $nextaccntno = getnextacctno($borrowernumber);
@@ -517,8 +520,8 @@ sub fixcredit {
     $sth->finish;
     $type = "Credit " . $type;
     UpdateStats( $user, $type, $data, $user, '', '', $borrowernumber );
-    $amountleft *= -1;
-    return ($amountleft);
+    $amountleft = -$amountleft;
+    return $amountleft;
 
 }
 

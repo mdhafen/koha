@@ -53,7 +53,7 @@ if ($add){
     my $itemnum = GetItemnumberFromBarcode($barcode) if $barcode;
     my $desc=$input->param('desc');
     my $amount=$input->param('amount');
-    $amount = -$amount;
+    $amount = -$amount if ( $amount > 0 );
     my $type=$input->param('type');
     manualinvoice($borrowernumber,$itemnum,$desc,$type,$amount);
     print $input->redirect("/cgi-bin/koha/members/boraccount.pl?borrowernumber=$borrowernumber");

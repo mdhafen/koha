@@ -52,6 +52,7 @@ if ($add){
 	my $itemnum = GetItemnumberFromBarcode($barcode) if $barcode;
     my $desc=$input->param('desc');
     my $amount=$input->param('amount');
+    $amount = -$amount if ( $amount < 0 );
     my $type=$input->param('type');
     my $error=manualinvoice($borrowernumber,$itemnum,$desc,$type,$amount);
 	if ($error){
