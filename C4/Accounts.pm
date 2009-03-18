@@ -354,13 +354,7 @@ sub manualinvoice {
     my $accountno  = getnextacctno($borrowernumber);
     my $amountleft = $amount;
 
-    if (   $type eq 'C'
-        || $type eq 'CS'
-        || $type eq 'CB'
-        || $type eq 'CW'
-        || $type eq 'CF'
-        || $type eq 'CL'
-        || $type eq 'FOR' )
+    if ( $amount )
     {
         my $amount2 = -$amount;
         $amountleft =
@@ -432,97 +426,72 @@ sub fixcredit {
     my $newamtos   = 0;
     my $accdata    = "";
     my $amountleft = $data;
+    my $done = 0;
+    my @bind = ( $borrowernumber );
+    my $query_type_part = "";
+    my $query_item_part = "";
+    my $query = "SELECT * FROM accountlines WHERE ( borrowernumber = ?
+    AND amountoutstanding ". ( ( $data > 0 ) ? ">" : "<" ) ." 0 )";
+
+    if ( $type eq 'CL' ) {
+	$query_type_part .= " AND ( accounttype = 'L' OR accounttype = 'Rep' )";
+    }
+    elsif ( $type eq 'CF' ) {
+	$query_type_part .= " AND ( accounttype = 'F' OR accounttype = 'FU' OR
+      accounttype = 'Res' OR accounttype = 'Rent' )";
+    }
+    elsif ( $type eq 'CB' ) {
+	$query_type_part .= " AND accounttype 'A'";
+    }
+
     if ( $itemnum ne '' ) {
-        my $item        = C4::Biblio::GetBiblioFromItemNumber( $itemnum );
-        my $nextaccntno = getnextacctno($borrowernumber);
-        my $query       = "SELECT * FROM accountlines WHERE (borrowernumber=?
-    AND itemnumber=? AND amountoutstanding > 0)";
-        if ( $type eq 'CL' ) {
-            $query .= " AND (accounttype = 'L' OR accounttype = 'Rep')";
-        }
-        elsif ( $type eq 'CF' ) {
-            $query .= " AND (accounttype = 'F' OR accounttype = 'FU' OR
-      accounttype='Res' OR accounttype='Rent')";
-        }
-        elsif ( $type eq 'CB' ) {
-            $query .= " and accounttype='A'";
-        }
-
-        #    print $query;
-        my $sth = $dbh->prepare($query);
-        $sth->execute( $borrowernumber, $item->{'itemnumber'} );
-        $accdata = $sth->fetchrow_hashref;
-        $sth->finish;
-        if ( $accdata->{'amountoutstanding'} < $amountleft ) {
-            $newamtos = 0;
-            $amountleft -= $accdata->{'amountoutstanding'};
-        }
-        else {
-            $newamtos   = $accdata->{'amountoutstanding'} - $amountleft;
-            $amountleft = 0;
-        }
-        my $thisacct = $accdata->{accountno};
-        my $usth     = $dbh->prepare(
-            "UPDATE accountlines SET amountoutstanding= ?
-     WHERE (borrowernumber = ?) AND (accountno=?)"
-        );
-        $usth->execute( $newamtos, $borrowernumber, $thisacct );
-        $usth->finish;
-        $usth = $dbh->prepare(
-            "INSERT INTO accountoffsets
-     (borrowernumber, accountno, offsetaccount,  offsetamount)
-     VALUES (?,?,?,?)"
-        );
-        $usth->execute( $borrowernumber, $accdata->{'accountno'},
-            $nextaccntno, $newamtos );
-        $usth->finish;
+        my $item = C4::Biblio::GetBiblioFromItemNumber( $itemnum );
+	if ( $item->{'itemnumber'} ) {
+	    $query_item_part = " AND itemnumber = ?";
+	    push @bind, $itemnum;
+	}
     }
-    return $amountleft unless ( $amountleft );
 
-    # begin transaction
-    my $nextaccntno = getnextacctno($borrowernumber);
-
-    # get lines with outstanding amounts to offset
-    my $sth = $dbh->prepare(
-        "SELECT * FROM accountlines
-  WHERE (borrowernumber = ?) AND (amountoutstanding >0)
-  ORDER BY date"
-    );
-    $sth->execute($borrowernumber);
-
-    #  print $query;
-    # offset transactions
-    while ( ( $accdata = $sth->fetchrow_hashref ) and ( $amountleft > 0 ) ) {
-        if ( $accdata->{'amountoutstanding'} < $amountleft ) {
-            $newamtos = 0;
-            $amountleft -= $accdata->{'amountoutstanding'};
+    until ( $done ) {
+        my $sth = $dbh->prepare( $query . $query_type_part . $query_item_part );
+        $sth->execute( @bind );
+        while ( $accdata = $sth->fetchrow_hashref ) {
+            my $nextaccntno = getnextacctno($borrowernumber);
+            if ( $accdata->{'amountoutstanding'} < $amountleft ) {
+                $newamtos = 0;
+                $amountleft -= $accdata->{'amountoutstanding'};
+            } else {
+                $newamtos   = $accdata->{'amountoutstanding'} - $amountleft;
+                $amountleft = 0;
+            }
+            my $thisacct = $accdata->{accountno};
+            my $usth     = $dbh->prepare(
+                "UPDATE accountlines SET amountoutstanding= ?
+                  WHERE (borrowernumber = ?) AND (accountno=?)"
+                );
+            $usth->execute( $newamtos, $borrowernumber, $thisacct );
+            $usth->finish;
+            $usth = $dbh->prepare(
+         "INSERT INTO accountoffsets
+                      ( borrowernumber, accountno, offsetaccount, offsetamount )
+               VALUES (?,?,?,?)"
+                );
+            $usth->execute( $borrowernumber, $accdata->{'accountno'},
+                            $nextaccntno, $newamtos );
+            $usth->finish;
         }
-        else {
-            $newamtos   = $accdata->{'amountoutstanding'} - $amountleft;
-            $amountleft = 0;
+        if ( $amountleft && $query_type_part ) {
+	    $query_type_part = "";
+        } elsif ( $amountleft && $query_item_part ) {
+	    $query_item_part = "";
+	    pop @bind;
+        } else {
+	    $done = 1;
         }
-        my $thisacct = $accdata->{accountno};
-        my $usth     = $dbh->prepare(
-            "UPDATE accountlines SET amountoutstanding= ?
-     WHERE (borrowernumber = ?) AND (accountno=?)"
-        );
-        $usth->execute( $newamtos, $borrowernumber, $thisacct );
-        $usth->finish;
-        $usth = $dbh->prepare(
-            "INSERT INTO accountoffsets
-     (borrowernumber, accountno, offsetaccount,  offsetamount)
-     VALUE (?,?,?,?)"
-        );
-        $usth->execute( $borrowernumber, $accdata->{'accountno'},
-            $nextaccntno, $newamtos );
-        $usth->finish;
     }
-    $sth->finish;
-    $type = "Credit " . $type;
     UpdateStats( $user, $type, $data, $user, '', '', $borrowernumber );
     $amountleft = -$amountleft;
     return $amountleft;
-
 }
 
 =head2 refund
