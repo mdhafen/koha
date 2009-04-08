@@ -727,6 +727,7 @@ sub Check_Userid_DBI {
 sub checkpw_DBI {
     my ( $userid, $password, $categories ) = @_;
     my ( $info, $filter, $cardfield, $passwd_field, $query, $sth, $foundcat );
+    my ( @results );
 
     foreach my $cat ( keys %$categories ) {
 	$filter = { $$categories{ $cat } => $userid };
@@ -736,22 +737,26 @@ sub checkpw_DBI {
 	return 0 unless ( defined $query );
 	$sth = $MembersExternal_Context{ conn }->prepare( $query ) or return 0;
 	$sth->execute;
+	while ( my $data = $sth->fetchrow_arrayref ) {
+	    push @results, $data;
+	}
+
 	#  Check for uniqueness
-	if ( $sth->rows > 1 ) {
+	if ( @results > 1 ) {
+	    $info = '';
 	    $debug && warn "MembersExternal Auth: got more than one userid match in external database for this category";
 	    return;
 	}
-	if ( $foundcat && $sth->rows ) {
+	if ( $foundcat && @results ) {
+	    $info = '';
 	    $debug && warn "MembersExternal Auth: got more than one userid match across all categories for external database";
 	    return;
 	}
-	if ( $sth->rows ) {
+	if ( @results ) {
 	    $foundcat = $cat;
-	    my $data = $sth->fetchrow_hashref;
-	    $passwd_field =~ s/.*?([^\.\s]+)$/$1/;
-	    $cardfield =~ s/.*?([^\.\s]+)$/$1/;
-	    if ( $$data{ $passwd_field } eq $password ) {
-		$info = $$data{ $cardfield };
+	    my ( $d_card, $d_pass ) = ( $results[0][0], $results[0][1] );
+	    if ( $d_pass eq $password ) {
+		$info = $d_card;
 	    }
 	}
     }
