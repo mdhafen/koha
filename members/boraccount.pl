@@ -99,6 +99,7 @@ $template->param( picture => 1 ) if $picture;
 
 $template->param(
     finesview           => 1,
+    accountlineseditable=> C4::Context->preference('AccountLinesEditable'),
     firstname           => $data->{'firstname'},
     surname             => $data->{'surname'},
     borrowernumber      => $borrowernumber,

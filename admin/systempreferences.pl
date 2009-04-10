@@ -123,6 +123,7 @@ $tabsysprefs{soundon}               = "Admin";
 $tabsysprefs{SpineLabelShowPrintOnBibDetails}   = "Admin";
 $tabsysprefs{WebBasedSelfCheckHeader}           = "Admin";
 $tabsysprefs{WebBasedSelfCheckTimeout}          = "Admin";
+$tabsysprefs{AccountLinesEditable}  = "Admin";
 
 # Authorities
 $tabsysprefs{authoritysep}          = "Authorities";

@@ -35,6 +35,7 @@
     <!-- TMPL_IF NAME="reverse_col" -->
     <th>&nbsp;</th>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="accountlineseditable" --><th>&nbsp;</th><!-- /TMPL_IF -->
   </tr>
 
 	<!-- FIXME: Shouldn't hardcode dollar signs, since Euro or Pound might be needed -->
@@ -54,6 +55,7 @@
 	<!-- /TMPL_IF -->
       </td>
 	<!-- /TMPL_IF -->
+      <!-- TMPL_IF NAME="accountlineseditable" --><td><a href="/cgi-bin/koha/members/updateaccount.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;accountnumber=<!-- TMPL_VAR NAME="accountno" -->">Edit</a> &nbsp; <a href="/cgi-bin/koha/members/updateaccount.pl?button=Delete&amp;borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;accountnumber=<!-- TMPL_VAR NAME="accountno" -->">Delete</a></td><!-- /TMPL_IF -->
     </tr>
 
   <!-- /TMPL_LOOP -->
@@ -61,6 +63,7 @@
   <tr>
     <td colspan="3">Total due</td>
     <!-- TMPL_IF NAME="totalcredit" --><td colspan="2" class="credit"><!-- TMPL_ELSE --><td colspan="2" class="debit"><!-- /TMPL_IF --><!-- TMPL_VAR NAME="total" --></td>
+    <!-- TMPL_IF NAME="accountlineseditable" --><td>&nbsp;</td><!-- /TMPL_IF -->
   </tr>
   </tfoot>
 </table>
