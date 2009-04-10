@@ -78,6 +78,7 @@ for (my $i=0;$i<$numaccts;$i++){
         $accts->[$i]{'amountoutstandingcredit'} = 1;
     }
     my %row = ( 'date'              => format_date($accts->[$i]{'date'}),
+                'accountno'         => $accts->[$i]{'accountno'},
                 'amountcredit' => $accts->[$i]{'amountcredit'},
                 'amountoutstandingcredit' => $accts->[$i]{'amountoutstandingcredit'},
                 'toggle' => $accts->[$i]{'toggle'},
@@ -102,6 +103,7 @@ $template->param( picture => 1 ) if $picture;
 
 $template->param(
     finesview           => 1,
+    accountlineseditable=> C4::Context->preference('AccountLinesEditable'),
     firstname           => $data->{'firstname'},
     surname             => $data->{'surname'},
     borrowernumber      => $borrowernumber,

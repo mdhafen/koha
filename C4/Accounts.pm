@@ -25,17 +25,18 @@ use C4::Members;
 use C4::Items;
 use C4::Circulation qw(MarkIssueReturned);
 
-use vars qw($VERSION @ISA @EXPORT);
+use vars qw($VERSION @ISA @EXPORT $debug);
 
 BEGIN {
 	# set the version for version checking
 	$VERSION = 3.03;
+	$debug = $ENV{DEBUG} || 0;
 	require Exporter;
 	@ISA    = qw(Exporter);
 	@EXPORT = qw(
 		&recordpayment &makepayment &manualinvoice
 		&getnextacctno &reconcileaccount &getcharges &getcredits
-		&getrefunds &chargelostitem
+		&getrefunds &chargelostitem &updateline &deleteline
 	); # removed &fixaccounts
 }
 
@@ -573,6 +574,68 @@ sub getcharges {
     return (@results);
 }
 
+
+sub updateline {
+    my ( $borrno, $accountno, $desc, $amount, $outstanding, $type ) = @_;
+    my $dbh = C4::Context->dbh;
+    my $query = "SELECT * FROM accountlines WHERE borrowernumber = ? AND accountno = ?";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute( $borrno, $accountno );
+    my $results = $sth->fetchrow_hashref;
+    my %diff;
+    my @bind;
+    my %data = (
+	description => $desc,
+	type => $type,
+	amount => $amount,
+	amountoutstanding => $outstanding,
+	);
+
+    return unless ( $results && %$results );
+
+    foreach ( 'description', 'type' ) {
+	if ( $$results{$_} ne $data{$_} ) {
+	    $diff{$_} = $data{$_};
+	}
+    }
+    foreach ( 'amount', 'amountoutstanding' ) {
+	if ( $$results{$_} != $data{$_} ) {
+	    $diff{$_} = $data{$_};
+	}
+    }
+
+    if ( %diff ) {
+	$query = "UPDATE accountlines SET ";
+	foreach ( keys %diff ) {
+	    $query .= "$_ = ?,";
+	    push @bind, $diff{$_};
+	}
+	chop $query;  # trim last ','
+	$query .= " WHERE borrowernumber = ? AND accountno = ?";
+	push @bind, ( $borrno, $accountno );
+	$dbh->do( $query, {}, @bind );
+	$debug && defined $dbh->err && warn "Database Error: ". $dbh->errstr;
+	return ( defined $dbh->err ) ? 0 : 1;
+    }
+}
+
+sub deleteline {
+    my ( $borrno, $accountno ) = @_;
+    my $dbh = C4::Context->dbh;
+    my $query = "SELECT * FROM accountlines WHERE borrowernumber = ? AND accountno = ?";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute( $borrno, $accountno );
+    my $results = $sth->fetchrow_hashref;
+    my @bind;
+
+    return unless ( $results && %$results );
+
+    $query = "DELETE FROM accountlines WHERE borrowernumber = ? AND accountno = ?";
+    push @bind, ( $borrno, $accountno );
+    $dbh->do( $query, {}, @bind );
+    $debug && defined $dbh->err && warn "Database Error: ". $dbh->errstr;
+    return ( defined $dbh->err ) ? 0 : 1;
+}
 
 sub getcredits {
 	my ( $date, $date2 ) = @_;

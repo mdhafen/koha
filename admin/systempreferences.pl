@@ -93,6 +93,7 @@ $tabsysprefs{SessionStorage}        = "Admin";
 $tabsysprefs{noItemTypeImages}      = "Admin";
 $tabsysprefs{OPACBaseURL}           = "Admin";
 $tabsysprefs{GranularPermissions}   = "Admin";
+$tabsysprefs{AccountLinesEditable}  = "Admin";
 
 # Authorities
 $tabsysprefs{authoritysep}          = "Authorities";
