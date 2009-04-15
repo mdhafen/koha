@@ -81,6 +81,9 @@ my @tables = ( "accountlines",
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
+push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote( $filters[0] ), title => 'sort1', value => $filters[0] } if ( $filters[0] );
+push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
+
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
