@@ -5,6 +5,7 @@
 		<li><a href="/cgi-bin/koha/reports/custom/circ_stats_noissues.pl">Copies With No Checkouts</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/account_overdues_fines.pl">Overdue Copies And Fines</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/account_fines.pl">Fines</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/cat_newcopies.pl">New Copies</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/cat_titles_by_various.pl">Titles By Various Criteria</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/cat_inventory.pl">Catalog Inventory</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/cat_items_noitype.pl">Items With No Item Type</a></li>
