@@ -83,7 +83,7 @@ my @tables = ( "accountlines",  # ie "items"
 		  "borrowers.sort2",
 		  "borrowers.cardnumber",
 		  "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron",
-		  "CONCAT_WS( '<br>', biblio.title, CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( 'Replacement Price: ', replacementprice ) ) AS description",
+		  "CONCAT_WS( '<br>', CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ), CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( 'Replacement Price: ', replacementprice ) ) AS description",
 		  "NULL",
 		  "borrowers.cardnumber"
 	       ],
@@ -128,6 +128,14 @@ my $order = "sort2,patron";
 my $page_breaks = ( $input->param( 'Options' ) ) ? 1 : 0 ;
 
 push @$where, "date_due < NOW()" unless ( $input->param( 'Options2' ) );
+
+if ( $input->param( 'Options3' ) ) {
+    $tables[4][3] = "CONCAT_WS( ' &nbsp; ', barcode, CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ) )"
+    $tables[4][4] = "replacementprice";
+    splice @{ $tables[4] }, 1, 1;
+    splice @{ $tables[1] }, 1, 1;
+    splice @column_titles, 1, 1;
+}
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -251,6 +259,13 @@ if ($do_it) {
 	    label => "Show All Checked Out Copies",
 	};
 
+	push @parameters, {
+	    check_box => 1,
+	    count => 3,
+	    input_name => "Options3",
+	    label => "Concise Check Out Info",
+	};
+
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
 	foreach my $limiter ( @dels ) {
 	    my $selected = ( $limiter eq C4::Context->preference("delimiter") );
@@ -275,6 +290,7 @@ sub calculate {
 	my %globalline;
 	my @mainloop;
 	my $grantotal = 0;
+	my $subtotal = 0;
 	my @big_loop;
 	my $break;
 	my $break_index;
@@ -283,7 +299,7 @@ sub calculate {
 	my $table = shift @$tables;
 	my $columns = shift @$tables;
 	my $column = join ',', @$columns;
-	my %columns_reverse_hash = map { $_ => $break_index++ } @$columns;
+	my %columns_reverse_hash = map { $_ =~ /(\w+)$/ => $break_index++ } @$columns;
 
 	# FIXME you might want to add DISTINCT here or a GROUP BY below
 	my $query;
@@ -413,15 +429,15 @@ CALC_MAIN_LOOP:
 		    my $cardnumber = $values[ $#values ];
 		    my $temp = GetMemberDetails_External( $cardnumber );
 
-		    if ( ref $temp eq 'HASH' && %$temp ) { # not empty hash ref
-			foreach ( sort keys %external_bor_fields ) {
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
+		    foreach my $field ( sort keys %external_bor_fields ) {
+			my $index = $columns_reverse_hash{ $field };
+			my $compare_value;
+			if ( ref $temp eq 'HASH' && %$temp ) {
+			    $compare_value = ( exists $temp->{$field} ) ? $temp->{$field} : $values[ $index ];
+			} else { # non-external patron, compare against @values
+			    $compare_value = $values[ $index ];
 			}
-		    } else { # non-external patron, compare against @values
-			foreach ( sort keys %external_bor_fields ) {
-			    my $index = $columns_reverse_hash{ $_ };
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $values[ $index ] );
-			}
+			next CALC_MAIN_LOOP if ( $external_bor_fields{$field} ne $compare_value );
 		    }
 		}
 	    }
@@ -433,8 +449,8 @@ CALC_MAIN_LOOP:
 	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
 
 	if ( $accesses_borrowers && $order =~ /sort2/ ) {
-	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
-	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
+	    my $num = 1;  # sort2 is always [0], others might be offset by sort1
+	    $num = 0 if ( $$columns[1] ne 'borrowers.cardnumber' );
 	    my $sort_func = sub {
 		( uc $$a[0] cmp uc $$b[0] ) ||
 		    ( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
@@ -443,15 +459,8 @@ CALC_MAIN_LOOP:
 	    @big_loop = sort $sort_func @big_loop;
 	}
 
-	if ( $page_breaks ) {
-	    $break = 'break';
-	    $break_index = 1;
-	    foreach my $index ( 0..$#$columns ) {
-		if ( $$columns[ $index ] =~ /sort1/ ) {
-		    $break_index = 2;  # 0 is sort2, 1 might be sort1 or name
-		}
-	    }
-	}
+	$break = 'break';
+	$break_index = 1;
 
 	foreach my $data ( @big_loop ) {
 	    my %row;
@@ -459,10 +468,26 @@ CALC_MAIN_LOOP:
 	    my @values = @$data;
 
 	    if ( $break && $break ne $values[ $break_index ] ) {
-		$break = $values[ $break_index ];
 		if ( $break ne 'break' ) {
-		    $row{ 'break' } = 1;
+		    push @looprow, {
+			'values' => [
+			    {
+				'width' => @$column_titles - 1,
+				'value' => '&nbsp;',
+				'header' => 1,
+			    },
+			    {
+				'value' => sprintf( "%.2f", $subtotal ),
+				'header' => 1,
+			    }
+			    ]
+		    };
+		    $subtotal = 0;
+		    if ( $page_breaks ) {
+			$row{ 'break' } = 1;
+		    }
 		}
+		$break = $values[ $break_index ];
 	    }
 
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
@@ -473,6 +498,7 @@ CALC_MAIN_LOOP:
 	    }
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
+	    $subtotal += $values[ $#$column_titles ];
 	    $grantotal += $values[ $#$column_titles ];
 	}
 
@@ -496,7 +522,7 @@ CALC_MAIN_LOOP:
 					   'header' => 1,
 				       },
 				       {
-					   'value' => $grantotal,
+					   'value' => sprintf( "%.2f", $grantotal ),
 					   'header' => 1,
 				       }
 				     ]
