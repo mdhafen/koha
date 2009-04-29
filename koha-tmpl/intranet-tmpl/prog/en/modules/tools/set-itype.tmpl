@@ -20,6 +20,7 @@
      <ul>
      <!-- TMPL_IF NAME="NO_BRANCH" --><li>Don't know where you are, can't continue</li><!-- /TMPL_IF -->
      <!-- TMPL_IF NAME="NO_ITYPE" --><li>No Item Type Set</li><!-- /TMPL_IF -->
+     <!-- TMPL_IF NAME="BAD_OLDTYPE" --><li>Invalid Item Type to replace</li><!-- /TMPL_IF -->
      </ul>
      </div>
 <!-- /TMPL_IF -->
@@ -51,14 +52,23 @@
 			    </select>
 			    </li><!-- /TMPL_IF -->
 
-			    <!-- TMPL_IF NAME="branchloop" -->
+			    <!-- TMPL_IF NAME="branchloop" --><li>
 			    <label for="branch">Branch: </label>
 			    <select id="branch" name="branch">
 			    <!-- TMPL_LOOP NAME="branchloop" -->
 			         <option value="<!-- TMPL_VAR NAME="value" -->"<!-- TMPL_IF NAME="selected" --> selected="selected"<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="label" --></option>
 			    <!-- /TMPL_LOOP -->
 			    </select>
-			    <!-- /TMPL_IF -->
+			    </li><!-- /TMPL_IF -->
+
+			    <!-- TMPL_IF NAME="ITEM_ITEMTYPES" --><li>
+			    <label for="oldtype_switch">Replace An Item Type:</label>
+			    <select id="oldtype" name="oldtype">
+			    <!-- TMPL_LOOP NAME="itemtypeloop" -->
+				 <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="description" --></option>
+			    <!-- /TMPL_LOOP -->
+			    </select>
+			    </li><!-- /TMPL_IF -->
 	                </ol>
 	            </fieldset>
                     <fieldset class="action">

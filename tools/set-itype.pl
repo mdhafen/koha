@@ -46,15 +46,20 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 my $dbh = C4::Context->dbh;
-my $op     = $cgi->param( 'op' );
-my $branch = $cgi->param( 'branch' ) || C4::Context->userenv->{'branch'};
-my $search = $cgi->param( 'search' );
-my $itype  = $cgi->param( 'itype' );
+my $op      = $cgi->param( 'op' );
+my $branch  = $cgi->param( 'branch' ) || C4::Context->userenv->{'branch'};
+my $search  = $cgi->param( 'search' );
+my $itype   = $cgi->param( 'itype' );
+my $oldtype = $cgi->param( 'oldtype' );
 
 my $itemtypes = GetItemTypes;
 my ( $items_set, $bibs_set ) = ( 0, 0 );
 
 $itype = '' unless ( $itemtypes->{$itype}{itemtype} );
+unless ( $itemtypes->{$oldtype}{itemtype} ) {
+    $template->param( BAD_OLDTYPE => $oldtype );
+    $oldtype = '';
+}
 
 $template->param( NO_BRANCH => 1 ) unless ( $branch );
 $template->param( NO_ITYPE => 1 ) unless ( $itype );
@@ -65,8 +70,16 @@ SELECT i.itemnumber, i.biblioitemnumber, i.biblionumber, i.itemcallnumber,
        bi.itemtype
 FROM items AS i
 CROSS JOIN biblioitems AS bi USING ( biblioitemnumber )
-WHERE ( itype = '' OR itype IS NULL )
-  AND homebranch = ". $dbh->quote( $branch );
+WHERE homebranch = ". $dbh->quote( $branch );
+
+    if ( $oldtype ) {
+	$query .= "
+  AND itype = ". $dbh->quote( $oldtype );
+    } else {
+	$query .= "
+  AND ( itype = '' OR itype IS NULL )";
+    }
+
     my $sth = $dbh->prepare( $query );
     $sth->execute;
 
