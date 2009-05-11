@@ -14,6 +14,10 @@
 <div id="renew_search" class="residentsearch" style="display:none;">
     <p class="tip">Scan a barcode to renew:</p>
     <form method="post" action="/cgi-bin/koha/circ/renew.pl">
+    <!-- TMPL_IF NAME="stickyduedate" -->
+        <input type="hidden" name="stickyduedate" value="<!-- TMPL_VAR NAME="stickyduedate" -->" />
+        <input type="hidden" name="duedatespec" value="<!-- TMPL_VAR NAME="duedatespec" -->" />
+    <!-- /TMPL_IF -->
         <input name="barcode" id="ren_barcode" size="40" accesskey="n" />
         <input value="Submit" class="submit" type="submit" />
     </form>

@@ -220,7 +220,7 @@ $template->param(
     );
 
 # set return date if stickyduedate
-if ( $stickyduedate && ! $input->param( 'stickyduedate' ) ) {
+if ( $stickyduedate && ! $input->param( 'stickyduedate' ) && $barcode ) {
     $session->clear( 'stickyduedate' );
     $template->param(
 	stickyduedate => '',
