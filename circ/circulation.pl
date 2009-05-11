@@ -804,6 +804,9 @@ $template->param(
 # save stickyduedate to session
 if ($stickyduedate) {
     $session->param( 'stickyduedate', $duedatespec );
+    $template->param(
+        duedatespec => $duedatespec,
+    );
 }
 
 #if ($branchcookie) {
