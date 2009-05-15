@@ -315,8 +315,6 @@ sub calculate {
 		}
 	    }
 	}
-	$query .= "WHERE ";
-	$query .= "$where AND " if ( $where );
 
 	if ( @$qfilters ) {
 	    foreach ( @$qfilters ) {
@@ -342,6 +340,8 @@ sub calculate {
 		}
 	    }
 	}
+	$query .= "WHERE " if ( $where || @wheres );
+	$query .= "$where AND " if ( $where );
 	$query .= join "AND ", @wheres;
 
 	$query .= "ORDER BY $order" if ( $order );
