@@ -28,7 +28,7 @@ use C4::Context;
 use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
-use C4::Members;  # GetMemberSortValues
+use C4::Members;  # GetMemberSortValues GetBorrowercategoryList
 use C4::Koha;
 use C4::Circulation;
 
@@ -112,12 +112,13 @@ my @queryfilter = ();
 
 push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote( $filters[0] ), title => 'sort1', value => $filters[0] } if ( $filters[0] );
 push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
+push @queryfilter, { crit => 'categorycode', op => '=', filter => $dbh->quote( $filters[2] ), title => 'Patron Category', value => $filters[2] } if ( $filters[2] );
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
-    my $branch = $filters[2] || C4::Context->userenv->{branch};
+    my $branch = $filters[3] || C4::Context->userenv->{branch};
     push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR $hbranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
@@ -130,7 +131,7 @@ my $page_breaks = ( $input->param( 'Options' ) ) ? 1 : 0 ;
 push @$where, "date_due < NOW()" unless ( $input->param( 'Options2' ) );
 
 if ( $input->param( 'Options3' ) ) {
-    $tables[4][3] = "CONCAT_WS( ' &nbsp; ', barcode, CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ) )"
+    $tables[4][3] = "CONCAT_WS( ' &nbsp; ', barcode, CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ) )";
     $tables[4][4] = "replacementprice";
     splice @{ $tables[4] }, 1, 1;
     splice @{ $tables[1] }, 1, 1;
@@ -222,6 +223,18 @@ if ($do_it) {
 	    value => '',  # default value, mostly used for calendars
 	    onchange => '',  #  javascript
 	    #input_name => 'Filter',  # input name
+	};
+
+	my $patron_cats = GetBorrowercategoryList();
+	my @patron_cats_loop = ();
+	foreach ( @$patron_cats ) {
+	    push @patron_cats_loop, { value => $_->{categorycode}, label => $_->{description} };
+	}
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@patron_cats_loop,
+	    label => "Patron Category",
+	    first_blank => 1,
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {
@@ -500,6 +513,21 @@ CALC_MAIN_LOOP:
 	    push @looprow, \%row;
 	    $subtotal += $values[ $#$column_titles ];
 	    $grantotal += $values[ $#$column_titles ];
+	}
+	if ( $break ) {
+	    push @looprow, {
+		'values' => [
+		    {
+			'width' => @$column_titles - 1,
+			'value' => '&nbsp;',
+			'header' => 1,
+		    },
+		    {
+			'value' => sprintf( "%.2f", $subtotal ),
+			'header' => 1,
+		    }
+		    ]
+	    };
 	}
 
 	foreach ( @$column_titles ) {
