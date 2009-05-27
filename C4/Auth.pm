@@ -532,6 +532,7 @@ sub checkauth {
         my $session = get_session($sessionID);
         C4::Context->_new_userenv($sessionID);
         my ($ip, $lasttime, $sessiontype);
+        my $cardnum;
         if ($session){
             C4::Context::set_userenv(
                 $session->param('number'),       $session->param('id'),
@@ -548,6 +549,7 @@ sub checkauth {
             $lasttime = $session->param('lasttime');
             $userid   = $session->param('id');
 			$sessiontype = $session->param('sessiontype');
+            $cardnum  = $session->param('cardnumber');
         }
    
    		if ( ($query->param('koha_login_context')) && ($query->param('userid') ne $session->param('id')) ) {
@@ -568,6 +570,7 @@ sub checkauth {
             _session_log(sprintf "%20s from %16s logged out at %30s (manually).\n", $userid,$ip,scalar localtime);
             $sessionID = undef;
             $userid    = undef;
+            $cardnum   = undef;
         }
         elsif ( $lasttime < time() - $timeout ) {
             # timed logout
@@ -576,6 +579,7 @@ sub checkauth {
             C4::Context->_unset_userenv($sessionID);
             _session_log(sprintf "%20s from %16s logged out at %30s (inactivity).\n", $userid,$ip,scalar localtime);
             $userid    = undef;
+            $cardnum   = undef;
             $sessionID = undef;
         }
         elsif ( $ip ne $ENV{'REMOTE_ADDR'} ) {
@@ -588,12 +592,13 @@ sub checkauth {
             _session_log(sprintf "%20s from %16s logged out at %30s (ip changed to %16s).\n", $userid,$ip,scalar localtime, $info{'newip'});
             $sessionID = undef;
             $userid    = undef;
+            $cardnum   = undef;
         }
         else {
             $cookie = $query->cookie( CGISESSID => $session->id );
             $session->param('lasttime',time());
             unless ( $sessiontype eq 'anon' ) { #if this is an anonymous session, we want to update the session, but not behave as if they are logged in...
-                $flags = haspermission($userid, $flagsrequired);
+                $flags = haspermission($cardnum, $flagsrequired);
                 if ($flags) {
                     $loggedin = 1;
                 } else {
@@ -613,7 +618,7 @@ sub checkauth {
             my ( $return, $cardnumber ) = checkpw( $dbh, $userid, $password );
             if ($return) {
                 _session_log(sprintf "%20s from %16s logged in  at %30s.\n", $userid,$ENV{'REMOTE_ADDR'},scalar localtime);
-                if ( $flags = haspermission($userid, $flagsrequired) ) {
+                if ( $flags = haspermission($cardnumber, $flagsrequired) ) {
                     $loggedin = 1;
                 }
                 else {
@@ -982,12 +987,14 @@ sub check_api_auth {
             my $ip = $session->param('ip');
             my $lasttime = $session->param('lasttime');
             my $userid = $session->param('id');
+            my $cardnum = $session->param('cardnumber');
             if ( $lasttime < time() - $timeout ) {
                 # time out
                 $session->delete();
                 C4::Context->_unset_userenv($sessionID);
                 $userid    = undef;
                 $sessionID = undef;
+                $cardnum   = undef;
                 return ("expired", undef, undef);
             } elsif ( $ip ne $ENV{'REMOTE_ADDR'} ) {
                 # IP address changed
@@ -995,11 +1002,12 @@ sub check_api_auth {
                 C4::Context->_unset_userenv($sessionID);
                 $userid    = undef;
                 $sessionID = undef;
+                $cardnum   = undef;
                 return ("expired", undef, undef);
             } else {
                 my $cookie = $query->cookie( CGISESSID => $session->id );
                 $session->param('lasttime',time());
-                my $flags = haspermission($userid, $flagsrequired);
+                my $flags = haspermission($cardnum, $flagsrequired);
                 if ($flags) {
                     return ("ok", $cookie, $sessionID);
                 } else {
@@ -1007,6 +1015,7 @@ sub check_api_auth {
                     C4::Context->_unset_userenv($sessionID);
                     $userid    = undef;
                     $sessionID = undef;
+                    $cardnum   = undef;
                     return ("failed", undef, undef);
                 }
             }
@@ -1022,7 +1031,7 @@ sub check_api_auth {
             return ("failed", undef, undef);
         }
         my ( $return, $cardnumber ) = checkpw( $dbh, $userid, $password );
-        if ($return and haspermission($userid, $flagsrequired)) {
+        if ($return and haspermission($cardnumber, $flagsrequired)) {
             my $session = get_session("");
             return ("failed", undef, undef) unless $session;
 
@@ -1205,12 +1214,14 @@ sub check_cookie_auth {
         my $ip = $session->param('ip');
         my $lasttime = $session->param('lasttime');
         my $userid = $session->param('id');
+        my $cardnum = $session->param('cardnumber');
         if ( $lasttime < time() - $timeout ) {
             # time out
             $session->delete();
             C4::Context->_unset_userenv($sessionID);
             $userid    = undef;
             $sessionID = undef;
+            $cardnum   = undef;
             return ("expired", undef);
         } elsif ( $ip ne $ENV{'REMOTE_ADDR'} ) {
             # IP address changed
@@ -1218,10 +1229,11 @@ sub check_cookie_auth {
             C4::Context->_unset_userenv($sessionID);
             $userid    = undef;
             $sessionID = undef;
+            $cardnum   = undef;
             return ("expired", undef);
         } else {
             $session->param('lasttime',time());
-            my $flags = haspermission($userid, $flagsrequired);
+            my $flags = haspermission($cardnum, $flagsrequired);
             if ($flags) {
                 return ("ok", $sessionID);
             } else {
@@ -1229,6 +1241,7 @@ sub check_cookie_auth {
                 C4::Context->_unset_userenv($sessionID);
                 $userid    = undef;
                 $sessionID = undef;
+                $cardnum   = undef;
                 return ("failed", undef);
             }
         }
@@ -1351,7 +1364,7 @@ C<$authflags> is a hashref of permissions
 
 sub getuserflags {
     my $flags   = shift;
-    my $userid  = shift;
+    my $cardnum  = shift;
     my $dbh     = @_ ? shift : C4::Context->dbh;
     my $userflags;
     $flags = 0 unless $flags;
@@ -1368,7 +1381,7 @@ sub getuserflags {
     }
 
     # get subpermissions and merge with top-level permissions
-    my $user_subperms = get_user_subpermissions($userid);
+    my $user_subperms = get_user_subpermissions($cardnum);
     foreach my $module (keys %$user_subperms) {
         next if $userflags->{$module} == 1; # user already has permission for everything in this module
         $userflags->{$module} = $user_subperms->{$module};
@@ -1381,11 +1394,11 @@ sub getuserflags {
 
 =over 4
 
-my $user_perm_hashref = get_user_subpermissions($userid);
+my $user_perm_hashref = get_user_subpermissions($cardnum);
 
 =back
 
-Given the userid (note, not the borrowernumber) of a staff user,
+Given the cardnumber (note, not the borrowernumber) of a staff user,
 return a hashref of hashrefs of the specific subpermissions 
 accorded to the user.  An example return is
 
@@ -1407,7 +1420,7 @@ necessary to check borrowers.flags.
 =cut
 
 sub get_user_subpermissions {
-    my $userid = shift;
+    my $cardnumer = shift;
 
     my $dbh = C4::Context->dbh;
     my $sth = $dbh->prepare("SELECT flag, user_permissions.code as code
@@ -1415,8 +1428,8 @@ sub get_user_subpermissions {
                              JOIN permissions USING (module_bit, code)
                              JOIN userflags ON (permissions.module_bit = userflags.bit)
                              JOIN borrowers ON (user_permissions.borrowernumber=borrowers.borrowernumber)
-                             WHERE userid = ?");
-    $sth->execute($userid);
+                             WHERE cardnumber = ?");
+    $sth->execute($cardnumer);
 
     my $user_perms = {};
     while (my $perm = $sth->fetchrow_hashref) {
@@ -1467,15 +1480,15 @@ Returns member's flags or 0 if a permission is not met.
 =cut
 
 sub haspermission {
-    my ($userid, $flagsrequired) = @_;
-    my $sth = C4::Context->dbh->prepare("SELECT flags FROM borrowers WHERE userid=? or cardnumber=?");
-    $sth->execute($userid,$userid);
-    my $flags = getuserflags( $sth->fetchrow(), $userid );
-    if ( $userid eq C4::Context->config('user') ) {
+    my ($cardnumber, $flagsrequired) = @_;
+    my $sth = C4::Context->dbh->prepare("SELECT flags FROM borrowers WHERE cardnumber=?");
+    $sth->execute($cardnumber);
+    my $flags = getuserflags( $sth->fetchrow(), $cardnumber );
+    if ( $cardnumber eq C4::Context->config('user') ) {
         # Super User Account from /etc/koha.conf
         $flags->{'superlibrarian'} = 1;
     }
-    elsif ( $userid eq 'demo' && C4::Context->config('demo') ) {
+    elsif ( $cardnumber eq 'demo' && C4::Context->config('demo') ) {
         # Demo user that can do "anything" (demo=1 in /etc/koha.conf)
         $flags->{'superlibrarian'} = 1;
     }

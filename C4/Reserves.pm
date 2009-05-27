@@ -1287,24 +1287,26 @@ sub GetReserveInfo {
 	my $strsth="SELECT reservedate, reservenotes, reserves.borrowernumber,
 				reserves.biblionumber, reserves.branchcode,
 				notificationdate, reminderdate, priority, found,
-				firstname, surname, phone, 
-				email, address, address2,
-				cardnumber, city, zipcode,
 				biblio.title, biblio.author,
 				items.holdingbranch, items.itemcallnumber, items.itemnumber, 
 				barcode, notes
 			FROM reserves left join items 
 				ON items.itemnumber=reserves.itemnumber , 
-				borrowers, biblio 
+				biblio
 			WHERE 
 				reserves.borrowernumber=?  &&
 				reserves.biblionumber=? && 
-				reserves.borrowernumber=borrowers.borrowernumber && 
 				reserves.biblionumber=biblio.biblionumber ";
 	my $sth = $dbh->prepare($strsth); 
 	$sth->execute($borrowernumber,$biblionumber);
 
 	my $data = $sth->fetchrow_hashref;
+
+	my $tmp_branch = $$data{branchcode};
+	my $borrower = C4::Members::GetMember( $borrowernumber, 'borrowernumber' );
+	$data = C4::Koha::JoinHashes( $data, $borrower );
+	$$data{branchcode} = $tmp_branch;  # borrowers table stomps branchcode
+
 	return $data;
 
 }
