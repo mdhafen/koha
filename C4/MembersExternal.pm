@@ -229,6 +229,8 @@ sub ListMembers_External {
     my $sth = $dbh->prepare( $query );
     $sth->execute();
     while ( my $data = $sth->fetchrow_hashref ) {
+	$$data{cardnumber} =~ s/^\s*//;
+	$$data{cardnumber} =~ s/\s*$//;
 	$koha{ $$data{cardnumber} } = $data;
     }
 
@@ -664,6 +666,8 @@ sub ListMembers_DBI {
     my $sth = $MembersExternal_Context{ conn }->prepare( $query );
     $sth->execute;
     while ( my ( $card ) = $sth->fetchrow ) {
+	$card =~ s/^\s*//;
+	$card =~ s/\s*$//;
 	$list{ $card } = 1;
     }
 

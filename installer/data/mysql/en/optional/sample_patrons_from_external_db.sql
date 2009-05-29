@@ -2,7 +2,7 @@ INSERT INTO `borrowers_external_structure`
 VALUES
 (1,'First name','firstname','stugrp_active.firstname','stugrp_active.suniq = studemo.suniq','ST'),
 (2,'Branch','branchcode','stugrp_active.schoolc','stugrp_active.suniq = studemo.suniq','ST'),
-(3,'Card Number','cardnumber','stugrp_active.suniq','stugrp_active.suniq = studemo.suniq','ST'),
+(3,'Card Number','cardnumber','stugrp_active.ident','stugrp_active.suniq = studemo.suniq','ST'),
 (4,'Phone','phone','studemo.phnnumber','stugrp_active.suniq = studemo.suniq','ST'),
 (5,'City','city','stugrp_active.homecity','stugrp_active.suniq = studemo.suniq','ST'),
 (6,'Gender','sex','stugrp_active.gender','stugrp_active.suniq = studemo.suniq','ST'),
