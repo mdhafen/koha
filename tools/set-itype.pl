@@ -31,6 +31,7 @@ use C4::Output;
 use C4::Biblio;  # GetBiblio
 use C4::Items;  # AddItem GetItemnumberFromBarcode
 use C4::Koha;  # getitemtypeinfo GetItemTypes
+use C4::Branch;  # GetBranches
 
 my $cgi = new CGI;
 
