@@ -36,8 +36,8 @@ function get_Calendar_limit (date,did) {
 			+ "'" + did + "' limit\n"
 			+ "\n thisdate: " + date
 			+ "\nlimitdate: " + limitDate
-			+ "\nlimit > thisdate : " + (limitDate > date) 
-			+ "\nlimit < thisdate : " + (limitDate < date) 
+			+ "\nlimit > thisdate : " + (limitDate > date)
+			+ "\nlimit < thisdate : " + (limitDate < date)
 		);
 	}
 	return limitDate;

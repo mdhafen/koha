@@ -184,6 +184,15 @@ if ( $query->param('place_reserve') ) {
         $checkitem = undef;
     }
 
+    # Check for user supplied reserve date
+    my $startdate;
+    if (
+        C4::Context->preference( 'AllowHoldDateInFuture' ) &&
+        C4::Context->preference( 'OPACAllowHoldDateInFuture' )
+        ) {
+        $startdate = $query->param("reserve_date_$biblioNum");
+    }
+
     # here we actually do the reserveration. Stage 3.
     AddReserve($branch,$borrowernumber,$biblionumber,'a',\@realbi,$rank,$notes,
                 $bibdata->{'title'},$checkitem, $found) if ($canreserve);
@@ -389,6 +398,18 @@ $template->param(
 	forloan           => $forloan,
     bibitemloop       => \@bibitemloop,
 );
+
+# can set reserve date in future
+if (
+    C4::Context->preference( 'AllowHoldDateInFuture' ) &&
+    C4::Context->preference( 'OPACAllowHoldDateInFuture' )
+    ) {
+    $template->param(
+	reserve_in_future         => 1,
+	DHTMLcalendar_dateformat  => C4::Dates->DHTMLcalendar(),
+	);
+}
+
 output_html_with_http_headers $query, $cookie, $template->output;
 
 # Local Variables:

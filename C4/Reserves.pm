@@ -30,6 +30,7 @@ use C4::Items;
 use C4::Search;
 use C4::Circulation;
 use C4::Accounts;
+use C4::Dates qw( format_date_in_iso );
 
 # for _koha_notify_reserve
 use C4::Members::Messaging;
@@ -130,7 +131,7 @@ BEGIN {
 sub AddReserve {
     my (
         $branch,    $borrowernumber, $biblionumber,
-        $constraint, $bibitems,  $priority,       $notes,
+        $constraint, $bibitems,  $priority, $resdate,  $notes,
         $title,      $checkitem, $found, $from
     ) = @_;
     my $fee =
@@ -138,9 +139,12 @@ sub AddReserve {
             $bibitems );
     my $dbh     = C4::Context->dbh;
     my $const   = lc substr( $constraint, 0, 1 );
-    my @datearr = localtime(time);
-    my $resdate =
-      ( 1900 + $datearr[5] ) . "-" . ( $datearr[4] + 1 ) . "-" . $datearr[3];
+    $resdate = format_date_in_iso( $resdate ) if ( $resdate );
+    $resdate = C4::Dates->today( 'iso' ) unless ( $resdate );
+    if ( C4::Context->preference( 'AllowHoldDateInFuture' ) ) {
+	# Make room in reserves for this before those of a later reserve date
+	$priority = _ShiftPriorityByDateAndPriority( $biblionumber, $resdate, $priority );
+    }
     my $waitingdate;
 
     # If the reserv had the waiting status, we had the value of the resdate
@@ -320,6 +324,7 @@ of the reserves and an arrayref pointing to the reserves for C<$biblionumber>.
 
 sub GetReservesFromBiblionumber {
     my ($biblionumber) = shift or return (0, []);
+    my ($all_dates) = @_;
     my $dbh   = C4::Context->dbh;
 
     # Find the desired items in the reserves
@@ -338,6 +343,9 @@ sub GetReservesFromBiblionumber {
         WHERE biblionumber = ? ";
     if ( C4::Context->preference("IndependantBranches") ) {
         $query .= "AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} ) ." ";
+    }
+    unless ( $all_dates ) {
+        $query .= "AND reservedate <= CURRENT_DATE()";
     }
     $query .= "ORDER BY priority";
     my $sth = $dbh->prepare($query);
@@ -395,13 +403,16 @@ sub GetReservesFromBiblionumber {
 =cut
 
 sub GetReservesFromItemnumber {
-    my ( $itemnumber ) = @_;
+    my ( $itemnumber, $all_dates ) = @_;
     my $dbh   = C4::Context->dbh;
     my $query = "
     SELECT reservedate,borrowernumber,branchcode
     FROM   reserves
     WHERE  itemnumber=?
     ";
+    unless ( $all_dates ) {
+	$query .= " AND reservedate <= CURRENT_DATE()";
+    }
     my $sth_res = $dbh->prepare($query);
     $sth_res->execute($itemnumber);
     my ( $reservedate, $borrowernumber,$branchcode ) = $sth_res->fetchrow_array;
@@ -1576,6 +1587,7 @@ sub _Findgroupreserve {
           AND reserves.reservedate    = reserveconstraints.reservedate )
           OR  reserves.constrainttype='a' )
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
+          AND reservedate <= CURRENT_DATE()
     /;
     if ( C4::Context->preference('IndependantBranches') ) {
         $query .= "AND reserves.branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
@@ -1651,6 +1663,60 @@ sub _koha_notify_reserve {
             }
         );
     }
+}
+
+=item _ShiftPriorityByDateAndPriority
+
+=over 4
+
+$new_priority = _ShiftPriorityByDateAndPriority( $biblionumber, $reservedate, $priority );
+
+=back
+
+This increments the priority of all reserves after the one
+ with either the lowest date after C<$reservedate>
+ or the lowest priority after C<$priority>.
+
+It effectively makes room for a new reserve to be inserted with a certain
+ priority, which is returned.
+
+This is most useful when the reservedate can be set by the user.  It allows
+ the new reserve to be placed before other reserves that have a later
+ reservedate.  Since priority also is set by the form in reserves/request.pl
+ the sub accounts for that too.
+
+=cut
+
+sub _ShiftPriorityByDateAndPriority {
+    my ( $biblio, $resdate, $new_priority ) = @_;
+
+    my $dbh = C4::Context->dbh;
+    my $query = "SELECT priority FROM reserves WHERE biblionumber = ? AND ( reservedate > ? OR priority > ? ) ORDER BY priority ASC";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute( $biblio, $resdate, $new_priority );
+    my ( $min_priority ) = $sth->fetchrow;
+    $sth->finish;  # $sth might have more data.
+    $new_priority = $min_priority if ( $min_priority );
+    my $updated_priority = $new_priority + 1;
+
+    $query = "
+ UPDATE reserves
+    SET priority = ?
+  WHERE biblionumber = ?
+    AND borrowernumber = ?
+    AND reservedate = ?
+    AND found IS NULL";
+    my $sth_update = $dbh->prepare( $query );
+
+    $query = "SELECT * FROM reserves WHERE priority >= ?";
+    $sth = $dbh->prepare( $query );
+    $sth->execute( $new_priority );
+    while ( my $row = $sth->fetchrow_hashref ) {
+	$sth_update->execute( $updated_priority, $biblio, $row->{borrowernumber}, $row->{reservedate} );
+	$updated_priority++;
+    }
+
+    return $new_priority;  # so the caller knows what priority they end up at
 }
 
 =back

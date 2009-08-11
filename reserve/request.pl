@@ -516,5 +516,12 @@ $template->param(
 	borrower_branchcode => $borrowerinfo->{'branchcode'},
 );
 
+if ( C4::Context->preference( 'AllowHoldDateInFuture' ) ) {
+    $template->param(
+	reserve_in_future         => 1,
+	DHTMLcalendar_dateformat  => C4::Dates->DHTMLcalendar(),
+	);
+}
+
 # printout the page
 output_html_with_http_headers $input, $cookie, $template->output;

@@ -1,5 +1,6 @@
 <!-- TMPL_INCLUDE NAME="doc-head-open.inc" --><!-- TMPL_VAR NAME="LibraryNameTitle" DEFAULT="Koha Online" --> Catalog &rsaquo;  Reserving <!-- TMPL_VAR NAME="title" escape="html" --> for <!-- TMPL_LOOP NAME="USER_INFO" --><!-- TMPL_VAR NAME="firstname" --> <!-- TMPL_VAR NAME="surname" --><!-- /TMPL_LOOP -->
 <!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+<!-- TMPL_INCLUDE NAME="calendar.inc" -->
 <script type="text/javascript">
 // <![CDATA[ 
  $(document).ready(function() {
@@ -118,6 +119,44 @@
             <!-- /TMPL_LOOP --></li>
             <li><span class="label">Priority:</span><!-- TMPL_VAR Name="rank" DEFAULT="?" --> out of <!-- TMPL_VAR Name="reservecount" DEFAULT="?" -->
 			</li> 
+		  <!-- TMPL_IF NAME="reserve_in_future" -->
+		  <li>
+			Reserve Starts on Date
+			<input name="reserve_date_<!-- TMPL_VAR NAME="biblionumber" -->" id="reserve_date_<!-- TMPL_VAR NAME="biblionumber" -->" size="10">
+			<!-- <img src="<!-- TMPL_VAR NAME="themelang" -->/lib/calendar/cal.gif" alt="Show Calendar" border="0" id="CalendarReserveDate<!-- TMPL_VAR NAME="biblionumber" -->" style="cursor: pointer;" /> -->
+			<script language="JavaScript" type="text/javascript">
+			//<![CDATA[
+			$("#reserve_date_<!-- TMPL_VAR NAME="biblionumber" -->").attr( 'readonly', 'readonly' );
+
+			var cal_img = document.createElement('img');
+			cal_img.src = "<!-- TMPL_VAR NAME="themelang" -->/lib/calendar/cal.gif";
+			cal_img.alt = "Show Calendar";
+			cal_img.border = "0";
+			cal_img.id = "CalendarReserveDate<!-- TMPL_VAR NAME="biblionumber" -->";
+			cal_img.style.cursor = "pointer";
+			document.getElementById("reserve_date_<!-- TMPL_VAR NAME="biblionumber" -->").parentNode.appendChild( cal_img );
+
+			function validate<!-- TMPL_VAR NAME="biblionumber" -->(date) {
+			   var today = new Date();
+			   if ( date < today ) {
+			      return true;
+			   } else {
+			      return false;
+			   }
+			};
+			Calendar.setup(
+			{
+				inputField : "reserve_date_<!-- TMPL_VAR NAME="biblionumber" -->",
+				ifFormat : "<!-- TMPL_VAR NAME="DHTMLcalendar_dateformat" -->",
+				button : "CalendarReserveDate<!-- TMPL_VAR NAME="biblionumber" -->",
+				disableFunc : validate<!-- TMPL_VAR NAME="biblionumber" -->,
+				dateStatusFunc : validate<!-- TMPL_VAR NAME="biblionumber" -->,
+			}
+			);
+			//]]>
+			</script>
+		  </li>
+		  <!-- /TMPL_IF -->
             <!-- TMPL_UNLESS NAME="singleBranchMode" -->
             <li><label for="branch">Pick up from:</label> <select name="branch" id="branch">
                     <!-- TMPL_LOOP NAME="CGIbranch" -->
