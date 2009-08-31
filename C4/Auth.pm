@@ -687,16 +687,19 @@ sub checkauth {
 					}
 
 					my @branchesloop;
-					foreach my $br ( keys %$branches ) {
-						#     now we work with the treatment of ip
-						my $domain = $branches->{$br}->{'branchip'};
-						foreach my $subdomain ( split /\|/, $domain ) {
-							if ( $subdomain && $ip =~ /^$subdomain/ ) {
-								$branchcode = $branches->{$br}->{'branchcode'};
+					unless ( $branchcode ) { # already set from db.borrowers
+						foreach my $br ( keys %$branches ) {
+							#     now we work with the treatment of ip
+							my $domain = $branches->{$br}->{'branchip'};
+							foreach my $subdomain ( split /\|/, $domain ) {
+								if ( $subdomain && $ip =~ /^$subdomain/ ) {
+									$branchcode = $branches->{$br}->{'branchcode'};
 
-								# new op dev : add the branchprinter and branchname in the cookie
-								$branchprinter = $branches->{$br}->{'branchprinter'};
-								$branchname    = $branches->{$br}->{'branchname'};
+									# new op dev : add the branchprinter and branchname in the cookie
+									$branchprinter = $branches->{$br}->{'branchprinter'};
+									$branchname    = $branches->{$br}->{'branchname'};
+									last;
+								}
 							}
 						}
 					}
