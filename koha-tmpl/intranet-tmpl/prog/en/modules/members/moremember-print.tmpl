@@ -29,7 +29,6 @@
 		<th>Item Type</th>
 		<th>Call Number</th>
 		<th>Barcode</th>
-		<th>Price</th>
 		<th>Date Due</th>
 		<th>Charge</th>
 		<th>Price</th>
@@ -48,7 +47,6 @@
 		<td><!-- TMPL_VAR NAME="itemtype_description" --></td>
 		<td><!-- TMPL_VAR NAME="itemcallnumber" --></td>
 		<td><!-- TMPL_VAR NAME="barcode" --></td>
-		<td><!-- TMPL_VAR NAME="replacementprice" --></td>
 		<td><!-- TMPL_VAR NAME="date_due" --></td>
 		<td><!-- TMPL_VAR NAME="charge" --></td>
 		<td><!-- TMPL_VAR NAME="replacementprice" --></td>
@@ -56,10 +54,10 @@
 	</tr>
 	<!-- /TMPL_LOOP -->
 	<tr>
-            <td colspan="4" style="text-align: right; font-weight:bold;">Totals:</td>
+            <td colspan="7" style="text-align: right; font-weight:bold;">Totals:</td>
             <td><!-- TMPL_VAR NAME="totaldue" --></td>
             <td><!-- TMPL_VAR NAME="totalprice" --></td>
-            <td colspan="2">&nbsp;</td>
+            <td colspan="1">&nbsp;</td>
         </tr>
 	</table>
 	<!-- /TMPL_IF -->
