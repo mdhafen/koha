@@ -107,11 +107,19 @@ Calendar.setup(
         </li>
         <li>
         <label for="strip_nonlocal_items">Remove non-local items</label>
+	<!-- TMPL_IF NAME="Independant_Branches" -->
+        <input id="strip_nonlocal_items" type="checkbox" name="strip_nonlocal_items" checked="checked" />
+	<!-- TMPL_ELSE -->
         <input id="strip_nonlocal_items" type="checkbox" name="strip_nonlocal_items" />
+	<!-- /TMPL_IF -->
         </li>
 	<li>
 	<label for="strip_nonlocal_biblios">Remove non-local biblios</label>
+	<!-- TMPL_IF NAME="Independant_Branches" -->
+	<input id="strip_nonlocal_biblios" name="strip_nonlocal_biblios" type="checkbox" checked="checked" />
+	<!-- TMPL_ELSE -->
 	<input id="strip_nonlocal_biblios" name="strip_nonlocal_biblios" type="checkbox" />
+	<!-- /TMPL_IF -->
 	</li>
 	<li>
 	<label for="item_format">Item Format</label>

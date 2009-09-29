@@ -236,6 +236,7 @@ else {
         branchloop   => \@branchloop,
         itemtypeloop => \@itemtypesloop,
 		DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
+        Independant_Branches => $limit_ind_branch,
     );
     
     output_html_with_http_headers $query, $cookie, $template->output;
