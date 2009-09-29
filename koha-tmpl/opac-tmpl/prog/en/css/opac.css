@@ -335,6 +335,7 @@ p.availability {
 
 .available {
 	color : #006600;
+	font-size : 110%;
 }
 
 .waiting,.intransit,.notforloan,.checkedout,.lost,.notonhold {

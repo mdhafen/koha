@@ -449,6 +449,111 @@
     </xsl:choose>
     </p>
 
+
+    <span class="results_summary">
+			   <span class="label">Availability: </span>
+			        <xsl:choose>
+                        <xsl:when test="marc:datafield[@tag=856]">
+                            <xsl:for-each select="marc:datafield[@tag=856]">
+                                <xsl:choose>
+                                    <xsl:when test="@ind2=0">
+                                    <a><xsl:attribute name="href"><xsl:value-of select="marc:subfield[@code='u']"/></xsl:attribute>
+                                    <xsl:choose>
+                                    <xsl:when test="marc:subfield[@code='y' or @code='3' or @code='z']">
+                                        <xsl:call-template name="subfieldSelect">
+                                        <xsl:with-param name="codes">y3z</xsl:with-param>
+                                        </xsl:call-template>
+                                    </xsl:when>
+                                    <xsl:when test="not(marc:subfield[@code='y']) and not(marc:subfield[@code='3']) and not(marc:subfield[@code='z'])">
+                                    Click here to access online
+                                    </xsl:when>
+                                    </xsl:choose>
+                                    </a>
+                                    <xsl:choose>
+                                    <xsl:when test="position()=last()"></xsl:when>
+                                    <xsl:otherwise> | </xsl:otherwise>
+                                    </xsl:choose>
+                                    </xsl:when>
+                                </xsl:choose>
+                            </xsl:for-each>
+                        </xsl:when>
+
+				   <xsl:when test="count(key('item-by-status', 'available'))=0 and count(key('item-by-status', 'reference'))=0">No copies available
+				   </xsl:when>
+                   <xsl:when test="count(key('item-by-status', 'available'))>0">
+                   <span class="available">
+                       <b><xsl:text>Copies available for loan: </xsl:text></b>
+                       <xsl:variable name="available_items"
+                           select="key('item-by-status', 'available')"/>
+                       <xsl:for-each select="$available_items[generate-id() = generate-id(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch))[1])]">
+                           <xsl:value-of select="items:homebranch"/>
+						   <xsl:if test="items:itemcallnumber != '' and items:itemcallnumber">[<xsl:value-of select="items:itemcallnumber"/>]</xsl:if>
+                           <xsl:text> (</xsl:text>
+                           <xsl:value-of select="count(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch)))"/>
+                           <xsl:text>)</xsl:text>
+<xsl:choose><xsl:when test="position()=last()"><xsl:text>. </xsl:text></xsl:when><xsl:otherwise><xsl:text>, </xsl:text></xsl:otherwise></xsl:choose>
+                       </xsl:for-each>
+                   </span>
+                   </xsl:when>
+				   </xsl:choose>
+
+                   <xsl:choose>
+                   <xsl:when test="count(key('item-by-status', 'reference'))>0">
+                   <span class="available">
+                       <b><xsl:text>Copies available for reference: </xsl:text></b>
+                       <xsl:variable name="reference_items"
+                           select="key('item-by-status', 'reference')"/>
+                       <xsl:for-each select="$reference_items[generate-id() = generate-id(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch))[1])]">
+                           <xsl:value-of select="items:homebranch"/>
+						   <xsl:if test="items:itemcallnumber != '' and items:itemcallnumber">[<xsl:value-of select="items:itemcallnumber"/>]</xsl:if>
+                           <xsl:text> (</xsl:text>
+                           <xsl:value-of select="count(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch)))"/>
+                           <xsl:text>)</xsl:text>
+                   <xsl:choose><xsl:when test="position()=last()"><xsl:text>. </xsl:text></xsl:when><xsl:otherwise><xsl:text>, </xsl:text></xsl:otherwise></xsl:choose>
+                       </xsl:for-each>
+                   </span>
+                   </xsl:when>
+                   </xsl:choose>
+
+                   <xsl:if test="count(key('item-by-status', 'Checked out'))>0">
+                   <span class="unavailable">
+                       <xsl:text>Checked out (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'Checked out'))"/>
+                       <xsl:text>). </xsl:text>
+				   </span>
+                   </xsl:if>
+                   <xsl:if test="count(key('item-by-status', 'Withdrawn'))>0">
+                   <span class="unavailable">
+                       <xsl:text>Withdrawn (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'Withdrawn'))"/>
+                       <xsl:text>). </xsl:text>                   </span>
+				   </xsl:if>
+                    <xsl:if test="count(key('item-by-status', 'Lost'))>0">
+                   <span class="unavailable">
+                       <xsl:text>Lost (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'Lost'))"/>
+                       <xsl:text>). </xsl:text>                   </span>
+				   </xsl:if>
+                    <xsl:if test="count(key('item-by-status', 'Damaged'))>0">
+                   <span class="unavailable">
+                       <xsl:text>Damaged (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'Damaged'))"/>
+                       <xsl:text>). </xsl:text>                   </span>
+                   </xsl:if>
+                    <xsl:if test="count(key('item-by-status', 'On order'))>0">
+                   <span class="unavailable">
+                       <xsl:text>On order (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'On order'))"/>
+                       <xsl:text>). </xsl:text>                   </span>
+                   </xsl:if>
+                    <xsl:if test="count(key('item-by-status', 'In transit'))>0">
+                   <span class="unavailable">
+                       <xsl:text>In transit (</xsl:text>
+                       <xsl:value-of select="count(key('item-by-status', 'In transit'))"/>
+                       <xsl:text>). </xsl:text>                   </span>
+                   </xsl:if>
+               </span>
+
     <xsl:if test="marc:datafield[@tag=250]">
 	<span class="results_summary">
     <span class="label">Edition: </span>
@@ -819,110 +924,6 @@
 	</span>
 
     </xsl:if>
-
-    <span class="results_summary">
-			   <span class="label">Availability: </span>
-			        <xsl:choose>
-                        <xsl:when test="marc:datafield[@tag=856]">
-                            <xsl:for-each select="marc:datafield[@tag=856]">
-                                <xsl:choose>
-                                    <xsl:when test="@ind2=0">
-                                    <a><xsl:attribute name="href"><xsl:value-of select="marc:subfield[@code='u']"/></xsl:attribute>
-                                    <xsl:choose>
-                                    <xsl:when test="marc:subfield[@code='y' or @code='3' or @code='z']">
-                                        <xsl:call-template name="subfieldSelect">                        
-                                        <xsl:with-param name="codes">y3z</xsl:with-param>                    
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                    <xsl:when test="not(marc:subfield[@code='y']) and not(marc:subfield[@code='3']) and not(marc:subfield[@code='z'])">
-                                    Click here to access online
-                                    </xsl:when>
-                                    </xsl:choose>
-                                    </a>
-                                    <xsl:choose>
-                                    <xsl:when test="position()=last()"></xsl:when>
-                                    <xsl:otherwise> | </xsl:otherwise>
-                                    </xsl:choose>
-                                    </xsl:when> 
-                                </xsl:choose>
-                            </xsl:for-each>
-                        </xsl:when>
-
-				   <xsl:when test="count(key('item-by-status', 'available'))=0 and count(key('item-by-status', 'reference'))=0">No copies available
-				   </xsl:when>
-                   <xsl:when test="count(key('item-by-status', 'available'))>0">
-                   <span class="available">
-                       <b><xsl:text>Copies available for loan: </xsl:text></b>
-                       <xsl:variable name="available_items"
-                           select="key('item-by-status', 'available')"/>
-                       <xsl:for-each select="$available_items[generate-id() = generate-id(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch))[1])]">
-                           <xsl:value-of select="items:homebranch"/>
-						   <xsl:if test="items:itemcallnumber != '' and items:itemcallnumber">[<xsl:value-of select="items:itemcallnumber"/>]</xsl:if>
-                           <xsl:text> (</xsl:text>
-                           <xsl:value-of select="count(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch)))"/>
-                           <xsl:text>)</xsl:text>
-<xsl:choose><xsl:when test="position()=last()"><xsl:text>. </xsl:text></xsl:when><xsl:otherwise><xsl:text>, </xsl:text></xsl:otherwise></xsl:choose>
-                       </xsl:for-each>
-                   </span>
-                   </xsl:when>
-				   </xsl:choose>
-
-                   <xsl:choose>
-                   <xsl:when test="count(key('item-by-status', 'reference'))>0">
-                   <span class="available">
-                       <b><xsl:text>Copies available for reference: </xsl:text></b>
-                       <xsl:variable name="reference_items"
-                           select="key('item-by-status', 'reference')"/>
-                       <xsl:for-each select="$reference_items[generate-id() = generate-id(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch))[1])]">
-                           <xsl:value-of select="items:homebranch"/>
-						   <xsl:if test="items:itemcallnumber != '' and items:itemcallnumber">[<xsl:value-of select="items:itemcallnumber"/>]</xsl:if>
-                           <xsl:text> (</xsl:text>
-                           <xsl:value-of select="count(key('item-by-status-and-branch', concat(items:status, ' ', items:homebranch)))"/>
-                           <xsl:text>)</xsl:text>
-                   <xsl:choose><xsl:when test="position()=last()"><xsl:text>. </xsl:text></xsl:when><xsl:otherwise><xsl:text>, </xsl:text></xsl:otherwise></xsl:choose>
-                       </xsl:for-each>
-                   </span>
-                   </xsl:when>
-                   </xsl:choose>
-
-                   <xsl:if test="count(key('item-by-status', 'Checked out'))>0">
-                   <span class="unavailable">
-                       <xsl:text>Checked out (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'Checked out'))"/>
-                       <xsl:text>). </xsl:text>
-				   </span>
-                   </xsl:if>
-                   <xsl:if test="count(key('item-by-status', 'Withdrawn'))>0">
-                   <span class="unavailable">
-                       <xsl:text>Withdrawn (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'Withdrawn'))"/>
-                       <xsl:text>). </xsl:text>                   </span>
-				   </xsl:if>
-                    <xsl:if test="count(key('item-by-status', 'Lost'))>0">
-                   <span class="unavailable">
-                       <xsl:text>Lost (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'Lost'))"/>
-                       <xsl:text>). </xsl:text>                   </span>
-				   </xsl:if>
-                    <xsl:if test="count(key('item-by-status', 'Damaged'))>0">
-                   <span class="unavailable">
-                       <xsl:text>Damaged (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'Damaged'))"/>
-                       <xsl:text>). </xsl:text>                   </span>
-                   </xsl:if>
-                    <xsl:if test="count(key('item-by-status', 'On order'))>0">
-                   <span class="unavailable">
-                       <xsl:text>On order (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'On order'))"/>
-                       <xsl:text>). </xsl:text>                   </span>
-                   </xsl:if>
-                    <xsl:if test="count(key('item-by-status', 'In transit'))>0">
-                   <span class="unavailable">
-                       <xsl:text>In transit (</xsl:text>
-                       <xsl:value-of select="count(key('item-by-status', 'In transit'))"/>
-                       <xsl:text>). </xsl:text>                   </span>
-                   </xsl:if>
-               </span>
     </xsl:template>
 
     <xsl:template name="nameABCDQ">
