@@ -43,6 +43,10 @@ function confirmnotdup(){
  */
 function Check(){
     var StrAlert = AreMandatoriesNotOk();
+    // AreMandatoriesNotOk call focus on all mandatory fields
+    // Some fields will fill themselves on focus.
+    // So call AreMandatoriesNotOk twice.
+    StrAlert = AreMandatoriesNotOk();
     if( ! StrAlert ){
         document.f.submit();
         return true;
