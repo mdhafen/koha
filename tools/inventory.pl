@@ -64,6 +64,9 @@ my ($template, $borrowernumber, $cookie)
                 debug => 1,
                 });
 
+if ( ! $branchcode && C4::Branch::onlymine() ) {
+    $branchcode = C4::Branch::mybranch();
+}
 my $branches = GetBranches();
 my @branch_loop;
 for my $branch_hash (keys %$branches) {
@@ -189,16 +192,17 @@ if ($uploadbarcodes && length($uploadbarcodes)>0){
 }
 #if we want to compare the results to a list of barcodes, or we have no barcode file
 if ( ! ($uploadbarcodes && length($uploadbarcodes)>0 ) || ( $input->param('compareinv2barcd') eq 'on' && length($uploadbarcodes)>0) ) {
+    my $seen = 0;  # if this page gets smaller the next offset needs adjusting
     if ($markseen) {
         foreach ($input->param) {
-            /SEEN-(.+)/ and &ModDateLastSeen($1);
+            /SEEN-(.+)/ and &ModDateLastSeen($1) and $seen++;
         }
     }
     if ($markseen or $op) {
-        $res = GetItemsForInventory( $minlocation, $maxlocation, $location, $itemtype, $ignoreissued, $datelastseen, $branchcode, $branch, $offset, $pagesize, $staton );
+        $res = GetItemsForInventory( $minlocation, $maxlocation, $location, $itemtype, $ignoreissued, $datelastseen, $branchcode, $branch, $offset-$seen, $pagesize, $staton );
         $template->param(loop =>$res,
-                        nextoffset => ($offset+$pagesize),
-                        prevoffset => ($offset?$offset-$pagesize:0),
+                        nextoffset => ($offset-$seen+$pagesize),
+                        prevoffset => (($offset-$pagesize>0)?$offset-$pagesize:0),
                         );
     }
     if ( defined $input->param('compareinv2barcd') && ( ( $input->param('compareinv2barcd') eq 'on' ) && ( scalar @brcditems != scalar @$res ) ) && length($uploadbarcodes) > 0 ){
