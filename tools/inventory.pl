@@ -57,6 +57,9 @@ my ($template, $borrowernumber, $cookie)
                 debug => 1,
                 });
 
+if ( ! $branchcode && C4::Branch::onlymine() ) {
+    $branchcode = C4::Branch::mybranch();
+}
 my $branches = GetBranches();
 my @branch_loop;
 push @branch_loop, {value => "", branchname => "All Locations", };
@@ -158,16 +161,17 @@ if ($uploadbarcodes && length($uploadbarcodes)>0){
 # 	$template->param(errorfile=>$errorfile) if ($errorfile);
     $template->param(errorloop=>\@errorloop) if (@errorloop);
 }else{
+    my $seen = 0;  # if this page gets smaller the next offset needs adjusting
     if ($markseen) {
         foreach ($input->param) {
-            /SEEN-(.+)/ and &ModDateLastSeen($1);
+            /SEEN-(.+)/ and &ModDateLastSeen($1) and $seen++;
         }
     }
     if ($markseen or $op) {
-        my $res = GetItemsForInventory($minlocation,$maxlocation,$location,$itemtype,$ignoreissued,$datelastseen,$branchcode,$branch,$offset,$pagesize);
+        my $res = GetItemsForInventory($minlocation,$maxlocation,$location,$itemtype,$ignoreissued,$datelastseen,$branchcode,$branch,$offset-$seen,$pagesize);
         $template->param(loop =>$res,
-                        nextoffset => ($offset+$pagesize),
-                        prevoffset => ($offset?$offset-$pagesize:0),
+                        nextoffset => ($offset-$seen+$pagesize),
+                        prevoffset => (($offset-$pagesize>0)?$offset-$pagesize:0),
                         );
     }
 }
