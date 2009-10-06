@@ -212,6 +212,51 @@ sub AddReserve {
 
 
     #}
+
+    # Get branch details for $branch, check for branchemail
+    my $branch_details = GetBranchDetail( $branch );
+    # If branchemail is set for pickup location, send an email to that address
+    if ( $branch_details->{ 'branchemail' } ) {
+        my $to_address = $branch_details->{ 'branchemail' };
+        my $admin_address = C4::Context->preference('KohaAdminEmailAddress') || $branch_details->{'branchemail'};
+        my $letter_code = ( $checkitem ) ? 'PLACED_TARGETTED' : 'PLACED';
+        my $letter = getletter( 'reserves', $letter_code );
+        if ( $letter ) {
+            $query = qq/
+        SELECT borrowernumber
+          FROM borrowers
+         WHERE email = ?
+            OR emailpro = ?
+            OR B_email = ?
+            /;
+            $sth = $dbh->prepare($query);    # keep prepare outside the loop!
+            $sth->execute( $to_address, $to_address, $to_address );
+            my ( $real_borrowernumber ) = $sth->fetchrow;
+
+            C4::Letters::parseletter( $letter, 'branches', $branch );
+            C4::Letters::parseletter( $letter, 'borrowers', $borrowernumber );
+            C4::Letters::parseletter( $letter, 'biblio', $biblionumber );
+            C4::Letters::parseletter( $letter, 'reserves', $borrowernumber, $biblionumber );
+            if ( $checkitem ) {
+                C4::Letters::parseletter( $letter, 'items', $checkitem );
+	    }
+
+            $letter->{'content'} =~ s/<<reserve_PLACED.fee>>/$fee/g;
+
+            $letter->{'title'}   =~ s/<<[a-z0-9_]+\.[a-z0-9]+>>//g;
+            $letter->{'content'} =~ s/<<[a-z0-9_]+\.[a-z0-9]+>>//g;
+
+            C4::Letters::EnqueueLetter(
+                {   letter                 => $letter,
+                    borrowernumber         => ( $real_borrowernumber ? $real_borrowernumber : $borrowernumber ),
+                    to_address             => $branch_details->{'branchemail'},
+                    message_transport_type => 'email',
+                    from_address           => $admin_address,
+                }
+            );
+        }
+    }
+
     ($const eq "o" || $const eq "e") or return;   # FIXME: why not have a useful return value?
     $query = qq/
         INSERT INTO reserveconstraints
