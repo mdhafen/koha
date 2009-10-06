@@ -1147,10 +1147,13 @@ C<items> tables of the Koha database.
 
 #'
 sub GetAllIssues {
-    my ( $borrowernumber, $order, $limit ) = @_;
+    my ( $borrowernumber, $order, $limit, $startDate ) = @_;
 
     #FIXME: sanity-check order and limit
     my $dbh   = C4::Context->dbh;
+    if ( $startDate ) {
+	$startDate = "AND issuedate > '$startDate'";
+    }
     my $query =
   "SELECT *, issues.timestamp as issuestimestamp, issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp 
   FROM issues 
@@ -1158,6 +1161,7 @@ sub GetAllIssues {
   LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
   LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
   WHERE borrowernumber=? 
+  $startDate
   UNION ALL
   SELECT *, old_issues.timestamp as issuestimestamp, old_issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp 
   FROM old_issues 
@@ -1165,6 +1169,7 @@ sub GetAllIssues {
   LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
   LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
   WHERE borrowernumber=? 
+  $startDate
   order by $order";
     if ( $limit != 0 ) {
         $query .= " limit $limit";

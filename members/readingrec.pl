@@ -52,7 +52,19 @@ if ($input->param('borrowernumber')) {
 
 my $order = 'date_due desc';
 my $limit = 0;
-my ( $issues ) = GetAllIssues($borrowernumber,$order,$limit);
+my $startMonth = $input->param('startmonth') || 1;
+my $startDate = '';
+
+if ( $input->param('limit') eq 'year' && $startMonth ) {
+    my @dateArray = localtime();
+    if ( $dateArray[4] < $startMonth - 1 ) { # check month
+        #  Handle a start of the year that is not January
+        $dateArray[5]--;  # drop the year for month not past the first month
+    }
+    $startDate=$dateArray[5]+1900 .'-'. sprintf('%02d',$startMonth) .'-'. '01';
+}
+
+my ( $issues ) = GetAllIssues($borrowernumber,$order,$limit,$startDate);
 
 my ($template, $loggedinuser, $cookie)= get_template_and_user({template_name => "members/readingrec.tmpl",
 				query => $input,
@@ -121,6 +133,8 @@ $template->param(
 			   			is_child        => ($data->{'category_type'} eq 'C'),
 			   			branchname => GetBranchName($data->{'branchcode'}),
 						showfulllink => (scalar @loop_reading > 50),					
+						showyearlink => ( $startDate ne '' ),
+						showyear_selected => $startMonth,
 						loop_reading => \@loop_reading);
 output_html_with_http_headers $input, $cookie, $template->output;
 
