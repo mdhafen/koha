@@ -52,7 +52,7 @@ if ($input->param('borrowernumber')) {
 
 my $order = 'date_due desc';
 my $limit = 0;
-my $startMonth = $input->param('startmonth') || 1;
+my $startMonth = $input->param('startmonth') || 7;
 my $startDate = '';
 
 if ( $input->param('limit') eq 'year' && $startMonth ) {
