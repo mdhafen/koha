@@ -280,6 +280,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
     $template->param(
 	'branchCGI' => $CGIbranch,
 	'categoryloop' => \@categoryloop,
+	'MembersViaExternal' => C4::Context->preference('MembersViaExternal'),
 	);
 }
 

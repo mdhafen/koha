@@ -49,6 +49,12 @@
     <div class="yui-b">
         <div class="yui-g">
             <div class="yui-u first">
+            <!-- TMPL_UNLESS name="MembersViaExternal" -->
+            <div class="dialog alert">
+            The MembersViaExternal System Preference is off.  It must be on for this tool to work.
+            </div>
+            <!-- /TMPL_UNLESS -->
+
                 <h1>Syncronize External Patrons</h1>
 	        <form method="post" action="/cgi-bin/koha/tools/external-member-sync.pl">
 	            <fieldset class="rows">
