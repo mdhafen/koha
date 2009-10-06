@@ -40,7 +40,7 @@ if ($order2 eq ''){
   $order2="date_due desc";
 }
 my $limit=$input->param('limit') || 'year';  # default to year view
-my $startMonth=$input->param('startmonth') || 1;
+my $startMonth=$input->param('startmonth') || 7;
 my $startDate='';
 
 if ($limit){
