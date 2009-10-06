@@ -16,9 +16,81 @@
 <!-- TMPL_INCLUDE NAME="circ-toolbar.inc" -->
 <h1>Reading Record</h1>
 <form action="/cgi-bin/koha/members/readingrec.pl" method="get"><input type="hidden" name="borrowernumber" id="borrowernumber" value="<!-- TMPL_VAR NAME="borrowernumber" -->" /></form>
-<p><!-- TMPL_IF NAME="showfulllink" -->Showing All Items |
-	<a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=50">Show Last 50 Items Only</a> <!-- TMPL_ELSE -->	Showing Last 50 Items | 
-	<a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=full">Show All Items</a><!-- /TMPL_IF --></p>
+<div style="margin:.5em 0"><!-- TMPL_IF NAME="showfulllink" -->Showing All Items |
+    <a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=50">Show Last 50 Items Only</a> |
+    <form method="get" action="readingrec.pl">
+    Show A Years Items Only Starting: 
+    <input type="hidden" name="borrowernumber" value="<!-- TMPL_VAR name="borrowernumber" -->" />
+    <input type="hidden" name="limit" value="year" />
+    <select name="startmonth" onchange="this.form.submit()">
+    <option value="0"></option>
+    <option value="1">January</option>
+    <option value="2">February</option>
+    <option value="3">March</option>
+    <option value="4">April</option>
+    <option value="5">May</option>
+    <option value="6">June</option>
+    <option value="7">July</option>
+    <option value="8">August</option>
+    <option value="9">September</option>
+    <option value="10">October</option>
+    <option value="11">November</option>
+    <option value="12">December</option>
+    </select>
+    </form>
+ <!-- TMPL_ELSE -->
+  <!-- TMPL_IF NAME="showyearlink" -->
+    Showing This Years Items Starting:
+    <form id="showyear_selected" name="showyear_selected" method="get" action="readingrec.pl">
+    <input type="hidden" name="borrowernumber" value="<!-- TMPL_VAR name="borrowernumber" -->" />
+    <input type="hidden" name="limit" value="year" />
+    <select name="startmonth" onchange="this.form.submit()">
+    <option value="1">January</option>
+    <option value="2">February</option>
+    <option value="3">March</option>
+    <option value="4">April</option>
+    <option value="5">May</option>
+    <option value="6">June</option>
+    <option value="7">July</option>
+    <option value="8">August</option>
+    <option value="9">September</option>
+    <option value="10">October</option>
+    <option value="11">November</option>
+    <option value="12">December</option>
+    </select>
+    </form> |
+    <!-- TMPL_IF name="showyear_selected" -->
+    <script type="text/javascript">
+    document.forms.showyear_selected.startmonth.options[<!-- TMPL_VAR name="showyear_selected" -->-1].selected = "selected";
+    </script>
+    <!-- /TMPL_IF -->
+    <a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=50">Show Last 50 Items Only</a> |
+    <a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=full">Show All Items</a>
+  <!-- TMPL_ELSE -->
+    Showing Last 50 Items | 
+    <form method="get" action="readingrec.pl">
+    Show A Years Items Only Starting: 
+    <input type="hidden" name="borrowernumber" value="<!-- TMPL_VAR name="borrowernumber" -->" />
+    <input type="hidden" name="limit" value="year" />
+    <select name="startmonth" onchange="this.form.submit()">
+    <option value="0"></option>
+    <option value="1">January</option>
+    <option value="2">February</option>
+    <option value="3">March</option>
+    <option value="4">April</option>
+    <option value="5">May</option>
+    <option value="6">June</option>
+    <option value="7">July</option>
+    <option value="8">August</option>
+    <option value="9">September</option>
+    <option value="10">October</option>
+    <option value="11">November</option>
+    <option value="12">December</option>
+    </select>
+    </form> |
+    <a href="readingrec.pl?borrowernumber=<!-- TMPL_VAR name="borrowernumber" -->&amp;limit=full">Show All Items</a>
+  <!-- /TMPL_IF -->
+<!-- /TMPL_IF --></div>
 <table>
 <tr>
 	<th>
