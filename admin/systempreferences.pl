@@ -141,6 +141,7 @@ $tabsysprefs{useDaysMode}                    = "Circulation";
 $tabsysprefs{ReservesNeedReturns}            = "Circulation";
 $tabsysprefs{CircAutocompl}                  = "Circulation";
 $tabsysprefs{AllowRenewalLimitOverride}      = "Circulation";
+$tabsysprefs{CircRestrictPreviouslyIssued}   = "Circulation";
 $tabsysprefs{canreservefromotherbranches}    = "Circulation";
 $tabsysprefs{finesMode}                      = "Circulation";
 $tabsysprefs{numReturnedItemsToShow}         = "Circulation";

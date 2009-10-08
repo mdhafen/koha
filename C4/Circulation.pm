@@ -821,6 +821,19 @@ sub CanBookBeIssued {
 "$currborinfo->{'reservedate'} : $currborinfo->{'firstname'} $currborinfo->{'surname'} ($currborinfo->{'cardnumber'})";
     }
 
+    #
+    # Check if borrower has checked this title out before
+    #
+    if ( C4::Context->preference("CircRestrictPreviouslyIssued") ) {
+        my $sth = $dbh->prepare("SELECT old_issues.itemnumber FROM old_issues CROSS JOIN items USING (itemnumber) WHERE biblionumber = ?");
+        $sth->execute($item->{'biblionumber'});
+        my $alreadyissued = $sth->fetchrow_hashref();
+        $sth->finish();
+        if ( $alreadyissued->{'itemnumber'} ) {
+            $needsconfirmation{PATRON_PREVIOUSLY_ISSUED} = 1;
+        }
+    }
+
     # See if the item is on reserve.
     my ( $restype, $res ) = C4::Reserves::CheckReserves( $item->{'itemnumber'} );
     if ($restype) {
