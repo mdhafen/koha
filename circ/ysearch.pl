@@ -42,14 +42,14 @@ if ($auth_status ne "ok") {
 }
 
 my $dbh = C4::Context->dbh;
-my $sql = qq(SELECT surname, firstname, cardnumber, address, city, zipcode, country 
+my $sql = qq|SELECT surname, firstname, cardnumber, address, city, zipcode, country 
              FROM borrowers 
-             WHERE surname LIKE ?
+             WHERE ( surname LIKE ?
              OR firstname LIKE ?
-             OR cardnumber LIKE ?);
+             OR cardnumber LIKE ? )|;
 if (C4::Context->preference("IndependantBranches")){
     if (C4::Context->userenv && C4::Context->userenv->{'branch'}){
-	$sql .= qq( AND borrowers.branchcode =) . $dbh->quote(C4::Context->userenv->{'branch'}) unless (C4::Context->userenv->{'branch'} eq "insecure");
+	$sql .= qq| AND borrowers.branchcode = | . $dbh->quote(C4::Context->userenv->{'branch'}) unless (C4::Context->userenv->{'branch'} eq "insecure");
     }
 }
 $sql .= qq(  ORDER BY surname, firstname);
