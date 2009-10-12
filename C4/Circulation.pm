@@ -825,8 +825,8 @@ sub CanBookBeIssued {
     # Check if borrower has checked this title out before
     #
     if ( C4::Context->preference("CircRestrictPreviouslyIssued") ) {
-        my $sth = $dbh->prepare("SELECT old_issues.itemnumber FROM old_issues CROSS JOIN items USING (itemnumber) WHERE biblionumber = ?");
-        $sth->execute($item->{'biblionumber'});
+        my $sth = $dbh->prepare("SELECT old_issues.itemnumber FROM old_issues CROSS JOIN items USING (itemnumber) WHERE biblionumber = ? AND borrowernumber = ?");
+        $sth->execute($item->{'biblionumber'},$borrower->{'borrowernumber'});
         my $alreadyissued = $sth->fetchrow_hashref();
         $sth->finish();
         if ( $alreadyissued->{'itemnumber'} ) {
