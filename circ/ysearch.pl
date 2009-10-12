@@ -41,7 +41,7 @@ if ($auth_status ne "ok") {
 }
 
 my $dbh = C4::Context->dbh;
-my $sql = qq(SELECT surname, firstname, cardnumber, address, city, zipcode 
+my $sql = qq|SELECT surname, firstname, cardnumber, address, city, zipcode 
              FROM borrowers 
              WHERE ( surname LIKE ?
              OR firstname LIKE ?
