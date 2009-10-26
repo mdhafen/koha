@@ -545,6 +545,7 @@ CREATE TABLE `borrowers_external_structure` (
   `kohafield` varchar(40) default NULL,
   `attrib` varchar(255) default NULL,
   `dblink` varchar(64) default NULL,
+  `filter` varchar(64) default NULL,
   `categorycode` varchar(10) NOT NULL default '',
   PRIMARY KEY  (`externalid`),
   KEY `bes_k_kohafield` (`kohafield`),

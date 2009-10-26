@@ -567,13 +567,13 @@ sub GetExternalMappedCategories {
 
 sub GetMemberDetails_DBI {
     my ( $cardnumber, $category ) = @_;
-    my ( @columns, %filter, $query, $sth );
+    my ( @columns, @filter, $query, $sth );
     my ( $data, $result );
 
     @columns = GetExternalAllAttribs( $category );
     my $filter_field = GetExternalAttrib( 'cardnumber', $category );
-    $filter{ $filter_field } = $cardnumber;
-    $query = DBI_BuildQuery( $category, \@columns, \%filter );
+    push @filter, { 'field' => $filter_field, 'op' => '=', 'value' => $cardnumber };
+    $query = DBI_BuildQuery( $category, \@columns, \@filter );
     return {} unless ( defined $query );
     $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return {};
     $sth->execute;
@@ -617,11 +617,11 @@ sub GetMemberColumns_DBI {
     foreach my $cat ( keys %attribs ) {
 	my $branch_attr = GetExternalAttrib( 'branchcode', $cat );
 	my $cardno_attr = GetExternalAttrib( 'cardnumber', $cat );
-	my %filter;
+	my @filter;
 	my @columns = keys %{ $attribs{ $cat } };
-	$filter{ $branch_attr } = $branch if ( $branch );
+	$filter[0] = { 'field' => $branch_attr, 'op' => '=', 'value' => $branch } if ( $branch );
 
-	my $query = DBI_BuildQuery( $cat, [ @columns, $cardno_attr ], \%filter );
+	my $query = DBI_BuildQuery( $cat, [ @columns, $cardno_attr ], \@filter );
 	next unless ( defined $query );
 	my $sth = $MembersExternal_Context{ conn }->prepare( $query ) or next;
 	$sth->execute;
@@ -653,15 +653,15 @@ sub GetMemberColumns_DBI {
 
 sub ListMembers_DBI {
     my ( $category, $branch ) = @_;
-    my ( $query, %filter, %list );
+    my ( $query, @filter, %list );
 
     my $cardfield = GetExternalAttrib( 'cardnumber', $category );
     if ( $branch ) {
 	my $branchfield = GetExternalAttrib( 'branchcode', $category );
-	$filter{ $branchfield } = $branch;
+	push @filter, { 'field' => $branchfield, 'op' => '=', 'value' => $branch };
     }
 
-    $query = DBI_BuildQuery( $category, [ $cardfield ], \%filter );
+    $query = DBI_BuildQuery( $category, [ $cardfield ], \@filter );
     return {} unless ( defined $query );
     my $sth = $MembersExternal_Context{ conn }->prepare( $query );
     $sth->execute;
@@ -703,13 +703,13 @@ sub AddMember_DBI {
 
 sub Check_Userid_DBI {
     my ( $userid, $borrnum, $category ) = @_;
-    my ( %filter, $query );
+    my ( @filter, $query );
 
     my $card = GetMemberCardnumber( $borrnum );
     my $cardfield = GetExternalAttrib( 'cardnumber', $category );
     my $userfield = GetExternalAttrib( 'userid', $category );
-    $filter{ $userfield } = $userid;
-    $query = DBI_BuildQuery( $category, [ $cardfield ], \%filter );
+    push @filter, { 'field' => $userfield, 'op' => '=', 'value' => $userid };
+    $query = DBI_BuildQuery( $category, [ $cardfield ], \@filter );
     return 1 unless ( defined $query );
     my $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return 1;
     $sth->execute;
@@ -734,7 +734,7 @@ sub checkpw_DBI {
     my ( @results );
 
     foreach my $cat ( keys %$categories ) {
-	$filter = { $$categories{ $cat } => $userid };
+	$filter = [ { 'field' => $$categories{ $cat }, 'op' => '=', 'value' => $userid } ];
 	$cardfield = GetExternalAttrib( 'cardnumber', $cat );
 	$passwd_field = GetExternalAttrib( 'password', $cat );
 	$query = DBI_BuildQuery( $cat, [ $cardfield, $passwd_field ], $filter );
@@ -780,28 +780,28 @@ sub DBI_BuildQuery {
     my ( @l_columns, %tables, %weight, $first_table );
 
     unless ( $MembersExternal_Context{ conn } ) {
-	# Connect to the external db
-	# this DSN format is required for the sybase driver.
-	# Also, Sybase when connecting to mssql doesn't like placeholders
-	my $engine = $MembersExternal_Context{ engine };
-	my $host = $MembersExternal_Context{ host };
-	my $schema = $MembersExternal_Context{ schema };
-	my $user = $MembersExternal_Context{ user };
-	my $pass = $MembersExternal_Context{ pass };
-	my $dsn = "DBI:$engine:server=$host;host=$host;database=$schema;sid=$schema";
-	$MembersExternal_Context{ conn } = DBI->connect( $dsn, $user, $pass );
-	unless ( defined $MembersExternal_Context{ conn } ) {
-	    warn "MembersExternal:  Couldn't connect to external DB!: ". $DBI::errstr if ( $debug );
-	    return undef;
-	}
+        # Connect to the external db
+        # this DSN format is required for the sybase driver.
+        # Also, Sybase when connecting to mssql doesn't like placeholders
+        my $engine = $MembersExternal_Context{ engine };
+        my $host = $MembersExternal_Context{ host };
+        my $schema = $MembersExternal_Context{ schema };
+        my $user = $MembersExternal_Context{ user };
+        my $pass = $MembersExternal_Context{ pass };
+        my $dsn = "DBI:$engine:server=$host;host=$host;database=$schema;sid=$schema";
+        $MembersExternal_Context{ conn } = DBI->connect( $dsn, $user, $pass );
+        unless ( defined $MembersExternal_Context{ conn } ) {
+            warn "MembersExternal:  Couldn't connect to external DB!: ". $DBI::errstr if ( $debug );
+            return undef;
+        }
     }
 
     my $dbh = C4::Context->dbh;
-    $query = "SELECT dblink FROM borrowers_external_structure WHERE dblink LIKE ?";
+    $query = "SELECT dblink, filter FROM borrowers_external_structure WHERE dblink LIKE ?";
     $query .= " AND categorycode = ". $dbh->quote( $category ) if ( $category );
     my $sth = $dbh->prepare( $query );
 
-    $query2 = "SELECT dblink FROM borrowers_external_structure WHERE dblink LIKE ? AND ( categorycode = '' OR categorycode IS NULL )";
+    $query2 = "SELECT dblink, filter FROM borrowers_external_structure WHERE dblink LIKE ? AND ( categorycode = '' OR categorycode IS NULL )";
     my $sth2 = $dbh->prepare( $query2 );
 
     # Clean up $columns
@@ -810,22 +810,36 @@ sub DBI_BuildQuery {
     #  So the parent sub probably cloned the fields without the table names
     #  to catch the value either way.
     foreach my $row ( @$columns ) {
-	push @l_columns, $row if ( $row =~ /[^\.]+\.\S+/ );
+        push @l_columns, $row if ( $row =~ /[^\.]+\.\S+/ );
     }
 
     # Figure out which tables we need now
-    foreach my $row ( keys %$filters, @l_columns ) {
-	my ( $table, $field );
-	$row =~ /([^\.\s]*)\.\S+/;
-	$tables{ $1 } = 1 if ( $1 );
+    foreach my $row ( @$filters, @l_columns ) {
+        my ( $table, $field );
+        if ( ref( $row ) eq 'HASH' ) {
+            $$row{ 'field' } =~ /([^\.\s]*)\.\S+/;
+			$table = $1;
+        } else {
+            $row =~ /([^\.\s]*)\.\S+/;
+			$table = $1;
+        }
+        $tables{ $table } = 1 if ( $table );
     }
     # And figure out how to join them
     if ( scalar keys %tables > 1 ) {
-	foreach ( keys %tables ) {
-	    dbi_buildquerychain( $_, \%tables, \%weight, $sth, $sth2 );
-	}
+        foreach ( keys %tables ) {
+            dbi_buildquerychain( $_, \%tables, \%weight, $filters, $sth, $sth2 );
+        }
     } else {
-	%weight = %tables;
+        %weight = %tables;
+		my ( $table ) = keys %tables;
+        $sth->execute( "\%$table\%" );  # this table links to...
+        while ( my ( $link, $filt ) = $sth->fetchrow ) {
+            if ( $filt ) {
+                $filt =~ /([\w\.]+)\s*(\W*)\s*(.*?)$/;
+                push @$filters, { 'field' => $1, 'op' => $2, 'value' => $3 };
+            }
+        }
     }
 
     # put together the query using keys %weight and the dblinks from the db
@@ -836,8 +850,8 @@ sub DBI_BuildQuery {
 
     my ( @tbls, @joins );
     foreach my $tbl ( sort { $weight{$b} <=> $weight{$a} } keys %weight ) {
-	push @tbls, $tbl;
-	push @joins, $tables{ $tbl };
+        push @tbls, $tbl;
+        push @joins, $tables{ $tbl };
     }
     shift @joins;  # don't need the first one.
 
@@ -845,18 +859,18 @@ sub DBI_BuildQuery {
     $query .= " WHERE " if ( @joins );
     $query .= join ' AND ', @joins;
 
-    if ( %$filters ) {
-	my @filter_array;
-	foreach my $attrib ( keys %$filters ) {
-	    my $value = ( $$filters{ $attrib } =~ /\D+/ ) ? $MembersExternal_Context{ conn }->quote( $$filters{ $attrib } ) : $$filters{ $attrib };
-	    push @filter_array, "$attrib = $value";
-	}
-	unless ( $query =~ / WHERE / ) {
-	    $query .= " WHERE ";
-	} else {
-	    $query .= " AND ";
-	}
-	$query .= join " AND ", @filter_array;
+    if ( @$filters ) {
+        my @filter_array;
+        foreach my $spec ( @$filters ) {
+            my $value = ( $$spec{ 'value' } =~ /\D+/ ) ? $MembersExternal_Context{ conn }->quote( $$spec{ 'value' } ) : $$spec{ 'value' };
+            push @filter_array, "$$spec{field} $$spec{op} $value";
+        }
+        unless ( $query =~ / WHERE / ) {
+            $query .= " WHERE ";
+        } else {
+            $query .= " AND ";
+        }
+        $query .= join " AND ", @filter_array;
     }
 
     $query =~ s/WHERE $//;  # clean up trailing WHERE if there are no conditions
@@ -868,58 +882,62 @@ sub DBI_BuildQuery {
 # recursively called function to figure out how to join tables for a query
 
 sub dbi_buildquerychain {
-    my ( $table, $tables, $weight, $sth, $sth2 ) = @_;
-    my ( $found, $link, %links );
+    my ( $table, $tables, $weight, $filters, $sth, $sth2 ) = @_;
+    my ( $found, $link, %links, $filt );
     my ( $t1, $t2 );
 
     our $depth++;
     if ( $depth > 1000 ) {  # Just in case
-	warn "I really hope you aren't actually trying to chain together more than 1000 tables" if ( $debug );
-	die;
+        warn "I really hope you aren't actually trying to chain together more than 1000 tables" if ( $debug );
+        die;
     }
 
     $sth->execute( "\%$table\%" );  # this table links to...
     if ( $sth->rows ) {  # categorycode set or default set?
-	while ( ( $link ) = $sth->fetchrow ) {
-	    $links{ $link } = 1;
-	}
-	$sth->finish;
+        while ( ( $link, $filt ) = $sth->fetchrow ) {
+            $links{ $link } = ( $filt ) ? $filt : "1";
+        }
+        $sth->finish;
     } else {
-	$sth2->execute( "\%$table\%" );
-	while ( ($link ) = $sth2->fetchrow ) {
-	    $links{ $link } = 1;
-	}
-	$sth2->finish;
+        $sth2->execute( "\%$table\%" );
+        while ( ($link ) = $sth2->fetchrow ) {
+            $links{ $link } = ( $filt ) ? $filt : "1";
+        }
+        $sth2->finish;
     }
 
     foreach $link ( keys %links ) {  # for all the links we have so far...
-	$link =~ /([^\.\s]+)\.[\S]+.*?\=.*?([^\.\s]+)\.[\S]+/;
-	( $t1, $t2 ) = ( $1, $2 );
-	$found = ( $t1 eq $table ) ? $t2 : $t1;  # the table this one links to
+        $link =~ /([^\.\s]+)\.[\S]+.*?\=.*?([^\.\s]+)\.[\S]+/;
+        ( $t1, $t2 ) = ( $1, $2 );
+        $found = ( $t1 eq $table ) ? $t2 : $t1;  # the table this one links to
 
-	$$weight{ $found } = 0 unless exists $$weight{ $found };  # init their
-	$$weight{ $table } = 0 unless exists $$weight{ $table };  #  weight
-	if ( exists $$tables{ $found } and $$tables { $found } ne "SEARCH" and $$weight{ $found } >= $$weight{ $table } ) {
-	    $$weight{ $table }++;  # we've seen $table and $found before
-	    $$weight{ $found } += $$weight{ $table } + 1;  # favor $found
-	    $$tables{ $table } = $link;
-	} elsif ( ! exists $$tables{ $found } ) {
-	    my $temp = $$tables{ $table };  # we haven't see $found before
-	    $$tables{ $table } = "SEARCH";  # search for it
-	    my $chain = dbi_buildquerychain( $found, $tables, $weight, $sth, $sth2 );
-	    if ( $temp ) {
-		$$tables{ $table } = $temp;
-	    } else {
-		delete $$tables{ $table };
-	    }
-	    if ( $chain ) {  # chain found and it's link recorded
-		$$weight{ $table }++;
-		$$weight{ $found } += $$weight{ $table } + 1;
-		$$tables{ $table } = $link;
-	    }
-	}
-	delete $$weight{ $found } unless $$weight{ $found } > 0;
-	delete $$weight{ $table } unless $$weight{ $table } > 0;
+        $$weight{ $found } = 0 unless exists $$weight{ $found };  # init their
+        $$weight{ $table } = 0 unless exists $$weight{ $table };  #  weight
+        if ( exists $$tables{ $found } and $$tables { $found } ne "SEARCH" and $$weight{ $found } >= $$weight{ $table } ) {
+            $$weight{ $table }++;  # we've seen $table and $found before
+            $$weight{ $found } += $$weight{ $table } + 1;  # favor $found
+            $$tables{ $table } = $link;
+            if ( $links{ $link } ne "1" ) {
+                $links{ $link } =~ /([\w\.]+)\s*(\W*)\s*(.*?)$/;
+                push @$filters, { 'field' => $1, 'op' => $2, 'value' => $3 };
+            }
+        } elsif ( ! exists $$tables{ $found } ) {
+            my $temp = $$tables{ $table };  # we haven't see $found before
+            $$tables{ $table } = "SEARCH";  # search for it
+            my $chain = dbi_buildquerychain( $found, $tables, $weight, $filters, $sth, $sth2 );
+            if ( $temp ) {
+                $$tables{ $table } = $temp;
+            } else {
+                delete $$tables{ $table };
+            }
+            if ( $chain ) {  # chain found and it's link recorded
+                $$weight{ $table }++;
+                $$weight{ $found } += $$weight{ $table } + 1;
+                $$tables{ $table } = $link;
+            }
+        }
+        delete $$weight{ $found } unless $$weight{ $found } > 0;
+        delete $$weight{ $table } unless $$weight{ $table } > 0;
     }
 
     $depth--;
