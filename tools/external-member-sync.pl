@@ -78,7 +78,9 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 
 	    # this prevents a delete when a patron has changed branches
 	    my $bordata = GetMemberDetails_External( $cardnumber );
-	    if ( $bordata && ( $$bordata{'branchcode'} != $branch ) ) {
+	    $$bordata{'surname'} ||= '';
+	    $$bordata{'firstname'} ||= '';
+	    if ( $bordata && $$bordata{'branchcode'} && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
 		$branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
 		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
@@ -200,7 +202,9 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 	my $values = $get->fetchrow_hashref;
 
 	foreach ( keys %$attribs ) {
-	    $$attribs{ $_ } =~ s/\s*$//; # this is because of stupid secretaries
+	    exists $$attribs{ $_ } &&
+		$$attribs{ $_ } &&
+		$$attribs{ $_ } =~ s/\s*$//;
 	}
 	unless ( $$attribs{ categorycode } ) {
 	    $$attribs{ categorycode } = $category;
