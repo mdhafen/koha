@@ -349,7 +349,7 @@ function Dopop(link) {
             <td><!-- TMPL_VAR Name="title" escape="html" --> <!-- TMPL_VAR NAME="remainderoftitle" --></td>
             <td>
                 
-                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR Name="riborrowernumber" -->"><!-- TMPL_VAR Name="riborsurname" -->, <!-- TMPL_VAR Name="ribortitle" --> <!-- TMPL_VAR Name="riborfirstname" --></a> (<!-- TMPL_VAR Name="riborcnum" -->)
+                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR Name="riborrowernumber" -->"><!-- TMPL_VAR Name="riborsurname" -->, <!-- TMPL_VAR Name="ribortitle" --> <!-- TMPL_VAR Name="riborfirstname" --></a> (<!-- TMPL_VAR Name="riborcnum" -->) (<a href="/cgi-bin/koha/circ/circulation.pl?borrowernumber=<!-- TMPL_VAR NAME="riborrowernumber" -->">Check Out To</a>)
                 <!-- TMPL_IF Name="flagset" -->
                 (<!-- TMPL_LOOP Name="flagloop" -->
                 <!-- TMPL_VAR Name="flag" -->
@@ -383,7 +383,7 @@ function Dopop(link) {
 			<td><!-- TMPL_IF Name="duedate" -->
                 <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR Name="borrowernumber" -->">
                     <!-- TMPL_VAR Name="borsurname" -->, <!-- TMPL_VAR Name="borfirstname" --> (<!-- TMPL_VAR name="borcategorycode" -->)
-                </a>
+                </a> (<a href="/cgi-bin/koha/circ/circulation.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->">Check Out To</a>)
             <!-- TMPL_ELSE -->Not checked out<!-- /TMPL_IF --></td>
             <td><!-- TMPL_IF name="bornote" --><span class="circ-hlt"><!-- TMPL_VAR name="bornote" --><br /></span><!-- /TMPL_IF -->
             <!-- TMPL_IF name="itemnote" --><span class="circ-hlt"><!-- TMPL_VAR name="itemnote" --></span><!-- /TMPL_IF -->
