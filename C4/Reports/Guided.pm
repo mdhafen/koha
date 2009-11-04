@@ -446,10 +446,10 @@ sub execute_query ($;$$$) {
         $useroffset,
         (defined($userlimit ) ? $userlimit  : 'UNDEF');
     $offset += $useroffset;
-    if (defined($userlimit)) {
+    if (defined($userlimit) && $userlimit) {
         if ($offset + $limit > $userlimit ) {
             $limit = $userlimit - $offset;
-        } elsif ( ! $offset && $limit < $userlimit ) {
+        } elsif ( ! $offset && $limit == 999999 ) {
             $limit = $userlimit;
         }
     }
