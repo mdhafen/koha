@@ -492,6 +492,7 @@ my $CGIbranch = CGI::scrolling_list(
 
 # get the time for the form name...
 my $time = time();
+$template->param( request_placed => $input->param('success') );
 
 $template->param(
     CGIbranch   => $CGIbranch,
