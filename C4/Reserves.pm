@@ -1361,10 +1361,15 @@ sub GetReserveInfo {
 
 	my $data = $sth->fetchrow_hashref;
 
-	my $tmp_branch = $$data{branchcode};
-	my $borrower = C4::Members::GetMember( $borrowernumber, 'borrowernumber' );
-	$data = C4::Koha::JoinHashes( $data, $borrower );
-	$$data{branchcode} = $tmp_branch;  # borrowers table stomps branchcode
+        my $borrower = C4::Members::GetMember( $borrowernumber, 'borrowernumber' );
+        my $temp_borrower = {};
+        foreach ( 'firstname', 'surname', 'phone', 'email', 'cardnumber',
+                  'address', 'address2', 'city', 'zipcode' ) {
+            if ( $$borrower{ $_ } ) {
+                $$temp_borrower{ $_ } = $$borrower{ $_ };
+            }
+        }
+	$data = C4::Koha::JoinHashes( $data, $temp_borrower );
 
 	return $data;
 
