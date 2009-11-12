@@ -235,6 +235,10 @@ function checkMultiHold() {
    <div class="dialog alert"><h3>Patron not found:</h3> <p>Name or barcode not found. Please try an other </p></div>
   <!-- /TMPL_IF -->
 
+  <!-- TMPL_IF NAME="request_placed" -->
+  <div class="dialog message">Hold Requested</div>
+  <!-- /TMPL_IF -->
+  
   <fieldset class="rows left">
     <legend>Hold details</legend>
         <!-- TMPL_UNLESS NAME="multi_hold" -->

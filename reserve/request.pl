@@ -595,6 +595,7 @@ foreach my $biblionumber (@biblionumbers) {
 $template->param( biblioloop => \@biblioloop );
 $template->param( biblionumbers => $biblionumbers );
 $template->param( DHTMLcalendar_dateformat  => C4::Dates->DHTMLcalendar() );
+$template->param( request_placed => $input->param('success') );
 
 if ($multihold) {
     $template->param( multi_hold => 1 );
