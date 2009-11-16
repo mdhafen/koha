@@ -213,6 +213,49 @@ if ( $query->param('place_reserve') ) {
         # Here we actually do the reserveration. Stage 3.
         AddReserve($branch, $borrowernumber, $biblioNum, 'a', [$biblioNum], $rank, $startdate, $expiration_date, $notes,
                    $biblioData->{'title'}, $itemNum, $found) if ($canreserve);
+
+        # now send a notice to the branch email
+        my $branch_details = GetBranchDetail( $branch );
+        if ( $branch_details->{ 'branchemail' } ) {
+            my $dbh = C4::Context->dbh;
+            my $sql;
+            my $to_address = $branch_details->{ 'branchemail' };
+            my $admin_address = C4::Context->preference('KohaAdminEmailAddress') || $branch_details->{'branchemail'};
+            my $letter_code = ( $itemNum ) ? 'PLACED_TARGETTED' : 'PLACED';
+            my $letter = C4::Letters::getletter( 'reserves', $letter_code );
+            if ( $letter ) {
+                $sql = qq/
+                SELECT borrowernumber
+                  FROM borrowers
+                 WHERE email = ?
+                    OR emailpro = ?
+                    OR B_email = ?
+                /;
+                my $sth = $dbh->prepare($sql);
+                $sth->execute( $to_address, $to_address, $to_address );
+                my ( $real_borrowernumber ) = $sth->fetchrow;
+
+                C4::Letters::parseletter( $letter, 'branches', $branch );
+                C4::Letters::parseletter( $letter, 'borrowers', $borrowernumber );
+                C4::Letters::parseletter( $letter, 'biblio', $biblioNum );
+                C4::Letters::parseletter( $letter, 'reserves', $borrowernumber, $biblioNum );
+                if ( $itemNum ) {
+                    C4::Letters::parseletter( $letter, 'items', $itemNum );
+                }
+
+                $letter->{'title'}   =~ s/<<[a-z0-9_]+\.[a-z0-9]+>>//g;
+                $letter->{'content'} =~ s/<<[a-z0-9_]+\.[a-z0-9]+>>//g;
+
+                C4::Letters::EnqueueLetter(
+                    {   letter                 => $letter,
+                        borrowernumber         => ( $real_borrowernumber ? $real_borrowernumber : $borrowernumber ),
+                        to_address             => $branch_details->{'branchemail'},
+                        message_transport_type => 'email',
+                        from_address           => $admin_address,
+                    }
+                );
+            }
+        }
     }
 
     print $query->redirect("/cgi-bin/koha/opac-user.pl#opac-user-holds");
