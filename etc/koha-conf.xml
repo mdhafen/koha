@@ -178,6 +178,12 @@ __PAZPAR2_TOGGLE_XML_POST__
  <port>__DB_PORT__</port>
  <user>__DB_USER__</user>
  <pass>__DB_PASS__</pass>
+ <MembersExternalEngine>__MEMBERS_EXTERNAL_ENGINE__</MembersExternalEngine>
+ <MembersExternalHost>__MEMBERS_EXTERNAL_HOST__</MembersExternalHost>
+ <MembersExternalUser>__MEMBERS_EXTERNAL_USER__</MembersExternalUser>
+ <MembersExternalPass>__MEMBERS_EXTERNAL_PASS__</MembersExternalPass>
+ <MembersExternalSchema>__MEMBERS_EXTERNAL_SCHEMA__</MembersExternalSchema>
+ <MembersExternalPassMethod>__MEMBERS_EXTERNAL_PASS_METHOD__</MembersExternalPassMethod>
  <biblioserver>biblios</biblioserver>
  <biblioservershadow>1</biblioservershadow>
  <authorityserver>authorities</authorityserver>

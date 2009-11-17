@@ -383,6 +383,34 @@ System user account that will own Koha's files.
 
 System group that will own Koha's files.
 
+=item MEMBERS_EXTERNAL_CONFIG
+
+Whether to configure the MembersViaExternal section of the config file.
+
+=item MEMBERS_EXTERNAL_ENGINE
+
+DBI Driver to access external database for patron information.
+
+=item MEMBERS_EXTERNAL_PASS_METHOD
+
+How the patron password is stored in the external database.
+
+=item MEMBERS_EXTERNAL_HOST
+
+The hostname / i.p. address of the external database server.
+
+=item MEMBERS_EXTERNAL_USER
+
+The username to access the external database server.
+
+=item MEMBERS_EXTERNAL_PASS
+
+The password to access the external database server.
+
+=item MEMBERS_EXTERNAL_SCHEMA
+
+The database on the external server to get patron information from.
+
 =back
 
 =cut
@@ -413,6 +441,13 @@ my %config_defaults = (
   'PAZPAR2_PORT' => '11002',
   'RUN_DATABASE_TESTS' => 'no',
   'PATH_TO_ZEBRA' => '',
+  'MEMBERS_EXTERNAL_CONFIG' => 'no',
+  'MEMBERS_EXTERNAL_ENGINE' => 'mysql',
+  'MEMBERS_EXTERNAL_PASS_METHOD' => 'md5',
+  'MEMBERS_EXTERNAL_HOST' => 'localhost',
+  'MEMBERS_EXTERNAL_USER' => 'kohauser',
+  'MEMBERS_EXTERNAL_PASS' => 'zebrastrips',
+  'MEMBERS_EXTERNAL_SCHEMA' => 'externaldatabase',
 );
 
 # set some default configuration options based on OS
@@ -449,6 +484,8 @@ my %valid_config_values = (
   'ZEBRA_MARC_FORMAT' => { 'marc21' => 1, 'unimarc' => 1 }, # FIXME should generate from contents of distributation
   'ZEBRA_LANGUAGE'    => { 'en' => 1, 'fr' => 1 }, # FIXME should generate from contents of distribution
   'RUN_DATABASE_TESTS' => { 'yes' => 1, 'no' => 1 },
+  'MEMBERS_EXTERNAL_CONFIG' => { 'yes' => 1, 'no' => 1 },
+  'MEMBERS_EXTERNAL_PASS_METHOD' => { 'md5' => 1, 'plain' => 1 },
 );
 
 # get settings from command-line
@@ -782,7 +819,7 @@ sub get_install_log_values {
         next if /^=/;
         next unless m/=/;
         s/\s+$//g;
-        my ($key, $value) = split /=/, $_, 2;
+        my ($key, $value) = split /=/, $_, 2; #/
         $values->{$key} = $value;
     }
     close LOG;
@@ -1121,6 +1158,47 @@ Name of the external database?);
             $msg = q(
 How are patron passwords stored in the external database?);
 	    $msg .= _add_valid_values_disp('MEMBERS_EXTERNAL_PASS_METHOD', $valid_values);
+            $config{'MEMBERS_EXTERNAL_PASS_METHOD'} = _get_value('MEMBERS_EXTERNAL_PASS_METHOD', $msg, $defaults->{'MEMBERS_EXTERNAL_PASS_METHOD'}, $valid_values, $install_log_values);
+
+        }
+
+  $msg = q(
+The MembersViaExternal feature allows you to chose columns from tables in a database seperate from Koha, even on a different server.  Certain information about the database and the server it is on would need to be set now.
+
+Configure the MembersViaExternal feature now?);
+        $msg .= _add_valid_values_disp('MEMBERS_EXTERNAL_CONFIG', $valid_values);
+        $config{'MEMBERS_EXTERNAL_CONFIG'} = _get_value('MEMBERS_EXTERNAL_CONFIG', $msg, $defaults->{'MEMBERS_EXTERNAL_CONFIG'}, $valid_values, $install_log_values);
+
+        if ($config{'MEMBERS_EXTERNAL_CONFIG'} eq 'yes') {
+            $msg = q(
+Since you've chosen to configure MembersViaExternal, you must
+specify the host, database, user, and password to access the
+service.
+);
+            $msg = q(
+Driver for the external database may be one of mysql, Pg, Sybase, Oracle, or
+some other DBI driver.
+DBI Driver for external database?);
+            $config{'MEMBERS_EXTERNAL_ENGINE'} = _get_value('MEMBERS_EXTERNAL_ENGINE', $msg, $defaults->{'MEMBERS_EXTERNAL_ENGINE'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Hostname or I.P. Address of the server for the external database?);
+            $config{'MEMBERS_EXTERNAL_HOST'} = _get_value('MEMBERS_EXTERNAL_HOST', $msg, $defaults->{'MEMBERS_EXTERNAL_HOST'}, $valid_values, $install_log_values);
+
+            $msg = q(
+User with access to the external database?);
+            $config{'MEMBERS_EXTERNAL_USER'} = _get_value('MEMBERS_EXTERNAL_USER', $msg, $defaults->{'MEMBERS_EXTERNAL_USER'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Password for the user with access to the external database?);
+            $config{'MEMBERS_EXTERNAL_PASS'} = _get_value('MEMBERS_EXTERNAL_PASS', $msg, $defaults->{'MEMBERS_EXTERNAL_PASS'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Name of the external database?);
+            $config{'MEMBERS_EXTERNAL_SCHEMA'} = _get_value('MEMBERS_EXTERNAL_SCHEMA', $msg, $defaults->{'MEMBERS_EXTERNAL_SCHEMA'}, $valid_values, $install_log_values);
+
+            $msg = q(
+How are patron passwords stored in the external database?);
             $config{'MEMBERS_EXTERNAL_PASS_METHOD'} = _get_value('MEMBERS_EXTERNAL_PASS_METHOD', $msg, $defaults->{'MEMBERS_EXTERNAL_PASS_METHOD'}, $valid_values, $install_log_values);
 
         }
