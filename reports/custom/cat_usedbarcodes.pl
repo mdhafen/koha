@@ -119,9 +119,11 @@ if ($do_it) {
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
 	} else {
+		my $filename = "$basename.csv";
+		$filename = "$basename.tsv" if ( $sep =~ m/tab/ );
 		print $input->header(-type => $mime,
-					 -attachment=>"$basename.csv",
-					 -name=>"$basename.csv" );
+					 -attachment=>"$filename",
+					 -name=>"$filename" );
 		my @headers = @{ $$results[0]->{loopheader} };
 		my @lines = @{ $$results[0]->{looprow} };
 		for ( $sep ) {
@@ -135,7 +137,7 @@ if ($do_it) {
 
 		foreach my $line ( @headers ) {
 			foreach my $cell ( @{ $line->{values} } ) {
-				print $$cell{value}.$sep;
+				print $$cell{coltitle}.$sep;
 				print $sep x ( $$cell{width} - 1 ) if ( $$cell{width} );
 			}
 			print "\n";
