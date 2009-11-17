@@ -1083,6 +1083,49 @@ PazPar2 port?);
 
         }
     }
+  $msg = q(
+The MembersViaExternal feature allows you to chose columns from tables in a database seperate from Koha, even on a different server.  Certain information about the database and the server it is on would need to be set now.
+
+Configure the MembersViaExternal feature now?);
+        $msg .= _add_valid_values_disp('MEMBERS_EXTERNAL_CONFIG', $valid_values);
+        $config{'MEMBERS_EXTERNAL_CONFIG'} = _get_value('MEMBERS_EXTERNAL_CONFIG', $msg, $defaults->{'MEMBERS_EXTERNAL_CONFIG'}, $valid_values, $install_log_values);
+
+        if ($config{'MEMBERS_EXTERNAL_CONFIG'} eq 'yes') {
+            $msg = q(
+Since you've chosen to configure MembersViaExternal, you must
+specify the host, database, user, and password to access the
+service.
+);
+            $msg = q(
+Driver for the external database may be one of mysql, Pg, Sybase, Oracle, or
+some other DBI driver.
+DBI Driver for external database?);
+            $config{'MEMBERS_EXTERNAL_ENGINE'} = _get_value('MEMBERS_EXTERNAL_ENGINE', $msg, $defaults->{'MEMBERS_EXTERNAL_ENGINE'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Hostname or I.P. Address of the server for the external database?);
+            $config{'MEMBERS_EXTERNAL_HOST'} = _get_value('MEMBERS_EXTERNAL_HOST', $msg, $defaults->{'MEMBERS_EXTERNAL_HOST'}, $valid_values, $install_log_values);
+
+            $msg = q(
+User with access to the external database?);
+            $config{'MEMBERS_EXTERNAL_USER'} = _get_value('MEMBERS_EXTERNAL_USER', $msg, $defaults->{'MEMBERS_EXTERNAL_USER'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Password for the user with access to the external database?);
+	    $config{'MEMBERS_EXTERNAL_PASS'} = _get_value('MEMBERS_EXTERNAL_PASS', $msg, $defaults->{'MEMBERS_EXTERNAL_PASS'}, $valid_values, $install_log_values);
+
+            $msg = q(
+Name of the external database?);
+            $config{'MEMBERS_EXTERNAL_SCHEMA'} = _get_value('MEMBERS_EXTERNAL_SCHEMA', $msg, $defaults->{'MEMBERS_EXTERNAL_SCHEMA'}, $valid_values, $install_log_values);
+
+            $msg = q(
+How are patron passwords stored in the external database?);
+	    $msg .= _add_valid_values_disp('MEMBERS_EXTERNAL_PASS_METHOD', $valid_values);
+            $config{'MEMBERS_EXTERNAL_PASS_METHOD'} = _get_value('MEMBERS_EXTERNAL_PASS_METHOD', $msg, $defaults->{'MEMBERS_EXTERNAL_PASS_METHOD'}, $valid_values, $install_log_values);
+
+        }
+
+
 
   $msg = q(
 Would you like to run the database-dependent test suite?);
