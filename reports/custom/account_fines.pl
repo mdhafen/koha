@@ -246,6 +246,7 @@ sub calculate {
 	my @big_loop;
 	my $break;
 	my $break_index;
+	my ( $subtotal, $sub_break );
 
 	my $table = shift @$tables;
 	my $column = join ',', @$columns;
@@ -367,6 +368,7 @@ CALC_MAIN_LOOP:
 	    $break = 'break';
 	    $break_index = 0;
 	}
+	$sub_break = 'break';
 
 	foreach my $data ( @big_loop ) {
 	    my %row;
@@ -374,10 +376,30 @@ CALC_MAIN_LOOP:
 	    my @values = @$data;
 
 	    if ( $break && $break ne $values[ $break_index ] ) {
-		$break = $values[ $break_index ];
 		if ( $break ne 'break' ) {
 		    $row{ 'break' } = 1;
 		}
+		$break = $values[ $break_index ];
+	    }
+
+	    if ( $sub_break ne $values[ 1 ] ) {
+		if ( $sub_break ne 'break' ) {
+		    push @looprow, {
+			 'values' => [
+				       {
+					   'width' => @$column_titles - 1,
+					   'value' => 'Subtotal',
+					   'header' => 1,
+				       },
+				       {
+					   'value' => sprintf( "%.2f", $subtotal ),
+					   'header' => 1,
+				       }
+				     ]
+		       };
+		    $subtotal = 0;
+		}
+		$sub_break = $values[ 1 ];
 	    }
 
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
@@ -388,7 +410,22 @@ CALC_MAIN_LOOP:
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal+=@values[ $#$column_titles ];
+	    $subtotal += @values[ $#$column_titles ];
 	}
+	#  And last subtotal row
+	push @looprow, {
+	    'values' => [
+		{
+		    'width' => @$column_titles - 1,
+		    'value' => 'Subtotal',
+		    'header' => 1,
+		},
+		{
+		    'value' => sprintf( "%.2f", $subtotal ),
+		    'header' => 1,
+		}
+		]
+	};
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };
@@ -406,7 +443,7 @@ CALC_MAIN_LOOP:
 			 'values' => [
 				       {
 					   'width' => @$column_titles - 1,
-					   'value' => '&nbsp;',
+					   'value' => ' ',
 					   'header' => 1,
 				       },
 				       {
