@@ -131,6 +131,7 @@ $prefix = $ENV{'INSTALL_BASE'} || "/usr";
   "__AUTH_INDEX_MODE__" => 'grs1',
   "__RUN_DATABASE_TESTS__" => 'no',
   "__PATH_TO_ZEBRA__" => "",
+  '__MEMBERS_EXTERNAL_CONFIG__' => 'no',
   '__MEMBERS_EXTERNAL_ENGINE__' => '',
   '__MEMBERS_EXTERNAL_PASS_METHOD__' => '',
   '__MEMBERS_EXTERNAL_HOST__' => '',
