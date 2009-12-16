@@ -22,6 +22,9 @@
     <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
 	<li><a href="/cgi-bin/koha/tools/import_borrowers.pl">Import patrons</a></li>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools" -->
+	<li><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines rules</a></li>
+    <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notices" -->
 	<li><a href="/cgi-bin/koha/tools/letter.pl">Notices</a></li>
     <!-- /TMPL_IF -->
