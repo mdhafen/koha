@@ -1768,6 +1768,7 @@ sub _FixAccountForLostAndReturned {
     my $itemnumber     = shift or return;
     my $borrowernumber = @_ ? shift : undef;
     my $item_id        = @_ ? shift : $itemnumber;  # Send the barcode if you want that logged in the description
+    ModItem({ itemlost => 0 }, undef, $itemnumber);
     my $dbh = C4::Context->dbh;
     # check for charge made for lost book
     my $sth = $dbh->prepare("SELECT * FROM accountlines WHERE (itemnumber = ?) AND (accounttype='L' OR accounttype='Rep') ORDER BY date DESC");
