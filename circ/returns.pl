@@ -366,13 +366,16 @@ foreach my $code ( keys %$messages ) {
     if ( $code eq 'BadBarcode' ) {
         $err{badbarcode} = 1;
         $err{msg}        = $messages->{'BadBarcode'};
+        $sounderror = 1;
     }
     elsif ( $code eq 'NotIssued' ) {
         $err{notissued} = 1;
         $err{msg} = $branches->{ $messages->{'IsPermanent'} }->{'branchname'};
+        $sounderror = 1;
     }
     elsif ( $code eq 'WasLost' ) {
         $err{waslost} = 1;
+        $sounderror = 1;
     }
     elsif ( $code eq 'ResFound' ) {
         ;    # FIXME... anything to do here?
@@ -386,6 +389,7 @@ foreach my $code ( keys %$messages ) {
     elsif ( $code eq 'wthdrawn' ) {
         $err{withdrawn} = 1;
         $exit_required_p = 1;
+        $sounderror = 1;
     }
     elsif ( ( $code eq 'IsPermanent' ) && ( not $messages->{'ResFound'} ) ) {
         if ( $messages->{'IsPermanent'} ne $userenv_branch ) {
