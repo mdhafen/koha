@@ -1,0 +1,126 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
+<title>Koha &rsaquo; Admin &rsaquo; Patron Synchronization Settings</title>
+<!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+<script type="text/javascript">
+//<![CDATA[
+     $(document).ready(function() {
+        $('#categories > ul').tabs();
+     });
+//]]>
+</script>
+</head>
+<body>
+
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="patron-search.inc"-->
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/admin/admin-home.pl">Admin</a> &rsaquo; Patrons Synchronization Settings</div>
+
+<div id="doc3" class="yui-t2">
+    <div id="bd">
+        <div id="yui-main">
+<!-- TMPL_IF name="op" -->
+    <div class="yui-b">
+        <div class="dialog message">
+    <!-- TMPL_IF NAME="errors" -->
+            <h1>There are errors</h1>
+    <!-- TMPL_ELSE -->
+            <h1>Changes for Patron Category Mapping</h1>
+        </div>
+        <ul class="data">
+            <!-- TMPL_IF NAME="num_deleted" -->
+                <li><!-- TMPL_VAR NAME="num_deleted" --> Column Mappings Removed.</li>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF NAME="num_added" -->
+                <li><!-- TMPL_VAR NAME="num_added" --> Column Mappings Added.</li>
+            <!-- /TMPL_IF -->
+            <!-- TMPL_IF NAME="num_changed" -->
+                <li><!-- TMPL_VAR NAME="num_changed" --> Column Mappings Changed.</li>
+            <!-- /TMPL_IF -->
+        </ul>
+    <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="errors" -->
+        <table class="data">
+        <!-- TMPL_LOOP NAME="errors" -->
+            <tr>
+            <td>
+                <!-- TMPL_IF NAME="NO_MAPPINGS" -->Attempted operation when no patron categories are mapped.  That won't work.<!-- /TMPL_IF -->
+                <!-- TMPL_IF NAME="MAPPING_EXISTS" -->Patron field already mapped for this category.  Please delete or change the existing mapping.<!-- /TMPL_IF -->
+                <!-- TMPL_IF NAME="INVALID_OP" -->Unknown operation.  What are you trying to do?<!-- /TMPL_IF -->
+            </td>
+            </tr>
+        <!-- /TMPL_LOOP -->
+        </table>
+    <!-- /TMPL_IF -->
+        <a href="/cgi-bin/koha/admin/members_via_external.pl?categorycode=<!-- TMPL_VAR NAME="categorycode" -->" class="cancel">Back</a>
+    </div>
+<!-- TMPL_ELSE -->
+    <div class="yui-b">
+        <h1>Patron Synchronization Settings</h1>
+            <div id="categories" class="toptabs">
+                <h5>Choose a category</h5>
+                <ul>
+                <!-- TMPL_LOOP NAME="categoryloop" -->
+                    <!-- TMPL_IF NAME="categorycodeselected" -->
+                    <li class="ui-tabs-selected">
+                    <!-- TMPL_ELSE -->
+                    <li>
+                    <!-- /TMPL_IF -->
+                    <a href="/cgi-bin/koha/admin/members_via_external.pl#<!-- TMPL_VAR NAME="categorycode" -->"><!-- TMPL_VAR NAME="categoryname" --> (<!-- TMPL_VAR NAME="num_mappings" -->)</a></li>
+                <!-- /TMPL_LOOP -->
+                </ul>
+            </div>
+
+            <!-- TMPL_LOOP NAME="categoryloop" -->
+            <div id="<!-- TMPL_VAR NAME="categorycode" -->">
+                    <table>
+                    <tr><th>Description</th><th>Patron Field</th><th>Database Column</th><th>Filter</th><th>Table Link String</th><th> </th></tr>
+                    <tbody>
+                    <!-- TMPL_IF NAME="mappingsloop" -->
+                    <!-- TMPL_LOOP NAME="mappingsloop" -->
+                    <form method="post" action="/cgi-bin/koha/admin/members_via_external.pl">
+                    <input type="hidden" name="categorycode" value="<!-- TMPL_VAR NAME="categorycode" -->">
+                    <input type="hidden" name="externalid" value="<!-- TMPL_VAR NAME="externalid" -->">
+                    <tr>
+                        <td><input name="liblibrarian" value="<!-- TMPL_VAR NAME="liblibrarian" -->"></td>
+                        <td><input name="kohafield" value="<!-- TMPL_VAR NAME="kohafield" -->"></td>
+                        <td><input name="attrib" value="<!-- TMPL_VAR NAME="attrib" -->"></td>
+                        <td><input name="filter" value="<!-- TMPL_VAR NAME="filter" -->"></td>
+                        <td><input name="dblink" value="<!-- TMPL_VAR NAME="dblink" -->"></td>
+                        <td>
+                            <input type="submit" name="op" value="Change" class="submit" />
+                            <input type="submit" name="op" value="Delete" class="submit" />
+                        </td>
+                    </tr>
+                    </form>
+                    <!-- /TMPL_LOOP -->
+                    <!-- /TMPL_IF -->
+                    <form method="post" action="/cgi-bin/koha/admin/members_via_external.pl">
+                    <input type="hidden" name="categorycode" value="<!-- TMPL_VAR NAME="categorycode" -->">
+                    <tr>
+                        <td><input name="liblibrarian" value=""></td>
+                        <td><input name="kohafield" value=""></td>
+                        <td><input name="attrib" value=""></td>
+                        <td><input name="filter" value=""></td>
+                        <td><input name="dblink" value=""></td>
+                        <td>
+                            <input type="submit" name="op" value="Add" class="submit" />
+                        </td>
+                    </tr>
+                    </form>
+                    </tbody>
+                    </table>
+                    <form method="post" action="/cgi-bin/koha/admin/members_via_external.pl">
+                    <input type="hidden" name="categorycode" value="<!-- TMPL_VAR NAME="categorycode" -->">
+                    <input type="submit" name="op" value="Delete All" class="submit" />
+                    </form>
+            </div>
+            <!-- /TMPL_LOOP -->
+        </div>
+<!-- /TMPL_IF -->
+</div>
+<div class="yui-b noprint">
+    <!-- TMPL_INCLUDE NAME="admin-menu.inc" -->
+</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->

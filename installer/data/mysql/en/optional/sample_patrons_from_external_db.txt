@@ -1,0 +1,3 @@
+Patrons Via External Sample Mapping
+
+This maps the ST (Student) patron category to certain fields in a view in an MS Sql database used for Student Information.

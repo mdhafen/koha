@@ -139,6 +139,13 @@ $prefix = $ENV{'INSTALL_BASE'} || "/usr";
   "__USE_MEMCACHED__" => 'no',
   "__MEMCACHED_SERVERS__" => "",
   "__MEMCACHED_NAMESPACE__" => "",
+  '__MEMBERS_EXTERNAL_CONFIG__' => 'no',
+  '__MEMBERS_EXTERNAL_ENGINE__' => '',
+  '__MEMBERS_EXTERNAL_PASS_METHOD__' => '',
+  '__MEMBERS_EXTERNAL_HOST__' => '',
+  '__MEMBERS_EXTERNAL_USER__' => '',
+  '__MEMBERS_EXTERNAL_PASS__' => '',
+  '__MEMBERS_EXTERNAL_SCHEMA__' => '',
 );
 
 # Override configuration from the environment

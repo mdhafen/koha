@@ -85,6 +85,9 @@
     <!-- TMPL_IF NAME="CAN_user_tools_edit_news" -->
 	<li><a href="/cgi-bin/koha/tools/koha-news.pl">News</a></li>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+	<li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></li>
+    <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_schedule_tasks" -->
 	<li><a href="/cgi-bin/koha/tools/scheduler.pl">Task scheduler</a></li>
     <!-- /TMPL_IF -->
