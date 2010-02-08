@@ -305,8 +305,12 @@ if ( $op and $op eq 'serialchangestatus' ) {
                         if ( !$bib_record->field($barcodetagfield)
                             ->subfield($barcodetagsubfield) )
                         {
-                            my $sth_barcode = $dbh->prepare(
-                                "select max(abs(barcode)) from items");
+                            my $query = "select max(abs(barcode)) from items";
+                            if ( C4::Context->preference("IndependantBranches") ) {
+                                my $mbranch = C4::Branch::mybranch();
+                                $query .= " AND homebranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+                            }
+                            my $sth_barcode = $dbh->prepare( $query );
                             $sth_barcode->execute;
                             my ($newbarcode) = $sth_barcode->fetchrow;
 

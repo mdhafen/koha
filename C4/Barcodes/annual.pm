@@ -38,8 +38,14 @@ BEGIN {
 
 sub db_max ($;$) {
 	my $self = shift;
-	my $query = "SELECT max(substring_index(barcode,'-',-1)) AS chunk,barcode FROM items WHERE barcode LIKE ? GROUP BY barcode";
+	my $query = "SELECT max(substring_index(barcode,'-',-1)) AS chunk,barcode FROM items WHERE barcode LIKE ?";
 		# FIXME: unreasonably expensive query on large datasets
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$query .= " AND $hbranch = ". C4::Context->dbh->quote( $mbranch ) if ( $mbranch );
+	}
+	$query .= " GROUP BY barcode";
 	my $sth = C4::Context->dbh->prepare($query);
 	my ($iso);
 	if (@_) {

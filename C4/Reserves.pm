@@ -776,7 +776,13 @@ sub CheckReserves {
         $sth->execute($item);
     }
     else {
-        $sth = $dbh->prepare("$select WHERE barcode = ?");
+	$select .= " WHERE barcode = ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+	    my $mbranch = C4::Branch::mybranch();
+	    $select .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+	}
+        $sth = $dbh->prepare($select);
         $sth->execute($barcode);
     }
     # note: we get the itemnumber because we might have started w/ just the barcode.  Now we know for sure we have it.

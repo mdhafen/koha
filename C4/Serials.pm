@@ -2333,10 +2333,14 @@ the Koha database.
 sub itemdata {
     my ($barcode) = @_;
     my $dbh       = C4::Context->dbh;
-    my $sth       = $dbh->prepare(
+    my $query     = 
         "Select * from items LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber 
-        WHERE barcode=?"
-    );
+        WHERE barcode=?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+	my $mbranch = C4::Branch::mybranch();
+	$query   .= " AND homebranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+    }
+    my $sth       = $dbh->prepare( $query );
     $sth->execute($barcode);
     my $data = $sth->fetchrow_hashref;
     $sth->finish;

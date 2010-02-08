@@ -139,11 +139,16 @@ sub GetItem {
         $sth->execute($itemnumber);
         $data = $sth->fetchrow_hashref;
     } else {
-        my $sth = $dbh->prepare("
+        my $query = "
             SELECT * FROM items 
-            WHERE barcode = ?"
-            );
-        $sth->execute($barcode);		
+            WHERE barcode = ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+	    my $mbranch = C4::Branch::mybranch();
+	    $query .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+	}
+	my $sth = $dbh->prepare( $query );
+        $sth->execute($barcode);
         $data = $sth->fetchrow_hashref;
     }
     if ( $serial) {      
@@ -921,6 +926,11 @@ sub GetLostItems {
         $query .= " AND $key LIKE ?";
         push @query_parameters, "%$where->{$key}%";
     }
+    if ( C4::Context->preference("IndependantBranches") ) {
+	my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+	my $mbranch = C4::Branch::mybranch();
+	$query .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch && ! $where->{ $hbranch } );
+    }
     my @ordervalues = qw/title author homebranch itype barcode price replacementprice lib datelastseen location/;
     
     if ( defined $orderby && grep($orderby, @ordervalues)) {
@@ -1510,8 +1520,14 @@ sub GetItemnumberFromBarcode {
     my ($barcode) = @_;
     my $dbh = C4::Context->dbh;
 
+    my $query = "SELECT itemnumber FROM items WHERE items.barcode=?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+	my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+	my $mbranch = C4::Branch::mybranch();
+	$query .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+    }
     my $rq =
-      $dbh->prepare("SELECT itemnumber FROM items WHERE items.barcode=?");
+      $dbh->prepare( $query );
     $rq->execute($barcode);
     my ($result) = $rq->fetchrow;
     return ($result);

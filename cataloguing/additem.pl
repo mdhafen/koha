@@ -57,7 +57,13 @@ sub get_item_from_barcode {
     my ($barcode)=@_;
     my $dbh=C4::Context->dbh;
     my $result;
-    my $rq=$dbh->prepare("SELECT itemnumber from items where items.barcode=?");
+    my $query = "SELECT itemnumber from items where items.barcode=?";
+    if ( C4::Context->preference("IndependantBranches") ) {
+        my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+        my $mbranch = C4::Branch::mybranch();
+        $query .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+    }
+    my $rq=$dbh->prepare( $query );
     $rq->execute($barcode);
     ($result)=$rq->fetchrow;
     return($result);
@@ -79,7 +85,12 @@ sub _increment_barcode {
     my ($record, $frameworkcode) = @_;
     my ($tagfield,$tagsubfield) = &GetMarcFromKohaField("items.barcode",$frameworkcode);
     unless ($record->field($tagfield)->subfield($tagsubfield)) {
-        my $sth_barcode = $dbh->prepare("select max(abs(barcode)) from items");
+        my $query = "select max(abs(barcode)) from items";
+        if ( C4::Context->preference("IndependantBranches") ) {
+            my $mbranch = C4::Branch::mybranch();
+            $query .= " WHERE homebranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+        }
+        my $sth_barcode = $dbh->prepare( $query );
         $sth_barcode->execute;
         my ($newbarcode) = $sth_barcode->fetchrow;
         $newbarcode++;

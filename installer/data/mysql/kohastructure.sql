@@ -1039,7 +1039,7 @@ CREATE TABLE `items` (
   `copynumber` varchar(32) default NULL,
   `stocknumber` varchar(32) default NULL,
   PRIMARY KEY  (`itemnumber`),
-  UNIQUE KEY `itembarcodeidx` (`barcode`),
+  KEY `itembarcodeidx` (`barcode`),
   KEY `itemstocknumberidx` (`stocknumber`),
   KEY `itembinoidx` (`biblioitemnumber`),
   KEY `itembibnoidx` (`biblionumber`),

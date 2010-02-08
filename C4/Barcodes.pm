@@ -111,7 +111,13 @@ sub max ($;$) {
 }
 sub db_max () {
 	my $self = shift;
-	my $query = "SELECT max(abs(barcode)) FROM items LIMIT 1"; # Possible problem if multiple barcode types populated
+	my $query = "SELECT max(abs(barcode)) FROM items"; # Possible problem if multiple barcode types populated
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$query .= " AND $hbranch = ". C4::Context->dbh->quote( $mbranch ) if ( $mbranch );
+	}
+	$query .= " LIMIT 1";
 	my $sth = C4::Context->dbh->prepare($query);
 	$sth->execute();
 	return $sth->fetchrow_array || $self->initial;

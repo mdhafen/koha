@@ -44,7 +44,13 @@ INIT {
 
 sub db_max ($;$) {
 	my $self = shift;
-	my $query = "SELECT MAX(SUBSTRING(barcode,-$width)), barcode FROM items WHERE barcode REGEXP ? GROUP BY barcode";
+	my $query = "SELECT MAX(SUBSTRING(barcode,-$width)), barcode FROM items WHERE barcode REGEXP ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$query .= " AND $hbranch = ". C4::Context->dbh->quote( $mbranch ) if ( $mbranch );
+	}
+	$query .= " GROUP BY barcode";
 	$debug and print STDERR "(hbyymmincr) db_max query: $query\n";
 	my $sth = C4::Context->dbh->prepare($query);
 	my ($iso);

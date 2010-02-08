@@ -733,12 +733,17 @@ sub GetBiblioFromItemNumber {
         );
         $sth->execute($itemnumber);
     } else {
-        $sth = $dbh->prepare(
+        my $strsth =
             "SELECT * FROM items 
             LEFT JOIN biblio ON biblio.biblionumber = items.biblionumber
             LEFT JOIN biblioitems ON biblioitems.biblioitemnumber = items.biblioitemnumber
-             WHERE items.barcode = ?"
-        );
+             WHERE items.barcode = ?";
+	if ( C4::Context->preference("IndependantBranches") ) {
+	    my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+	    my $mbranch = C4::Branch::mybranch();
+	    $strsth .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+	}
+	$sth = $dbh->prepare( $strsth );
         $sth->execute($barcode);
     }
     my $data = $sth->fetchrow_hashref;

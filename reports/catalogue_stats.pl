@@ -289,6 +289,11 @@ if($barcodefilter){
 	                INNER JOIN items USING (biblioitemnumber)
 	              WHERE $line IS NOT NULL ";
     $strsth .= " AND barcode $not LIKE ? " if ($barcodefilter);
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$strsth .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch && ! $line =~ /items.homebranch/ );
+	}
 	if ( @linefilter ) {
 		if ($linefilter[1]){
 			$strsth .= " AND $line >= ? " ;
@@ -341,6 +346,11 @@ if($barcodefilter){
 		USING (biblioitemnumber)
 	WHERE $column IS NOT NULL ";
 	$strsth2 .= " AND barcode $not LIKE ?" if $barcodefilter;
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$strsth2 .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch && ! $column =~ /items.homebranch/ );
+	}
 	
 	if (( @colfilter ) and ($colfilter[1])) {
 		$strsth2 .= " AND $column> ? AND $column< ?";
@@ -390,6 +400,11 @@ if($barcodefilter){
 # preparing calculation
 	my $strcalc = "SELECT $linefield, $colfield, count(*) FROM biblioitems INNER JOIN  items ON (items.biblioitemnumber = biblioitems.biblioitemnumber) WHERE 1 ";
 	$strcalc .= "AND barcode $not like ? " if ($barcodefilter); 
+	if ( C4::Context->preference("IndependantBranches") ) {
+		my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+		my $mbranch = C4::Branch::mybranch();
+		$strcalc .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch && ! $$filters[10] );
+	}
 	
 	if (@$filters[0]){
 		@$filters[0]=~ s/\*/%/g;

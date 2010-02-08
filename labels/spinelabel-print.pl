@@ -44,6 +44,11 @@ my $sql = "SELECT * FROM biblio, biblioitems, items
           WHERE biblio.biblionumber = items.biblionumber 
           AND biblioitems.biblioitemnumber = items.biblioitemnumber 
           AND items.barcode = ?";
+if ( C4::Context->preference("IndependantBranches") ) {
+    my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+    my $mbranch = C4::Branch::mybranch();
+    $sql .= " AND $hbranch = ". $dbh->quote( $mbranch ) if ( $mbranch );
+}
 $sth = $dbh->prepare($sql);
 $sth->execute($barcode);
 $item = $sth->fetchrow_hashref;
