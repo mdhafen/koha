@@ -128,7 +128,7 @@ my $where = [ "accountlines.amountoutstanding <> 0" ];
 my $order = "sort2,patron";
 my $page_breaks = ( $input->param( 'Options' ) ) ? 1 : 0 ;
 
-push @$where, "date_due < NOW()" unless ( $input->param( 'Options2' ) );
+push @$where, "date_due < CURRENT_DATE()" unless ( $input->param( 'Options2' ) );
 
 if ( $input->param( 'Options3' ) ) {
     $tables[4][3] = "CONCAT_WS( ' &nbsp; ', barcode, CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ) )";
@@ -136,6 +136,13 @@ if ( $input->param( 'Options3' ) ) {
     splice @{ $tables[4] }, 1, 1;
     splice @{ $tables[1] }, 1, 1;
     splice @column_titles, 1, 1;
+}
+
+if ( $input->param( 'Options4' ) ) {
+    shift @{ $tables[1] };
+    shift @{ $tables[4] };
+    shift @column_titles;
+    $order = "patron";
 }
 
 # Rest of params
@@ -279,6 +286,13 @@ if ($do_it) {
 	    count => 3,
 	    input_name => "Options3",
 	    label => "Concise Check Out Info",
+	};
+
+	push @parameters, {
+	    check_box => 1,
+	    count => 4,
+	    input_name => "Options4",
+	    label => "Don't Show Homeroom Teacher",
 	};
 
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
@@ -475,7 +489,7 @@ CALC_MAIN_LOOP:
 	}
 
 	$break = 'break';
-	$break_index = 1;
+	$break_index = scalar @$column_titles;  # last item in @values
 
 	foreach my $data ( @big_loop ) {
 	    my %row;
@@ -485,6 +499,7 @@ CALC_MAIN_LOOP:
 	    if ( $break && $break ne $values[ $break_index ] ) {
 		if ( $break ne 'break' ) {
 		    push @looprow, {
+			'class' => 'bottomspace',
 			'values' => [
 			    {
 				'width' => @$column_titles - 1,
@@ -518,6 +533,7 @@ CALC_MAIN_LOOP:
 	}
 	if ( $break ) {
 	    push @looprow, {
+		'class' => 'bottomspace',
 		'values' => [
 		    {
 			'width' => @$column_titles - 1,

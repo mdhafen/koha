@@ -2,6 +2,12 @@
 <title>Koha &rsaquo; Reports &rsaquo; <!-- TMPL_VAR NAME="reporttitle" --></title>
 <!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
 <!-- TMPL_INCLUDE NAME="calendar.inc" -->
+<style type="text/css">
+.bottomspace {
+  height: 50px;
+  vertical-align: top;
+}
+</style>
 </head>
 <body>
 <!-- TMPL_INCLUDE NAME="header.inc" -->
@@ -38,7 +44,7 @@
 		</thead>
 		<tbody>
 		<!-- TMPL_LOOP NAME="looprow" -->
-		<tr<!-- TMPL_UNLESS name="__odd__" --> class="highlighted"<!-- /TMPL_UNLESS --><!-- TMPL_IF NAME="break" --> style="page-break-before:always;"<!-- /TMPL_IF -->>
+		<tr<!-- TMPL_UNLESS name="__odd__" --><!-- TMPL_IF NAME="class" --> class="highlighted <!-- TMPL_VAR NAME="class" -->"<!-- TMPL_ELSE --> class="highlighted"<!-- /TMPL_IF --><!-- TMPL_ELSE --><!-- TMPL_IF NAME="class" --> class="<!-- TMPL_VAR NAME="class" -->"<!-- /TMPL_IF --><!-- /TMPL_UNLESS --><!-- TMPL_IF NAME="break" --> style="page-break-before:always;"<!-- /TMPL_IF -->>
 			<!-- TMPL_LOOP NAME="values" -->
 			<!-- TMPL_IF NAME="header" --><th <!-- TMPL_IF NAME="width" -->colspan="<!-- TMPL_VAR NAME="width" -->"<!-- /TMPL_IF -->><!-- TMPL_ELSE --><td><!-- /TMPL_IF -->
 				<!-- TMPL_IF Name="value" --><!-- TMPL_VAR NAME="value" --><!-- TMPL_ELSE-->&nbsp;<!-- /TMPL_IF -->
