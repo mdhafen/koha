@@ -34,7 +34,7 @@ function Dopop(link) {
 
 <!-- TMPL_IF NAME="messages" -->
 <div class="yui-g">
-    <div class="dialog message">
+    <div class="dialog alert">
         <!-- TMPL_LOOP Name="messages" -->
             <!-- TMPL_IF Name="badbarcode" -->
                 <p class="problem">No Item with barcode: <!-- TMPL_VAR Name="msg" --></p>
@@ -56,6 +56,41 @@ function Dopop(link) {
             <!-- /TMPL_IF -->
         <!-- /TMPL_LOOP -->
     </div>
+</div>
+<!-- /TMPL_IF -->
+
+<!-- TMPL_IF NAME="needs_override" -->
+<div class="yui-g">
+     <div class="dialog alert">
+	  <form method="post" action="/cgi-bin/koha/circ/renew.pl">
+	  <input type="hidden" name="barcode" value="<!-- TMPL_VAR NAME="override_barcode" -->" />
+	  <input type="hidden" name="override_limit" value="on" />
+	  <input type="hidden" name="newduedate" value="<!-- TMPL_VAR NAME="newduedate" -->" />
+	  <!-- TMPL_IF NAME="stickyduedate" -->
+	  <input type="hidden" name="stickyduedate" value="on" />
+	  <!-- /TMPL_IF -->
+
+	  <!-- TMPL_LOOP NAME="riloop" -->
+	  <input type="hidden" name="ri-<!-- TMPL_VAR NAME="counter" -->" value="<!-- TMPL_VAR NAME="barcode" -->" />
+	  <input type="hidden" name="dd-<!-- TMPL_VAR Name="counter" -->" value="<!-- TMPL_VAR Name="duedate" -->" />
+	  <input type="hidden" name="bn-<!-- TMPL_VAR Name="counter" -->" value="<!-- TMPL_VAR Name="borrowernumber" -->" />
+	  <!-- /TMPL_LOOP -->
+
+	  <!-- TMPL_IF NAME="norenew" -->
+     	  <p class="problem">Item Not Renewable: <!-- TMPL_VAR NAME="norenew" --></p>
+     	  <!-- /TMPL_IF -->
+	  <input type="submit" class="approve" value="Yes, Renew (Y)" accesskey="y" />
+
+	  </form>
+
+	  <form method="get" action="/cgi-bin/koha/circ/renew.pl">
+	  <input type="hidden" name="newduedate" value="<!-- TMPL_VAR NAME="newduedate" -->" />
+	  <!-- TMPL_IF NAME="stickyduedate" -->
+	  <input type="hidden" name="stickyduedate" value="on" />
+	  <!-- /TMPL_IF -->
+	  <input type="submit" class="deny" value="No, Don't Renew (N)" accesskey="n" />
+	  </form>
+     </div>
 </div>
 <!-- /TMPL_IF -->
 

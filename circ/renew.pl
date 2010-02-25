@@ -96,7 +96,7 @@ $barcode = barcodedecode( $barcode ) if ( $barcode && C4::Context->preference('i
 #
 # renew items
 #
-my @messages;
+my ( @messages, @needs_override );
 
 # check status before renewing issue
 if ( $barcode ) {
@@ -160,7 +160,15 @@ if ( $barcode ) {
 	$renew_input{borrowernumber} = $borrowernumber;
 	unshift @inputloop, \%renew_input;
     } else {
-	push @messages, { norenew => 1, msg => $error };
+	if ( C4::Context->preference("AllowRenewalLimitOverride") ) {
+	    $template->param(
+		needs_override => 1,
+		norenew => $error,
+		override_barcode => $barcode,
+	    );
+	} else {
+	    push @messages, { norenew => 1, msg => $error, barcode => $barcode };
+	}
 	$sounderror = 1;
     }
 }
