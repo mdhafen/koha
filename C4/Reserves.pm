@@ -1587,6 +1587,9 @@ sub _Findgroupreserve {
         AND itemnumber = ?
         AND reservedate <= CURRENT_DATE()
     /;
+    if ( C4::Context->preference('IndependantBranches') ) {
+        $item_level_target_query .= "AND reserves.branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     my $sth = $dbh->prepare($item_level_target_query);
     $sth->execute($itemnumber);
     my @results;
@@ -1617,6 +1620,9 @@ sub _Findgroupreserve {
         AND hold_fill_targets.itemnumber = ?
         AND reservedate <= CURRENT_DATE()
     /;
+    if ( C4::Context->preference('IndependantBranches') ) {
+        $title_level_target_query .= "AND reserves.branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
     $sth = $dbh->prepare($title_level_target_query);
     $sth->execute($itemnumber);
     @results = ();
