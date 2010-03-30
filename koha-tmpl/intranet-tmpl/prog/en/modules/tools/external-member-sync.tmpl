@@ -16,8 +16,13 @@
     <div class="yui-b">
         <div class="yui-g">
             <div class="yui-u first">
+    <!-- TMPL_IF NAME="finished" -->
                 <div class="dialog message">
-                <h1>Results of Patron Sycnronization</h1>
+                <h1>Results of Patron Syncronization</h1>
+    <!-- TMPL_ELSE -->
+                <div class="dialog alert">
+                <h1>Confirm changes for Patron Syncronization</h1>
+    <!-- /TMPL_IF -->
                 </div>
 	        <ul class="data">
                     <li><!-- TMPL_VAR NAME ="num_deleted" --> Removed from Koha.</li>
