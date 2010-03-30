@@ -341,6 +341,13 @@ if ($barcode) {
        	            NEEDSCONFIRMATION  => 1
        	        );
        	        $confirm_required = 1;
+                unless ( $needsconfirmation eq 'BORRNOTSAMEBRANCH' &&
+                         $soundederrors{ BORRNOTSAMEBRANCH } ) {
+                    if ( $needsconfirmation eq 'BORRNOTSAMEBRANCH' ) {
+                        $soundederrors{ BORRNOTSAMEBRANCH } = 1;
+                    }
+                    $sounderror = 1;
+                }
        	    }
 		}
         unless($confirm_required) {
