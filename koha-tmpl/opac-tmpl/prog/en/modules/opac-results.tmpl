@@ -399,6 +399,14 @@ $(document).ready(function(){
                 </td>
                 <!-- /TMPL_IF -->
 
+                <!-- TMPL_IF NAME="item-level_itypes" -->
+                <td>
+                <!-- TMPL_IF NAME="imageurl" -->
+                <img src="<!-- TMPL_VAR NAME="imageurl" -->" alt="<!-- TMPL_VAR NAME="label" -->" title="<!-- TMPL_VAR NAME="label" -->">
+                <!-- /TMPL_IF -->
+                </td>
+                <!-- /TMPL_IF -->
+
 				<td>
                 <!-- TMPL_IF NAME="coins" -->
                     <!-- COinS / OpenURL --><span class="Z3988" title="<!-- TMPL_VAR NAME="coins" -->"></span>
