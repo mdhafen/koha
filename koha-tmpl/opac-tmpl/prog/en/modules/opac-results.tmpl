@@ -320,6 +320,14 @@ $("span.addto").html(param1);
                 </td>
                 <!-- /TMPL_IF -->
 
+                <!-- TMPL_IF NAME="item-level_itypes" -->
+                <td>
+                <!-- TMPL_IF NAME="imageurl" -->
+                <img src="<!-- TMPL_VAR NAME="imageurl" -->" alt="<!-- TMPL_VAR NAME="label" -->" title="<!-- TMPL_VAR NAME="label" -->">
+                <!-- /TMPL_IF -->
+                </td>
+                <!-- /TMPL_IF -->
+
 				<td>
                 <!-- COinS / OpenURL --><span class="Z3988" title="<!-- TMPL_VAR NAME="coins" -->"></span>
 
