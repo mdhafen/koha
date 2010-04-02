@@ -197,6 +197,7 @@ if ( $query->param('place_reserve') ) {
     AddReserve($branch,$borrowernumber,$biblionumber,'a',\@realbi,$rank,$notes,
                 $bibdata->{'title'},$checkitem, $found) if ($canreserve);
 
+<<<<<<< HEAD
     # now send a notice to the branch email
     my $branch_details = GetBranchDetail( $branch );
     if ( $branch_details->{ 'branchemail' } && $canreserve ) {
@@ -208,12 +209,21 @@ if ( $query->param('place_reserve') ) {
         my $letter = C4::Letters::getletter( 'reserves', $letter_code );
         if ( $letter ) {
             my $sth;
+            my $itype_column = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'biblioitems.itemtype';
+
             $sql = qq/
             SELECT COUNT(*)
               FROM items
          LEFT JOIN issues USING (itemnumber)
-             WHERE biblionumber = ?
+         LEFT JOIN biblioitems USING (biblioitemnumber)
+         LEFT JOIN itemtypes ON itemtypes.itemtype = $itype_column
+             WHERE items.biblionumber = ?
                AND issues.date_due IS NULL
+               AND ( items.notforloan = 0 OR items.notforloan IS NULL )
+               AND ( items.itemlost = 0 OR items.itemlost IS NULL )
+               AND ( items.restricted = 0 OR items.restricted IS NULL )
+               AND ( items.wthdrawn = 0 OR items.wthdrawn IS NULL )
+               AND ( itemtypes.notforloan = 0 OR itemtypes.notforloan IS NULL )
 /;
             $sth = $dbh->prepare( $sql );
             $sth->execute( $biblioNum );
