@@ -73,7 +73,7 @@ if ( $op eq 'Sync' and C4::Context->preference('MembersViaExternal') ) {
 	    my $allow_delete = 1;
 
 	    my $borrnum = $$dbhash{$cardnumber}{borrowernumber};
-	    my ( $issues, undef, $fines ) = GetMemberIssuesAndFines( $borrnum );
+	    my ( undef, $issues, $fines ) = GetMemberIssuesAndFines( $borrnum );
 	    my ( @reserves ) = GetReservesFromBorrowernumber( $borrnum );
 
 	    # this prevents a delete when a patron has changed branches
