@@ -64,14 +64,20 @@ my @column_titles = ( "Call Number", "Barcode", "Title", "Branch" );
 my @tables = ( "items",
 	       [ # Joined Tables
 	         {
-		   join => "CROSS",
+		   join => "LEFT",
 	           table => 'biblio',  # Table name
-	           using => 'biblionumber',  # Using column
+	           on => 'items.biblionumber = biblio.biblionumber',
+	           #using => 'biblionumber',  # Using column
 	         },
 		 {
 		   join => "LEFT",
 		   table => "issues",
-		   using => "itemnumber",
+		   on => "issues.itemnumber = items.itemnumber",
+		 },
+		 {
+	           join => "LEFT",
+	           table => "old_issues",
+	           on => "old_issues.itemnumber = items.itemnumber",
 		 },
 	       ],
 	       );
@@ -80,9 +86,21 @@ my @tables = ( "items",
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
-push @queryfilter, { crit => "returndate", op => " ", filter => "IS NULL", title => "Not issued After", value => $filters[0] } if ( $filters[0] );
+if ( $filters[0] ) {
+    push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued After", value => $filters[0] };
+    $tables[1][1]{'on'} .= " AND issues.issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+    $tables[1][1]{'on'} .= " AND issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+    $tables[1][2]{'on'} .= " AND old_issues.issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+    $tables[1][2]{'on'} .= " AND old_issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+}
 
-push @queryfilter, { crit => "( issuedate", op => " ", filter => "< ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." OR issuedate IS NULL )", title => "Not issued Before", value => $filters[1] } if ( $filters[1] );
+if ( $filters[1] ) {
+    push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued Before", value => $filters[1] };
+    $tables[1][1]{'on'} .= " AND issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+    $tables[1][1]{'on'} .= " AND issues.returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+    $tables[1][2]{'on'} .= " AND old_issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+    $tables[1][2]{'on'} .= " AND old_issues.returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+}
 
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
@@ -91,20 +109,10 @@ if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
 
 my @loopfilter = ();
 
-my $where = "itemnumber NOT IN ( SELECT DISTINCT itemnumber FROM old_issues WHERE itemnumber IS NOT NULL ";
-if ( $filters[0] ) {
-    $where .= "AND issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) ) ." ";
-}
-if ( $filters[1] ) {
-    $where .= "AND returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) ) ." ";
-}
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
-    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
-    $where .= "AND branchcode = ". $dbh->quote( $branch ) ." ";
-}
-$where .= ")";
+my $where = "issues.date_due IS NULL AND old_issues.date_due IS NULL";
 
 my $order = "$columns[0]";
+my $group = "items.itemnumber";
 my $page_breaks;
 
 # Rest of params
@@ -126,7 +134,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, $group, \@queryfilter, \@loopfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -233,7 +241,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
+	my ($columns, $column_titles, $tables, $where, $order, $group, $qfilters, $lfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my @wheres;
@@ -261,6 +269,8 @@ sub calculate {
 			$query .= "USING ($$join_info{using}) ";
 		    } elsif ($$join_info{on_l} and $$join_info{on_r}) {
 			$query .= "ON $$join_info{on_l} = $$join_info{on_r} ";
+		    } elsif ($$join_info{on}) {
+			$query .= "ON $$join_info{on} ";
 		    } else {
 			warn "$reportname : don't know how to join table $$join_info{table}";
 		    }
@@ -321,7 +331,9 @@ sub calculate {
 	    $query .= " )";
 	}
 
-	$query .= "ORDER BY $order" if ( $order );
+	$query .= "GROUP BY $group " if ( $group );
+
+	$query .= "ORDER BY $order " if ( $order );
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
