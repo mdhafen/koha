@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_lost";
 my $reporttitle = "Lost Copies";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(',', IF( items.itemlost, 'Lost', NULL ), IF( items.wthdrawn, 'Withdrawn ', NULL ) ) AS Status", "datelastseen", "itemnumber" );
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "authorised_values.lib AS Status", "datelastseen", "itemnumber" );
 my @column_titles = ( "Title", "Barcode", "Call Number", "Status", "Date Last Seen", "Last Borrower" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -69,6 +69,11 @@ my @tables = ( "items",
 		 },
 	       ],
 	       [ # Left Joined Tables
+		 {
+		     table => 'authorised_values',
+		     on_l => 'authorised_value',
+		     on_r => 'itemlost AND authorised_values.category = "LOST"',
+		 },
 	       ],
 	       );
 
