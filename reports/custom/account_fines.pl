@@ -56,7 +56,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "account_fines";  # ie "collection_itemnums"
 my $reporttitle = "Fines";  # ie "Item Number by Branch"
-my @columns = ( "borrowers.sort2", "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron", "CONCAT_WS(' ',biblio.title,biblio.seriestitle) AS title", "accountlines.description", "accountlines.amountoutstanding", "borrowers.cardnumber" );
+my @columns = ( "borrowers.sort2", "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron", "CONCAT_WS(' ',biblio.title,biblio.seriestitle) AS title", "accountlines.description", "accountlines.amountoutstanding", "borrowers.borrowernumber", "borrowers.cardnumber" );
 my @column_titles = ( "Homeroom Teacher", "Patron", "Title", "Description", "Amount Outstanding" );
 my @tables = ( "accountlines",
 	       [ # Cross Joined Tables
@@ -85,18 +85,30 @@ push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote
 push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
-    my $branch = $filters[2] || C4::Context->userenv->{branch};
+    my $branch = $filters[3] || C4::Context->userenv->{branch};
     push @queryfilter, { crit => "( borrowers.branchcode", op => "=", filter => $dbh->quote( $branch ) ." OR $hbranch = ". $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    $columns[4] = 'SUM(accountlines.amountoutstanding)';
+    splice @columns,2,2;
+    splice @column_titles,2,2;
 }
 
 my @loopfilter = ();
 
 my $where = "accountlines.amountoutstanding <> 0";
-my $order = "$columns[0]";
+my $order = "$columns[0], Patron";
+my $group = "";
 my $page_breaks;
+
+if ( $filters[2] ) {
+    push @queryfilter, { crit => '1', op => '>=', filter => '1', title => 'Fine', value => $filters[2] };
+    $group = "borrowernumber HAVING SUM(amountoutstanding) >= ";
+    $group .= $dbh->quote( $filters[2] );
+    $group .= " OR SUM(amountoutstanding) <= ";
+    $group .= $dbh->quote( "-$filters[2]" );
+}
 
 if ( $input->param("Options") ) {
     $page_breaks = 1;
@@ -121,7 +133,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, $group, \@queryfilter, \@loopfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -191,6 +203,11 @@ if ($do_it) {
 	    #input_name => 'Filter',  # input name
 	};
 
+	push @parameters, {
+	    input_box => 1,
+	    label => "Fines greater than \$",
+	};
+
 	unless ( C4::Context->preference("IndependantBranches") ) {
 	    my $branches = GetBranches();
 	    my @branchloop;
@@ -234,7 +251,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
+	my ($columns, $column_titles, $tables, $where, $order, $group, $qfilters, $lfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my @wheres;
@@ -309,7 +326,9 @@ sub calculate {
 	}
 	$query .= join "AND ", @wheres;
 
-	$query .= "ORDER BY $order" if ( $order );
+	$query .= "GROUP BY $group " if ( $group );
+
+	$query .= "ORDER BY $order " if ( $order );
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
@@ -406,6 +425,7 @@ CALC_MAIN_LOOP:
 		push @mapped_values, { value => $_ };
 	    }
 	    $mapped_values[ $#mapped_values ] = { value => sprintf( "%.2f", $mapped_values[ $#mapped_values ]{value} ) };
+	    $mapped_values[ 1 ]{ link } = "/cgi-bin/koha/members/boraccount.pl?borrowernumber=". $values[ $#values - 1 ];
 
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;

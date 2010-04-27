@@ -41,7 +41,7 @@
 		<tr<!-- TMPL_UNLESS name="__odd__" --> class="highlighted"<!-- /TMPL_UNLESS --><!-- TMPL_IF NAME="break" --> style="page-break-before:always;"<!-- /TMPL_IF -->>
 			<!-- TMPL_LOOP NAME="values" -->
 			<!-- TMPL_IF NAME="header" --><th <!-- TMPL_IF NAME="width" -->colspan="<!-- TMPL_VAR NAME="width" -->"<!-- /TMPL_IF -->><!-- TMPL_ELSE --><td><!-- /TMPL_IF -->
-				<!-- TMPL_IF Name="value" --><!-- TMPL_VAR NAME="value" --><!-- TMPL_ELSE-->&nbsp;<!-- /TMPL_IF -->
+				<!-- TMPL_IF Name="value" --><!-- TMPL_IF NAME="link" --><a href="<!-- TMPL_VAR NAME="link" -->"><!-- /TMPL_IF --><!-- TMPL_VAR NAME="value" --><!-- TMPL_IF NAME="link" --></a><!-- /TMPL_IF --><!-- TMPL_ELSE-->&nbsp;<!-- /TMPL_IF -->
 			<!-- TMPL_IF NAME="header" --></th><!-- TMPL_ELSE --></td><!-- /TMPL_IF -->
 			<!-- /TMPL_LOOP -->
 		</tr>
