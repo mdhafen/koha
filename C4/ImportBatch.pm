@@ -352,6 +352,7 @@ sub AddItemsToImportBiblio {
 	my ($p2_tag,$p2_sub) = &GetMarcFromKohaField("items.replacementprice",'');
 	my ($c_tag,$c_sub) = &GetMarcFromKohaField("items.itemcallnumber",'');
 	my ($n_tag,$n_sub) = &GetMarcFromKohaField("items.itemnotes",'');
+	my ($u_tag,$u_sub) = &GetMarcFromKohaField("items.uri",'');
 
 	my $branch = C4::Context::userenv->{branch};
 
@@ -360,7 +361,7 @@ sub AddItemsToImportBiblio {
 	    my $item_marc = MARC::Record->new();
 	    $item_marc->leader("00000    a              "); # must set Leader/09 to 'a'
 	    my %tags;
-	    my ( $call, $notes, $bar, $price );
+	    my ( $call, $notes, $bar, $price, $uri );
 
 	    $call = $item_field->subfield( 'k' ) ." ";
 	    $call .= $item_field->subfield( 'h' ) ." ";
@@ -375,6 +376,7 @@ sub AddItemsToImportBiblio {
 
 	    $bar = $item_field->subfield( 'p' );
 	    $notes = $item_field->subfield( 'z' );
+	    $uri = $item_field->subfield( 'u' );
 
 	    push @{ $tags{$b_tag} }, ( $b_sub, $bar ) if ( $bar );
 	    push @{ $tags{$h_tag} }, ( $h_sub, $branch ) if ( $branch );
@@ -383,6 +385,7 @@ sub AddItemsToImportBiblio {
 	    push @{ $tags{$p2_tag} }, ( $p2_sub, $price ) if ( $price );
 	    push @{ $tags{$c_tag} }, ( $c_sub, $call ) if ( $call );
 	    push @{ $tags{$n_tag} }, ( $n_sub, $notes ) if ( $notes );
+	    push @{ $tags{$u_tag} }, ( $u_sub, $uri ) if ( $uri );
 
 	    foreach my $t ( sort keys %tags ) {
 		my $temp_field = MARC::Field->new( $t, '1', '0', @{ $tags{$t} } );
