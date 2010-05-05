@@ -350,7 +350,10 @@ if ($op eq "additem") {
         my $exist_lost = get_item_lost_status( $itemnumber );
         if ( $exist_lost != $addedolditem->{'itemlost'} ) {
             if ( $exist_lost == 0 && $addedolditem->{'itemlost'} == 1 ) {
-                C4::Accounts::chargelostitem($itemnumber)
+                C4::Accounts::chargelostitem($itemnumber);
+                # onloan was just changed by chargelostitem.  Make it stick.
+                my ( $tagfield, $subfield ) = &GetMarcFromKohaField("items.onloan", $frameworkcode);
+                $itemtosave->field($tagfield)->update($subfield => undef);
             } elsif ( $exist_lost == 1 && (
                           $addedolditem->{'itemlost'} == 0 ||
                           $addedolditem->{'itemlost'} == '' ) ) {
