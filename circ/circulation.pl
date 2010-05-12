@@ -49,6 +49,16 @@ use Date::Calc qw(
 #
 my $query = new CGI;
 
+my ( $template, $loggedinuser, $cookie ) = get_template_and_user (
+    {
+        template_name   => 'circ/circulation.tmpl',
+        query           => $query,
+        type            => "intranet",
+        authnotrequired => 0,
+        flagsrequired   => { circulate => 'circulate_remaining_permissions' },
+    }
+);
+
 my $sessionID = $query->cookie("CGISESSID") ;
 my $session = get_session($sessionID);
 
@@ -69,23 +79,15 @@ if ($printer){
     $session->param('branchprinter',$printer);
 }
 
-if (!C4::Context->userenv && !$branch){
-  if ($session->param('branch') eq 'NO_LIBRARY_SET'){
-    # no branch set we can't issue
-    print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
-    exit;
-  }
-}
-
-my ( $template, $loggedinuser, $cookie ) = get_template_and_user (
-    {
-        template_name   => 'circ/circulation.tmpl',
-        query           => $query,
-        type            => "intranet",
-        authnotrequired => 0,
-        flagsrequired   => { circulate => 'circulate_remaining_permissions' },
+if (!$branch){
+    my $issue_branch = ( C4::Context->userenv ) ?
+        C4::Context->userenv->{branch} : $session->param('branch');
+    if ($issue_branch eq 'NO_LIBRARY_SET'){
+        # no branch set we can't issue
+        print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
+        exit;
     }
-);
+}
 
 my $branches = GetBranches();
 my $printers = GetPrinters();
