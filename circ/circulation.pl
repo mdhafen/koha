@@ -78,8 +78,10 @@ if ($printer){
     $session->param('branchprinter', $printer);
 }
 
-if (!C4::Context->userenv && !$branch){
-    if ($session->param('branch') eq 'NO_LIBRARY_SET'){
+if (!$branch){
+    my $issue_branch = ( C4::Context->userenv ) ?
+        C4::Context->userenv->{branch} : $session->param('branch');
+    if ($issue_branch eq 'NO_LIBRARY_SET'){
         # no branch set we can't issue
         print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
         exit;

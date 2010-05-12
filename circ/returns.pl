@@ -47,16 +47,6 @@ use C4::RotatingCollections;
 
 my $query = new CGI;
 
-my $sessionID = $query->cookie("CGISESSID");
-my $session = get_session($sessionID);
-if (!C4::Context->userenv){
-    if ($session->param('branch') eq 'NO_LIBRARY_SET'){
-        # no branch set we can't return
-        print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
-        exit;
-    }
-} 
-
 #getting the template
 my ( $template, $librarian, $cookie ) = get_template_and_user(
     {
@@ -67,6 +57,16 @@ my ( $template, $librarian, $cookie ) = get_template_and_user(
         flagsrequired   => { circulate => "circulate_remaining_permissions" },
     }
 );
+
+my $sessionID = $query->cookie("CGISESSID");
+my $session = get_session($sessionID);
+if (!C4::Context->userenv){
+    if ($session->param('branch') eq 'NO_LIBRARY_SET'){
+        # no branch set we can't return
+        print $query->redirect("/cgi-bin/koha/circ/selectbranchprinter.pl");
+        exit;
+    }
+} 
 
 #####################
 #Global vars
