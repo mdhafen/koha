@@ -352,6 +352,7 @@ elsif ($phase eq 'Run this report'){
     unless ($sql) {
         push @errors, {no_sql_for_id=>$report};   
     } 
+    if ( $sql =~ /limit\s+([\d\,]+)/i ) { $limit = $1; }
     my @rows = ();
     my ($sth, $errors) = execute_query($sql, $offset, $limit);
     my $total = select_2_select_count_value($sql) || 0;
