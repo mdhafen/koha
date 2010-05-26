@@ -325,7 +325,7 @@ sub calculate {
 	if ( @$tables ) {
 	    if ( my @tab = @{ shift @$tables } ) {
 		foreach my $table ( @tab ) {
-		    $query .= "$$table{joiin} JOIN $$table{table} ";
+		    $query .= "$$table{join} JOIN $$table{table} ";
 		    if ( $$table{using} ) {
 			$query .= "USING ($$table{using}) ";
 		    } elsif ($$table{on_l} and $$table{on_r}) {
