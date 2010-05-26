@@ -90,9 +90,6 @@ if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
     my $branch = $filters[3] || C4::Context->userenv->{branch};
     push @queryfilter, { crit => "( borrowers.branchcode", op => "=", filter => $dbh->quote( $branch ) ." OR $hbranch = ". $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
-    $columns[4] = 'SUM(accountlines.amountoutstanding)';
-    splice @columns,2,2;
-    splice @column_titles,2,2;
 }
 
 my @loopfilter = ();
@@ -103,6 +100,9 @@ my $group = "";
 my $page_breaks;
 
 if ( $filters[2] ) {
+    $columns[4] = 'SUM(accountlines.amountoutstanding)';
+    splice @columns,2,2;
+    splice @column_titles,2,2;
     push @queryfilter, { crit => '1', op => '>=', filter => '1', title => 'Fine', value => $filters[2] };
     $group = "borrowernumber HAVING SUM(amountoutstanding) >= ";
     $group .= $dbh->quote( $filters[2] );
