@@ -67,6 +67,12 @@ my @tables = ( "items",  # ie "items"
 #	           on_l => '',   # Left hand Join On column
 #	           on_r => '',   # Right hand Join On column
 	         },
+	         {
+	           table => 'biblioitems',  # Table name
+	           using => 'biblioitemnumber',  # Using column
+#	           on_l => '',   # Left hand Join On column
+#	           on_r => '',   # Right hand Join On column
+	         },
 	       ],
 	       [ # Left Joined Tables
 	         {
@@ -91,6 +97,16 @@ my $set_lost;
 
 if ( $filters[0] ) {
     push @queryfilter, { crit => 'datelastseen', op => '<', filter => $dbh->quote( format_date_in_iso($filters[0]) ), title => "Last Seen", value => $filters[0] };
+}
+
+if ( $input->param( "ItemTypes" ) ) {
+    my @types_array = $input->param( "ItemTypes" );
+    my $itype_field = ( C4::Context->preference('item-level_itypes') )
+	? 'items.itype'           # item-level
+	: 'biblioitems.itemtype'; # biblio-level
+    @types_array = map $dbh->quote( $_ ), @types_array;
+    my $types = "(". join( ',', @types_array ) .")";
+    push @queryfilter, { crit => $itype_field, op => "IN", filter => $types, title => "Item Category", value => $types };
 }
 
 if ( $filters[1] ) {
@@ -182,6 +198,25 @@ if ($do_it) {
 	    label => "Last Seen",
 	    id => "lastseen",
 	    value => $today,
+	};
+
+	my $itemtypes = GetItemTypes;
+	my @itemtypesloop;
+	foreach my $thisitype ( sort keys %$itemtypes ){
+		my %row = (
+			   value => $thisitype,
+			   label => $itemtypes->{$thisitype}->{description},
+			   );
+		push @itemtypesloop, \%row;
+	}
+	push @parameters, {
+	    select_box => 1,  # other options: checkbox, text, calendar
+	    select_loop => \@itemtypesloop,
+	    label => "Item Types",
+	    input_name => 'ItemTypes',
+	    first_blank => 1,
+	    size => 5,
+	    multiple => 1,
 	};
 
 	my @orders = (
