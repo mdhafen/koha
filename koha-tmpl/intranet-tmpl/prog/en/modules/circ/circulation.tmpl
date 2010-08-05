@@ -284,7 +284,26 @@ function refocus(calendar) {
         <!-- TMPL_IF NAME="IMPOSSIBLE" -->
 
 <!-- TMPL_IF NAME="soundon" -->
+<span id="soundon_critical">
 <audio src="/intranet-tmpl/prog/sound/critical.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+</span>
+<script type="text/javascript">
+// inspired by modernizr 1.1 (MIT License) and jPlayer (MIT License)
+var soundon_el = document.createElement('audio');
+var soundon_ogg = "";
+if ( soundon_el['canPlayType'] ) {
+  soundon_ogg = soundon_el.canPlayType("audio/ogg");
+}
+if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+  soundon_el = document.getElementById( 'soundon_critical' );
+  var dom_obj = document.createElement( 'object' );
+  dom_obj.height = 1;
+  dom_obj.width = 1;
+  dom_obj.type = "application/x-shockwave-flash";
+  dom_obj.data = "/intranet-tmpl/prog/sound/error.swf";
+  soundon_el.appendChild( dom_obj );
+}
+</script>
 <!-- /TMPL_IF -->        
 
 <div class="yui-g">
@@ -355,7 +374,25 @@ function refocus(calendar) {
 </div></div>
 <!-- TMPL_ELSE -->
 <!-- TMPL_IF NAME="soundon" -->
+<span id="soundon_beep">
 <audio src="/intranet-tmpl/prog/sound/beep.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+</span>
+<script type="text/javascript">
+var soundon_el = document.createElement('audio');
+var soundon_ogg = "";
+if ( soundon_el['canPlayType'] ) {
+  soundon_ogg = soundon_el.canPlayType("audio/ogg");
+}
+if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+  soundon_el = document.getElementById( 'soundon_beep' );
+  var dom_obj = document.createElement( 'object' );
+  dom_obj.height = 1;
+  dom_obj.width = 1;
+  dom_obj.type = "application/x-shockwave-flash";
+  dom_obj.data = "/intranet-tmpl/prog/sound/ok.swf";
+  soundon_el.appendChild( dom_obj );
+}
+</script>
 <!-- /TMPL_IF -->
     <!--/TMPL_IF --> <!-- /impossible -->
 
