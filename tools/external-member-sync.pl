@@ -67,7 +67,7 @@ if ( $op eq 'Sync' and @categories ) {
     # Check for differences borrowers
     #  Check for patrons not in external, and in category
 #warn "checking for deletes...";
-    if ( %$dirhash ) {  # to make sure the directory isn't empty.
+    if ( $dirhash && %$dirhash ) {  # to make sure the directory isn't empty.
 	foreach my $cardnumber (sort keys %$dbhash) {
 	    next if ( $$dbhash{$cardnumber}{categorycode} ne $category );
 	    next if ( $$dirhash{$cardnumber} );
@@ -217,9 +217,14 @@ if ( $op eq 'Sync' and @categories ) {
 	}
 
 	foreach ( keys %$values ) {
-	    if ( exists $$attribs{ $_ } && exists $$values{ $_ } &&
-		 defined $$attribs{ $_ } && defined $$values{ $_ } ) {
-		$diff = 1 if ( $$attribs{ $_ } ne $$values{ $_ } );
+	    if ( exists $$attribs{ $_ } && defined $$attribs{ $_ } ) {
+		if ( defined $$values{ $_ } ) {
+		    $diff = 1 if ( $$attribs{ $_ } ne $$values{ $_ } );
+		} else {
+		    $diff = 1;
+		}
+	    } elsif ( exists $$attribs{ $_ } ) {  # value is undefined.  Delete
+		delete $$attribs{ $_ };
 	    }
 	}
 
