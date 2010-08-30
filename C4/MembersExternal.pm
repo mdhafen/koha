@@ -794,6 +794,7 @@ sub DBI_BuildQuery {
             warn "MembersExternal:  Couldn't connect to external DB!: ". $DBI::errstr if ( $debug );
             return undef;
         }
+        $MembersExternal_Context{ conn }->{LongTruncOk} = 1;
     }
 
     my $dbh = C4::Context->dbh;
