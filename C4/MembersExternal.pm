@@ -71,7 +71,7 @@ BEGIN {
 
     #Connection handling
     push @EXPORT_OK, qw(
-	&DBI_BuildQuery
+	&DBI_QueryExternal
 	);
 }
 
@@ -124,24 +124,14 @@ C<$borrower> is a reference-to-hash with keys from the C<borrowers> table of
 
 sub GetMemberDetails_External {
     my ( $cardnumber, $category ) = @_;
-    my ( @columns, @filter, $query, $sth );
+    my ( @filter );
     my ( $data, $result );
 
-    return $data unless ( $category = PatronInMappedCategory( undef, $cardnumber, $category ) );
+    return {} unless ( $category = PatronInMappedCategory( undef, $cardnumber, $category ) );
 
-    @columns = GetExternalAllAttribs( $category );
-    my $filter_field = GetExternalAttrib( 'cardnumber', $category );
-    push @filter, { 'field' => $filter_field, 'op' => '=', 'value' => $cardnumber };
-    $query = DBI_BuildQuery( $category, \@columns, \@filter );
-    return {} unless ( defined $query );
-    $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return {};
-    $sth->execute;
-    $data = $sth->fetchrow_hashref;
-
-    foreach my $attrib ( keys %$data ) {
-        my $field = GetExternalField( $attrib, $category );
-        $$result{ $field } = $$data{ $attrib };
-    }
+    push @filter, { 'field' => 'cardnumber', 'op' => '=', 'value' => $cardnumber };
+    $data = DBI_QueryExternal( $category, [], \@filter );
+    $result = $$data[0];
 
     return $result;
 }
@@ -172,20 +162,16 @@ sub ListMembers_External {
     }
 
     my @filter;
-    my $cardfield = GetExternalAttrib( 'cardnumber', $category );
     if ( $branch ) {
-        my $branchfield = GetExternalAttrib( 'branchcode', $category );
-        push @filter, { 'field' => $branchfield, 'op' => '=', 'value' => $branch };
+        push @filter, { 'field' => 'branchcode', 'op' => '=', 'value' => $branch };
     }
-
-    $query = DBI_BuildQuery( $category, [ $cardfield ], \@filter );
-    return ( \%koha, {} ) unless ( defined $query );
-    $sth = $MembersExternal_Context{ conn }->prepare( $query );
-    $sth->execute;
-    while ( my ( $card ) = $sth->fetchrow ) {
-        $card =~ s/^\s*//;
-        $card =~ s/\s*$//;
-        $$external{ $card } = 1;
+    $query = DBI_QueryExternal( $category, [ 'cardnumber' ], \@filter );
+    return ( \%koha, {} ) unless ( @$query );
+    foreach my $row ( @$query ) {
+	my $card = $$row{ 'cardnumber' };
+	$card =~ s/^\s*//;
+	$card =~ s/\s*$//;
+	$$external{ $card } = 1;
     }
 
     return ( \%koha, $external );
@@ -459,15 +445,17 @@ sub DelExternalMapping {
     $sth->execute( $externalid );
 }
 
-=item &DBI_BuildQuery
+=item &DBI_QueryExternal
 
-Makes sure there's a connection to the database and builds the query to get the requested information.
+Makes sure there's a connection to the external database.  Then translates
+columns and filters to external database columns.  Builds a query.  Runs the
+query.  And finally translates the columns back and returns a hash ref.
 
 =cut
 
-sub DBI_BuildQuery {
+sub DBI_QueryExternal {
     my ( $category, $columns, $filters ) = @_;
-    my ( $query, $query2 );
+    my ( $query, $query2, $result );
     my ( @l_columns, %tables, %weight, $first_table );
 
     unless ( $MembersExternal_Context{ conn } ) {
@@ -489,21 +477,36 @@ sub DBI_BuildQuery {
     }
 
     my $dbh = C4::Context->dbh;
+
+    # Translate columns and filters
+    unless ( ref $columns eq 'ARRAY' && @$columns ) {
+        $columns = [];
+        $query = "SELECT kohafield,attrib FROM borrowers_external_structure WHERE categorycode = ?";
+        my $sth = $dbh->prepare( $query );
+        $sth->execute( $category );
+        while ( my $row = $sth->fetchrow_hashref ) {
+            push @$columns, $row->{kohafield};
+            push @l_columns, $row->{attrib};
+        }
+    } else {
+        foreach my $field ( @$columns ) {
+            my $attrib = GetExternalAttrib( $field, $category );
+            push @l_columns, $attrib;
+        }
+    }
+    if ( ref $filters eq 'ARRAY' && @$filters ) {
+	foreach my $fil ( @$filters ) {
+            my $attrib = GetExternalAttrib( $$fil{'field'}, $category );
+	    $$fil{'field'} = $attrib;
+	}
+    }
+
     $query = "SELECT dblink, filter FROM borrowers_external_structure WHERE dblink LIKE ?";
     $query .= " AND categorycode = ". $dbh->quote( $category ) if ( $category );
     my $sth = $dbh->prepare( $query );
 
     $query2 = "SELECT dblink, filter FROM borrowers_external_structure WHERE dblink LIKE ? AND ( categorycode = '' OR categorycode IS NULL )";
     my $sth2 = $dbh->prepare( $query2 );
-
-    # Clean up $columns
-    #  Because the borrowers_external_structure fields must have table names,
-    #  But the query results will not have them when using fetch_hashref
-    #  So the parent sub probably cloned the fields without the table names
-    #  to catch the value either way.
-    foreach my $row ( @$columns ) {
-        push @l_columns, $row if ( $row =~ /[^\.]+\.\S+/ );
-    }
 
     # Figure out which tables we need now
     foreach my $row ( @$filters, @l_columns ) {
@@ -567,8 +570,28 @@ sub DBI_BuildQuery {
 
     $query =~ s/WHERE $//;  # clean up trailing WHERE if there are no conditions
 
+    $sth->finish;  # Just in case, cause Im going to reuse it here
     warn $query if ( $debug );
-    return $query;
+    $result = [];
+    return $result unless ( defined $query );
+    $sth = $MembersExternal_Context{ conn }->prepare( $query ) or return $result;
+    $sth->execute;
+    while ( my $row = $sth->fetchrow_arrayref ) {
+	my %res_hash = ();
+	my $i = 0;
+	foreach my $value ( @$row ) {
+	    my $key = @$columns[ $i++ ];
+	    if ( $key eq 'password' ) {
+		if ( $MembersExternal_Context{ pass_method } eq 'plain' ) {
+		    $value = md5_base64( $value );
+		}
+	    }
+	    $res_hash{ $key } = $value;
+	}
+	push @$result, \%res_hash;
+    }
+
+    return $result;
 }
 
 # recursively called function to figure out how to join tables for a query

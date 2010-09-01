@@ -185,6 +185,14 @@ if ( $op eq 'Sync' and @categories ) {
 	    $$attribs{categorycode} = $category;
 	    $$attribs{'dateenrolled'} = C4::Dates->today('iso');
 	    $$attribs{'dateexpiry'} = GetExpiryDate( $category, $$attribs{'dateenrolled'} );
+	    my $mandatory_fields = C4::Context->preference("BorrowerMandatoryField");
+	    my @check_fields = split( /\|/, $mandatory_fields );
+	    # Mandatory Fields
+	    foreach ( 'surname', 'address', 'city', @check_fields ) {
+		unless ( exists $$attribs{ $_ } && defined $$attribs{ $_ } ) {
+		    $$attribs{ $_ } = '';
+		}
+	    }
 
 	    if ( $confirmed ) {
 		AddMember( %$attribs );
@@ -208,7 +216,7 @@ if ( $op eq 'Sync' and @categories ) {
 	my $values = $get->fetchrow_hashref;
 
 	foreach ( keys %$attribs ) {
-	    exists $$attribs{ $_ } &&
+	    defined $$attribs{ $_ } &&
 		$$attribs{ $_ } &&
 		$$attribs{ $_ } =~ s/\s*$//;
 	}
