@@ -99,9 +99,20 @@ for ( $filters[0] ) {
     else { $where = "( items.itemlost <> 0 OR items.wthdrawn <> 0 )" }
 }
 
+if ( $input->param( "ItemTypes" ) ) {
+    my @types_array = $input->param( "ItemTypes" );
+    my $itype_field = ( C4::Context->preference('item-level_itypes') )
+	? 'items.itype'           # item-level
+	: 'biblioitems.itemtype'; # biblio-level
+    @types_array = map $dbh->quote( $_ ), @types_array;
+    my $types = "(". join( ',', @types_array ) .")";
+    push @queryfilter, { crit => $itype_field, op => "IN", filter => $types, title => "Item Category", value => $types };
+}
+
 for ( $filters[1] ) {
     if ( /title/i ) { $order = "title" }
     elsif ( /callnumber/ ) { $order = "itemcallnumber,Title" }
+    elsif ( /datelastseen/ ) { $order = "items.datelastseen" }
 }
 
 # Rest of params
@@ -174,9 +185,29 @@ if ($do_it) {
 	    label => 'Display',
 	};
 
+	my $itemtypes = GetItemTypes;
+	my @itemtypesloop;
+	foreach my $thisitype ( sort keys %$itemtypes ){
+		my %row = (
+			   value => $thisitype,
+			   label => $itemtypes->{$thisitype}->{description},
+			   );
+		push @itemtypesloop, \%row;
+	}
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@itemtypesloop,
+	    label => "Item Types",
+	    input_name => 'ItemTypes',
+	    first_blank => 1,
+	    size => 5,
+	    multiple => 1,
+	};
+
 	my @order_loop;
 	push @order_loop, { value => 'title', label => 'Title' };
 	push @order_loop, { value => 'callnumber', label => 'Call Number' };
+	push @order_loop, { value => 'items.datelastseen', label => 'Call Number' };
 	push @parameters, {
 	    select_box => 1,
 	    select_loop => \@order_loop,
