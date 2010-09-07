@@ -207,7 +207,7 @@ if ($do_it) {
 	my @order_loop;
 	push @order_loop, { value => 'title', label => 'Title' };
 	push @order_loop, { value => 'callnumber', label => 'Call Number' };
-	push @order_loop, { value => 'items.datelastseen', label => 'Call Number' };
+	push @order_loop, { value => 'items.datelastseen', label => 'Last Seen' };
 	push @parameters, {
 	    select_box => 1,
 	    select_loop => \@order_loop,
