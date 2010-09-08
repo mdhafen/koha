@@ -195,7 +195,15 @@ if ( $op eq 'Sync' and @categories ) {
 	    }
 
 	    if ( $confirmed ) {
-		AddMember( %$attribs );
+		my ( $password, $borrno );
+		if ( $$attribs{ 'password' } ) {
+		    $password = $$attribs{ 'password' };
+		    delete $$attribs{ 'password' };
+		}
+		$borrno = AddMember( %$attribs );
+		if ( $password ) {
+		    changepassword( $$attribs{ 'userid' }, $borrno, $password );
+		}
 	    }
 
 	    push @report, {
@@ -226,7 +234,13 @@ if ( $op eq 'Sync' and @categories ) {
 
 	foreach ( keys %$values ) {
 	    if ( exists $$attribs{ $_ } && defined $$attribs{ $_ } ) {
-		if ( defined $$values{ $_ } ) {
+		if ( $_ eq 'password' ) {
+		    if ( $$attribs{ $_ } ne $$values{ $_ } && $confirmed ) {
+			changepassword( $$values{ 'userid' }, $$values{ 'borrowernumber' }, $$attribs{ 'password' } );
+		    }
+		    delete $$attribs{ 'password' };
+		}
+		elsif ( defined $$values{ $_ } ) {
 		    $diff = 1 if ( $$attribs{ $_ } ne $$values{ $_ } );
 		} else {
 		    $diff = 1;

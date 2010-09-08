@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use vars qw( %MembersExternal_Context );
 use Digest::MD5 qw(md5_base64);
+use MIME::Base64;
 use C4::Context;
 
 our ($VERSION,@ISA,@EXPORT,@EXPORT_OK,$debug);
@@ -584,6 +585,8 @@ sub DBI_QueryExternal {
 	    if ( $key eq 'password' ) {
 		if ( $MembersExternal_Context{ pass_method } eq 'plain' ) {
 		    $value = md5_base64( $value );
+		} elsif ( $MembersExternal_Context{ pass_method } eq 'md5' ) {
+		    $value = encode_base64( $value );
 		}
 	    }
 	    $res_hash{ $key } = $value;
