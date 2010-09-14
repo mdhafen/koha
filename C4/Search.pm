@@ -1570,8 +1570,7 @@ sub searchResults {
 	    # IndependantBranches, etc...  dont show copies at other branches
 	    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv && $item->{$hbranch} ne C4::Context->userenv->{branch} ) {
 		$items_count--;
-		$items_counter--;
-		delete $fields[ $items_counter ];
+		delete $fields[ $items_count ];
 		next;
 	    }
 
