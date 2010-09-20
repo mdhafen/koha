@@ -1334,9 +1334,9 @@ sub GetItemsInfo {
             $data->{stack} = $lib;
         }
         # Find the last 3 people who borrowed this item.
-        my $sth2 = $dbh->prepare("SELECT * FROM old_issues,borrowers
+        my $sth2 = $dbh->prepare("SELECT * FROM old_issues LEFT JOIN borrowers
+                                    ON old_issues.borrowernumber = borrowers.borrowernumber
                                     WHERE itemnumber = ?
-                                    AND old_issues.borrowernumber = borrowers.borrowernumber
                                     ORDER BY returndate DESC
                                     LIMIT 3");
         $sth2->execute($data->{'itemnumber'});
