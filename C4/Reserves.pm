@@ -647,8 +647,12 @@ sub GetReserveFee {
             $x++;
         }
         if ( $allissued == 0 ) {
+	    $query = "SELECT * FROM reserves WHERE biblionumber = ?";
+	    if ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && C4::Context->userenv->{branch} ) {
+		$query .= " AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+	    }
             my $rsth =
-              $dbh->prepare("SELECT * FROM reserves WHERE biblionumber = ?");
+              $dbh->prepare($query);
             $rsth->execute($biblionumber);
             if ( my $rdata = $rsth->fetchrow_hashref ) {
             }
@@ -1487,6 +1491,11 @@ sub _FixPriority {
         FROM   reserves
         WHERE  biblionumber   = ?
           AND  ((found <> 'W' AND found <> 'T') or found is NULL)
+    /;
+    if ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && C4::Context->userenv->{branch} ) {
+        $query .= " AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+	    }
+    $query .= qq/
         ORDER BY priority ASC
     /;
     my $sth = $dbh->prepare($query);
@@ -1774,7 +1783,11 @@ sub _ShiftPriorityByDateAndPriority {
     my ( $biblio, $resdate, $new_priority ) = @_;
 
     my $dbh = C4::Context->dbh;
-    my $query = "SELECT priority FROM reserves WHERE biblionumber = ? AND ( reservedate > ? OR priority > ? ) ORDER BY priority ASC LIMIT 1";
+    my $query = "SELECT priority FROM reserves WHERE biblionumber = ? AND ( reservedate > ? OR priority > ? )";
+    if ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && C4::Context->userenv->{branch} ) {
+	$query .= " AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
+    $query .= " ORDER BY priority ASC LIMIT 1";
     my $sth = $dbh->prepare( $query );
     $sth->execute( $biblio, $resdate, $new_priority );
     my $min_priority = $sth->fetchrow;
@@ -1791,7 +1804,11 @@ sub _ShiftPriorityByDateAndPriority {
     my $sth_update = $dbh->prepare( $query );
 
     # Select all reserves for the biblio with priority greater than $new_priority, and order greatest to least
-    $query = "SELECT borrowernumber, reservedate FROM reserves WHERE priority >= ? AND biblionumber = ? ORDER BY priority DESC";
+    $query = "SELECT borrowernumber, reservedate FROM reserves WHERE priority >= ? AND biblionumber = ?";
+    if ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && C4::Context->userenv->{branch} ) {
+	$query .= " AND branchcode = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
+    $query .= " ORDER BY priority DESC";
     $sth = $dbh->prepare( $query );
     $sth->execute( $new_priority, $biblio );
     while ( my $row = $sth->fetchrow_hashref ) {
