@@ -581,6 +581,8 @@ foreach ( sort { $a <=> $b } keys %returneditems ) {
     push @riloop, \%ri;
 }
 
+$soundok = 0 if ( $sounderror );
+
 $session->param('soundederrors', [ keys %soundederrors ] );
 $template->param(
     riloop         => \@riloop,
