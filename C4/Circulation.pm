@@ -2122,7 +2122,7 @@ sub CanBookBeRenewed {
 		}
 		
         my ( $resfound, $resrec ) = C4::Reserves::CheckReserves($itemnumber);
-        if ($resfound && !$override_limit) {
+        if ($resfound && ! ( $override_limit || C4::Branch::mybranch() == 308 ) ) {
             $renewokay = 0;
 			$error="on_reserve"
         }
