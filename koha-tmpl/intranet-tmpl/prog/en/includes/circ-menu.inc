@@ -51,6 +51,12 @@
     <!-- /TMPL_IF -->
     <li>Category: <!-- TMPL_VAR NAME="categoryname" --> (<!-- TMPL_VAR NAME="categorycode" -->)</li>
     <li>Home Library: <!-- TMPL_IF NAME="branchname" --><!-- TMPL_VAR NAME="branchname" --><!-- TMPL_ELSE --><!-- TMPL_VAR NAME="branch" --><!-- /TMPL_IF --></li>
+    <!-- TMPL_IF NAME="sort1" -->
+        <li>Sort1: <!-- TMPL_VAR NAME="sort1" --></li>
+    <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="sort2" -->
+        <li>Sort2: <!-- TMPL_VAR NAME="sort2" --></li>
+    <!-- /TMPL_IF -->
 </ul></div>
 <div id="menu">
 <ul>
