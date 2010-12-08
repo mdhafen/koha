@@ -573,6 +573,29 @@ sub _version_check ($$) {
         }
         exit;
     }
+
+    my $cgidir = C4::Context->config('intranetdir');
+    if ( -d $cgidir."/cgi-bin" ) {
+	$cgidir .= "/cgi-bin";
+    }
+    do $cgidir."/installer/wcsdversion.pl" || die "No $cgidir/installer/wcsdversion.pl";
+    my $wcsd_version = wcsd_version();
+    $wcsd_version =~ s/(.*\..*)\.(.*)\.(.*)/$1$2$3/;
+    $version = C4::Context->preference('WCSDVersion') || 0;
+    $version = substr $version, 0, index( $version, '|' );# get version part
+    $version += 0;  # force to integer for following comparisons
+    my $wcsd_revision = wcsd_revision();
+    my $revision = C4::Context->preference('WCSDVersion') || 0;
+    $revision = substr $revision, rindex( $revision, '|' ) + 1;
+    if ( $version == 0 || $version < $wcsd_version || $revision ne $wcsd_revision ) {
+	if ( $type eq 'opac' ) {
+	    print $query->redirect("/cgi-bin/koha/maintenance.pl");
+	}
+	else {
+	    print $query->reidrect("/cgi-bin/koha/installer/wcsd_update.pl");
+	}
+	exit;
+    }
 }
 
 sub _session_log {

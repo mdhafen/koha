@@ -1,0 +1,49 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" --><title>Koha &rsaquo; Web Installer &rsaquo; Database Update</title>
+<!--TMPL_IF Name="finish"--><meta http-equiv="refresh" content="10; url=/cgi-bin/koha/mainpage.pl"><!--/TMPL_IF-->
+<!-- TMPL_INCLUDE NAME="installer-doc-head-close.inc" -->
+<div>
+<h1 id="logo"><img alt="Koha" src="/intranet-tmpl/prog/img/koha.org-logo.gif" /> Web Installer &rsaquo; Database Update</h1>
+
+<!--TMPL_IF Name="finish"-->
+    <h1>Congratulations, Update complete</h1>
+    <p>If this page does not redirect in 5 seconds, click <a href="/">here</a>.</p> 
+<!--/TMPL_IF-->
+
+<!-- TMPL_IF name="upgrading" -->
+    <p>
+        We are upgrading from WCSD Koha <!-- TMPL_VAR name="dbversion" --> to <!-- TMPL_VAR name="wcsd_version" -->, you must <a href="wcsd_update.pl?op=updatestructure" class="button">update your database</a>
+    </p>
+<!--/TMPL_IF-->
+
+
+
+<!--TMPL_IF Name="updatestructure"-->
+  <div><h2 align="center">Updating database structure</h2>
+  <!-- TMPL_IF NAME="has_update_succeeds" -->
+  <p>Update report :</p>
+    <ul>
+      <!-- TMPL_LOOP NAME="update_report" -->
+          <li><!-- TMPL_VAR NAME="line" ESCAPE="html" --></li>
+      <!-- /TMPL_LOOP --> 
+    </ul>
+  <!-- /TMPL_IF -->
+
+  <!-- TMPL_IF NAME="has_update_errors" -->
+  <p>Update errors :</p>
+    <ul>
+      <!-- TMPL_LOOP NAME="update_errors" -->
+          <li class="update_error"><!-- TMPL_VAR NAME="line" ESCAPE="html" --></li>
+      <!-- /TMPL_LOOP --> 
+    </ul>
+  <!-- /TMPL_IF -->
+
+  <!-- TMPL_UNLESS NAME="has_update_errors" -->
+    <p>Everything went OK, update done.</p>
+  <!-- /TMPL_UNLESS -->
+
+  <a href="wcsd_update.pl?op=finished" class="button">Continue to log in to Koha</a>
+  </div>
+<!--/TMPL_IF-->
+
+</body>
+</html>
