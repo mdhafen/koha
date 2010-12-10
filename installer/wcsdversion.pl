@@ -5,6 +5,18 @@ use C4::Context;
 
 my $dbh = C4::Context->dbh;
 
+# Revision block template...
+#
+#	$rev = '';
+#	unless ( $revisions{ $rev } ) {
+#	    $dbh->do("");
+#	    print "";
+#	    $version_string += "|$rev";
+#	    $version_changed = 1;
+#	}
+#
+#
+
 if ( @ARGV && $ARGV[0] eq 'run' ) {
     my $DB_version = C4::Context->preference('WCSDVersion') || 0;
     my @strings = split /\|/, $DB_version;
@@ -16,12 +28,119 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
     my $WCSD_version = '1.00.00.001';
     if ( $DB_version < TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000001';
+	my $version_changed = 0;
 
 	$rev = 'wcsd_nuib';
 	unless ( $revisions{ $rev } ) {
-	    $dbh->do("");
+	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx` ADD KEY `itembarcodeidx` (`barcode`)");
 	    print "Non-Unique Item Barcodes update";
-	    $version_string += '|wcsd_nuib';
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_bes';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("CREATE TABLE `borrowers_external_structure` (
+  `externalid` int(11) NOT NULL auto_increment,
+  `liblibrarian` varchar(255) NOT NULL default '',
+  `kohafield` varchar(40) default NULL,
+  `attrib` varchar(255) default NULL,
+  `dblink` varchar(64) default NULL,
+  `categorycode` varchar(10) NOT NULL default '',
+  PRIMARY KEY  (`externalid`),
+  KEY `bes_k_kohafield` (`kohafield`),
+  KEY `bes_k_attrib` (`attrib`),
+  KEY `bes_k_categorycode` (`categorycode`),
+  CONSTRAINT `bes_fk_categorycode` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8");
+	    print "MembersFromExternal feature mapping table";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_nbcoppsp';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES( 'NoBorrowerContactOnPrintPage', 1,
+ 'If ON, patrons mailing and email addresses are not listed on the Print Page screen',
+NULL, 'YesNo' )");
+	    print "NoBorrowerContactOnPrintPage System Preference";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_alesp';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'AccountLinesEditable', 0,
+ 'If ON Patron account lines can be changed in the staff client', NULL, 'YesNo' )");
+	    print "AccountLinesEditable System Preference";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_ahdifsp';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'AllowHoldDateInFuture', '0',
+ 'If set a date field is displayed on the Hold screen of the Staff Interface, allowing the hold date to be set in the future.',
+ '', 'YesNo' )");
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'OPACAllowHoldDateInFuture', '0',
+ 'If set, along with the AllowHoldDateInFuture system preference, OPAC users can set the date of a hold to be in the future.',
+ '', 'YesNo' )");
+
+	    print "AllowHoldDateInFuture and OPACAllowHoldDateInFuture System Preferences";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_besf';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("alter table borrowers_external_structure add column filter varchar(64) default null after dblink");
+	    print "Adding filter column to borrowers_external_structure table";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_smlfir';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip meduimtext default NULL");
+	    print "Extend branches branchip field to allow for multiple ip addresses";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_rot';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("ALTER TABLE `biblio` ADD COLUMN `remainderoftitle` mediumtext AFTER `title`");
+	    print "Add remainderoftitle column to biblio table";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'wcsd_ibiftws';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("UPDATE `systempreferences` SET options = 'whitespace|trim-whitespace|T-prefix|cuecat' WHERE variable = 'itemBarcodeInputFilter'");
+	    print "Changing itemBarcodeInputFilter System Preference to add trim-whitespace option";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	$rev = 'sedc_crpi';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'CircRestrictPreviouslyIssued', 0,
+ 'If set, when a title is checked out warn the staff if the patron has checked out this title before.',
+ '', 'YesNo' )");
+	    print "Add System Preference for CircRestrictPreviouslyIssued";
+	    $version_string += "|$rev";
+	    $version_changed = 1;
+	}
+
+	# New revisions go here.
+
+	if ( $version_changed ) {
 	    SetVersion( $version_string );
 	}
     }
