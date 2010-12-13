@@ -592,7 +592,7 @@ sub _version_check ($$) {
 	    print $query->redirect("/cgi-bin/koha/maintenance.pl");
 	}
 	else {
-	    print $query->reidrect("/cgi-bin/koha/installer/wcsd_update.pl");
+	    print $query->redirect("/cgi-bin/koha/installer/wcsd_update.pl");
 	}
 	exit;
     }

@@ -154,7 +154,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    out $REVISION = 'sedc_crpi';
+    our $REVISION = 'sedc_crpi';
     return $REVISION;
 }
 
