@@ -46,21 +46,19 @@ elsif ( $op && $op eq 'updatestructure' ) {
     $template->param( $op => 1 );
 }
 else {
-    if (C4::Context->preference('WCSDVersion')) {
-	my $cgidir = C4::Context->config('intranetdir');
-	if ( -d $cgidir."/cgi-bin" ) {
-	    $cgidir .= "/cgi-bin";
-	}
-	do $cgidir."/installer/wcsdversion.pl" || die "No $cgidir/installer/wcsdversion.pl";
-	my $wcsd_version = wcsd_version();
-	my $dbversion = C4::Context->preference('WCSDVersion');
-	$dbversion =~ /(.*)\.(..)(..)(...)/;
-	$dbversion = "$1.$2.$3.$4";
-	$template->param("upgrading" => 1,
-			 "dbversion" => $dbversion,
-			 "wcsd_version" => $wcsd_version,
-	    );
+    my $cgidir = C4::Context->config('intranetdir');
+    if ( -d $cgidir."/cgi-bin" ) {
+	$cgidir .= "/cgi-bin";
     }
+    do $cgidir."/installer/wcsdversion.pl" || die "No $cgidir/installer/wcsdversion.pl";
+    my $wcsd_version = wcsd_version();
+    my $dbversion = C4::Context->preference('WCSDVersion');
+    $dbversion =~ /(.*)\.(..)(..)(...)/;
+    $dbversion = "$1.$2.$3.$4";
+    $template->param("upgrading" => 1,
+		     "dbversion" => $dbversion,
+		     "wcsd_version" => $wcsd_version,
+	);
 }
 
 output_html_with_http_headers $query, $cookie, $template->output;

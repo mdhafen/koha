@@ -1,3 +1,5 @@
+#!/usr/bin/perl
+
 use strict;
 use warnings;
 
@@ -10,8 +12,8 @@ my $dbh = C4::Context->dbh;
 #	$rev = '';
 #	unless ( $revisions{ $rev } ) {
 #	    $dbh->do("");
-#	    print "";
-#	    $version_string += "|$rev";
+#	    print "\n";
+#	    $version_string .= "|$rev";
 #	    $version_changed = 1;
 #	}
 #
@@ -32,9 +34,9 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
 
 	$rev = 'wcsd_nuib';
 	unless ( $revisions{ $rev } ) {
-	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx` ADD KEY `itembarcodeidx` (`barcode`)");
-	    print "Non-Unique Item Barcodes update";
-	    $version_string += "|$rev";
+	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx`, ADD KEY `itembarcodeidx` (`barcode`)");
+	    print "Non-Unique Item Barcodes update\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
@@ -53,8 +55,8 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
   KEY `bes_k_categorycode` (`categorycode`),
   CONSTRAINT `bes_fk_categorycode` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
-	    print "MembersFromExternal feature mapping table";
-	    $version_string += "|$rev";
+	    print "MembersFromExternal feature mapping table\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
@@ -64,8 +66,8 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
  explanation, options, type ) VALUES( 'NoBorrowerContactOnPrintPage', 1,
  'If ON, patrons mailing and email addresses are not listed on the Print Page screen',
 NULL, 'YesNo' )");
-	    print "NoBorrowerContactOnPrintPage System Preference";
-	    $version_string += "|$rev";
+	    print "NoBorrowerContactOnPrintPage System Preference\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
@@ -74,8 +76,8 @@ NULL, 'YesNo' )");
 	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
  explanation, options, type ) VALUES ( 'AccountLinesEditable', 0,
  'If ON Patron account lines can be changed in the staff client', NULL, 'YesNo' )");
-	    print "AccountLinesEditable System Preference";
-	    $version_string += "|$rev";
+	    print "AccountLinesEditable System Preference\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
@@ -90,40 +92,40 @@ NULL, 'YesNo' )");
  'If set, along with the AllowHoldDateInFuture system preference, OPAC users can set the date of a hold to be in the future.',
  '', 'YesNo' )");
 
-	    print "AllowHoldDateInFuture and OPACAllowHoldDateInFuture System Preferences";
-	    $version_string += "|$rev";
+	    print "AllowHoldDateInFuture and OPACAllowHoldDateInFuture System Preferences\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
 	$rev = 'wcsd_besf';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("alter table borrowers_external_structure add column filter varchar(64) default null after dblink");
-	    print "Adding filter column to borrowers_external_structure table";
-	    $version_string += "|$rev";
+	    print "Adding filter column to borrowers_external_structure table\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
 	$rev = 'wcsd_smlfir';
 	unless ( $revisions{ $rev } ) {
-	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip meduimtext default NULL");
-	    print "Extend branches branchip field to allow for multiple ip addresses";
-	    $version_string += "|$rev";
+	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip mediumext default NULL");
+	    print "Extend branches branchip field to allow for multiple ip addresses\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
 	$rev = 'wcsd_rot';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("ALTER TABLE `biblio` ADD COLUMN `remainderoftitle` mediumtext AFTER `title`");
-	    print "Add remainderoftitle column to biblio table";
-	    $version_string += "|$rev";
+	    print "Add remainderoftitle column to biblio table\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
 	$rev = 'wcsd_ibiftws';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("UPDATE `systempreferences` SET options = 'whitespace|trim-whitespace|T-prefix|cuecat' WHERE variable = 'itemBarcodeInputFilter'");
-	    print "Changing itemBarcodeInputFilter System Preference to add trim-whitespace option";
-	    $version_string += "|$rev";
+	    print "Changing itemBarcodeInputFilter System Preference to add trim-whitespace option\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
@@ -133,8 +135,8 @@ NULL, 'YesNo' )");
  explanation, options, type ) VALUES ( 'CircRestrictPreviouslyIssued', 0,
  'If set, when a title is checked out warn the staff if the patron has checked out this title before.',
  '', 'YesNo' )");
-	    print "Add System Preference for CircRestrictPreviouslyIssued";
-	    $version_string += "|$rev";
+	    print "Add System Preference for CircRestrictPreviouslyIssued\n";
+	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
 
