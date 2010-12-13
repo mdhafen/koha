@@ -144,11 +144,18 @@ NULL, 'YesNo' )");
 	    SetVersion( $version_string );
 	}
     }
+
+    exit;
 }
 
 sub wcsd_version {
     our $VERSION = '1.00.00.001';
     return $VERSION;
+}
+
+sub wcsd_revision {
+    out $REVISION = 'sedc_crpi';
+    return $REVISION;
 }
 
 1;
@@ -183,5 +190,3 @@ sub SetVersion {
       $finish->execute( $version );
     }
 }
-
-exit;
