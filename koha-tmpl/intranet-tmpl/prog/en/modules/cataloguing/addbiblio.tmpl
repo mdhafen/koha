@@ -731,7 +731,7 @@ function unHideSubfield(index,labelindex) { // FIXME :: is it used ?
 	</script>
 
 		<ul class="toolbar">
-			<li id="savebutton"><input id="addbiblio" type="submit" value="Save" /></li>
+			<li id="savebutton"><input id="addbiblio" type="submit"<!-- TMPL_UNLESS NAME="edit_allowed" --> disabled="disabled"<!-- /TMPL_UNLESS --> value="Save" /></li>
 			<li id="z3950searchc"><input type="button" id="z3950search" value="Z39.50 Search" onclick="PopupZ3950(); return false;" /></li>
 			<li id="changeframework"><label for="Frameworks">Change framework: </label>
 			<select name="Frameworks" id="Frameworks" onchange="Changefwk(this);">

@@ -2,6 +2,7 @@
 	
 	<script type="text/javascript">
 	//<![CDATA[
+	<!-- TMPL_IF NAME="edit_allowed" -->
 	<!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->
 	/* this function open a popup to search on z3950 server.  */
 	function PopupZ3950() {
@@ -19,6 +20,7 @@
 		<!-- /TMPL_LOOP -->
 		return strQuery;
 	}
+	<!-- /TMPL_IF -->
 	<!-- /TMPL_IF -->
 	function addToCart() { addRecord('<!-- TMPL_VAR NAME="biblionumber" -->'); }
 	function addToShelf() {	window.open('/cgi-bin/koha/virtualshelves/addbybiblionumber.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->','Add_to_virtualshelf','width=500,height=400,toolbar=false,scrollbars=yes');
@@ -94,7 +96,7 @@ function confirm_items_deletion() {
 			 });
 		 }
 	    var editmenu = [
-	        <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->{ text: _("Edit Record"), url: "/cgi-bin/koha/cataloguing/addbiblio.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->&amp;frameworkcode=&amp;op=" },<!-- /TMPL_IF -->
+	        <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->{ text: _("Edit Record"), url: "/cgi-bin/koha/cataloguing/addbiblio.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->&amp;frameworkcode=&amp;op="<!-- TMPL_UNLESS NAME="edit_allowed" -->,id:'disabled'<!-- /TMPL_UNLESS --> },<!-- /TMPL_IF -->
 	        <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_items" -->{ text: _("Edit Items"), url: "/cgi-bin/koha/cataloguing/additem.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->" },<!-- /TMPL_IF -->
 	        <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_items" -->{ text: _("Attach Item"), url: "/cgi-bin/koha/cataloguing/moveitem.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->" },<!-- /TMPL_IF -->
 	        <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->{ text: _("Edit as New (Duplicate)"), url: "/cgi-bin/koha/cataloguing/addbiblio.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->&amp;frameworkcode=&amp;op=duplicate" },<!-- /TMPL_IF -->
@@ -156,6 +158,7 @@ function confirm_items_deletion() {
 			container: this,
 			href: "/cgi-bin/koha/reserve/request.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->"
 	     });
+	    <!-- TMPL_IF NAME="edit_allowed" -->
 	    <!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->
 		new YAHOO.widget.Button({
 			id: "z3950search",
@@ -164,6 +167,7 @@ function confirm_items_deletion() {
 			container: this,
 			onclick: {fn:function(){PopupZ3950()}}
 		});
+		<!-- /TMPL_IF -->
 		<!-- /TMPL_IF -->
 	});
 	//]]>
@@ -184,7 +188,11 @@ function confirm_items_deletion() {
 	<!-- /TMPL_IF -->
 
 	<!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_catalogue" -->
+	<!-- TMPL_IF NAME="edit_allowed" -->
 	<li><a id="editbiblio" href="/cgi-bin/koha/cataloguing/addbiblio.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->&amp;frameworkcode=<!--TMPL_VAR Name="current_framework" -->&amp;op=">Edit Record</a></li>
+	<!-- TMPL_ELSE -->
+	<li><a id="editbiblio">Record Cannot Be Editted</a></li>
+	<!-- /TMPL_IF -->
 	<!-- /TMPL_IF -->
 	<!-- TMPL_IF NAME="CAN_user_editcatalogue_edit_items" -->
 	<li><a id="edititems" href="/cgi-bin/koha/cataloguing/additem.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->">Edit Items</a></li>

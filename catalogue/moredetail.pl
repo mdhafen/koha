@@ -139,6 +139,10 @@ $template->param(biblioitemnumber => $bi);
 $template->param(itemnumber => $itemnumber);
 $template->param(ONLY_ONE => 1) if ( $itemnumber && $count != @items );
 $template->param(z3950_search_params => C4::Search::z3950_search_args(GetBiblioData($biblionumber)));
+# Can it be edited
+if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
+    $template->param( edit_allowed => 1 );
+}
 
 output_html_with_http_headers $query, $cookie, $template->output;
 

@@ -107,6 +107,11 @@ my $dat = &GetBiblioData($biblionumber);
 # get count of holds
 my ( $holdcount, $holds ) = GetReservesFromBiblionumber($biblionumber,1);
 
+# Can it be edited
+if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
+    $template->param( edit_allowed => 1 );
+}
+
 #coping with subscriptions
 my $subscriptionsnumber = CountSubscriptionFromBiblionumber($biblionumber);
 my @subscriptions       = GetSubscriptions( $dat->{title}, $dat->{issn}, $biblionumber );

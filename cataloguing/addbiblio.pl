@@ -44,7 +44,7 @@ if ( C4::Context->preference('marcflavour') eq 'UNIMARC' ) {
     MARC::File::XML->default_record_format('UNIMARC');
 }
 
-our($tagslib,$authorised_values_sth,$is_a_modif,$usedTagsLib,$mandatory_z3950);
+our($tagslib,$authorised_values_sth,$is_a_modif,$edit_allowed,$usedTagsLib,$mandatory_z3950);
 
 =head1 FUNCTIONS
 
@@ -908,6 +908,12 @@ if ($biblionumber) {
     my $sth =  $dbh->prepare("select biblioitemnumber from biblioitems where biblionumber=?");
     $sth->execute($biblionumber);
     ($biblioitemnumber) = $sth->fetchrow;
+
+    # allow editing of biblios used by other branches according to sys pref
+    if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
+	$edit_allowed = 1;
+	$template->param( edit_allowed => $edit_allowed );
+    }
 }
 
 #-------------------------------------------------------------------------------------
@@ -923,6 +929,14 @@ if ( $op eq "addbiblio" ) {
     if ( !$duplicatebiblionumber or $confirm_not_duplicate ) {
         my $oldbibnum;
         my $oldbibitemnum;
+	unless ( $edit_allowed ) {
+	    if ( $mode ne 'popup' ) {
+		print $input->redirect(
+		    "/cgi-bin/koha/catalogue/detail.pl?biblionumber=$biblionumber"
+		    );
+	    }
+	    exit;
+	}
         if (C4::Context->preference("BiblioAddsAuthorities")){
           my ($countlinked,$countcreated)=BiblioAddAuthorities($record,$frameworkcode);
         } 

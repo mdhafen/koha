@@ -73,8 +73,13 @@ my $res = GetISBDView($biblionumber, "intranet");
 # count of item linked with biblio
 my $itemcount = GetItemsCount($biblionumber);
 $template->param( count => $itemcount);
+
+# Can it be edited
+if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
+    $template->param( edit_allowed => 1 );
+}
+
 my $subscriptionsnumber = CountSubscriptionFromBiblionumber($biblionumber);
- 
 if ($subscriptionsnumber) {
     my $subscriptions     = GetSubscriptionsFromBiblionumber($biblionumber);
     my $subscriptiontitle = $subscriptions->[0]{'bibliotitle'};

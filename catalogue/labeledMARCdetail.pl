@@ -57,6 +57,11 @@ my $itemcount = GetItemsCount($biblionumber);
 $template->param( count => $itemcount,
 					bibliotitle => $biblio->{title}, );
 
+# Can it be edited
+if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
+    $template->param( edit_allowed => 1 );
+}
+
 #Getting the list of all frameworks
 my $queryfwk =
   $dbh->prepare("select frameworktext, frameworkcode from biblio_framework");

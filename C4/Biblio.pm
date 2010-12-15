@@ -92,6 +92,7 @@ BEGIN {
       &ModBiblio
       &ModBiblioframework
       &ModZebra
+      &EditUsedBiblioAllowed
     );
 
     # To delete something
@@ -594,6 +595,49 @@ sub GetFieldMapping {
         push @return, $row;
     }
     return \@return;
+}
+
+=head2 EditUsedBiblioAllowed
+
+=over 4
+
+my $bool = EditUsedBiblioAllowed($biblionumber);
+
+=back
+
+Checks a System Preference, whether the user is a superlibrarian, and whether
+the biblio is used by items at other branches.
+
+Returns 1 if editing should be allowed, 0 otherwise
+
+=cut
+
+sub EditUsedBiblioAllowed {
+    my $bib = shift;
+
+    # check if the sys pref is set to not allow
+    if ( ! defined C4::Context->preference("AllowEditUsedBiblio") ||
+	 C4::Context->preference("AllowEditUsedBiblio") != 0 ) {
+	return 1;
+    }
+
+    # check that branch is set, or the user isn't super
+    if ( C4::Context->userenv                  &&
+	 ( ! C4::Context->userenv->{branch}    ||
+	   C4::Context->userenv->{flags} %2 == 1 ) ) {
+	return 1;
+    }
+    
+    my $branch = C4::Context->userenv->{branch};
+    my $dbh = C4::Context->dbh;
+    my $query = "SELECT COUNT(*) AS count FROM items WHERE biblionumber = ? AND homebranch != ?";
+    my $sth = $dbh->prepare( $query );
+    $sth->execute( $bib, $branch );
+    my ( $result ) = $sth->fetchrow_array();
+    if ( $result > 0 ) {
+	return 0;
+    }
+    return 1;
 }
 
 =head2 GetBiblioData
