@@ -2561,6 +2561,10 @@ sub SendCirculationAlert {
         borrowernumber => $borrower->{borrowernumber},
         message_name   => $message_name{$type},
     });
+
+    my $branch_details = GetBranchDetail( $branch || C4::Branch::mybranch() );
+    my $admin_email_address = $branch_details->{'branchemail'};
+
     my $letter = C4::Letters::getletter('circulation', $type);
     C4::Letters::parseletter($letter, 'biblio',      $item->{biblionumber});
     C4::Letters::parseletter($letter, 'biblioitems', $item->{biblionumber});
@@ -2573,7 +2577,7 @@ sub SendCirculationAlert {
         my $message = C4::Message->find_last_message($borrower, $type, $_);
         if (!$message) {
             #warn "create new message";
-            C4::Message->enqueue($letter, $borrower, $_);
+            C4::Message->enqueue($letter, $borrower, $_, $admin_email_address);
         } else {
             #warn "append to old message";
             $message->append($letter);

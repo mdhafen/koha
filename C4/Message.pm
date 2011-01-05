@@ -130,7 +130,7 @@ the message.
 
 # C4::Message->enqueue($letter, $borrower, $transport)
 sub enqueue {
-    my ($class, $letter, $borrower, $transport) = @_;
+    my ($class, $letter, $borrower, $transport, $from_address) = @_;
     my $metadata   = _metadata($letter);
     my $to_address = _to_address($borrower, $transport);
     $letter->{metadata} = Dump($metadata);
@@ -140,6 +140,7 @@ sub enqueue {
         borrowernumber         => $borrower->{borrowernumber},
         message_transport_type => $transport,
         to_address             => $to_address,
+        from_address           => $from_address,
     });
 }
 
