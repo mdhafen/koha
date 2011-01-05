@@ -1,5 +1,6 @@
 set NAMES 'utf8';
 INSERT INTO `systempreferences` (variable,value,explanation,options,type) VALUES('advancedMARCeditor', '0', 'Si ce paramètre est mis à 1, l''éditeur MARC n''affichera pas les libellés des champs/sous-champs, seulement leur code. Devrait être à 0 dans la plupart des cas.', '', '');
+INSERT INTO `systempreferences` (variable,value,explanation,options,type) VALUES ('AllowEditUsedBiblio','1','If set to OFF librarians are not allowed to edit biblios also used by another library.  Otherwise they are allowed to edit any biblio as usual.','','YesNo');
 INSERT INTO `systempreferences` (variable,value,explanation,options,type) VALUES ('AllowHoldDateInFuture','0','Si Activé, un champ date est affiché à l''écran des réservations pour l''intranet, permettant de positionner la date de réservation dans le futur.','','YesNo');
 INSERT INTO `systempreferences` (variable,value,explanation,options,type) VALUES ('OPACAllowHoldDateInFuture','0','Si Activé avec AllowHoldDateInFuture, Les utilisateurs à l''OPAC peuvent positionner la date de réservation dans le futur.','','YesNo');
 INSERT INTO `systempreferences` (variable,value,explanation,options,type) VALUES('AmazonEnabled', '0', 'Ce paramètre active la récupération des images de couverture sur Amazon. Vous DEVEZ positionner AmazonDevKey AmazonAssocTag si vous activez cette option', '', 'YesNo');

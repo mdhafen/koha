@@ -26,11 +26,11 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
     $DB_version += 0;
     my %revisions = map { $_ => 1 } @strings;
     my ( $rev, $version_string );
+    my $version_changed = 0;
 
     my $WCSD_version = '1.00.00.001';
     if ( $DB_version < TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000001';
-	my $version_changed = 0;
 
 	$rev = 'wcsd_nuib';
 	unless ( $revisions{ $rev } ) {
@@ -139,24 +139,41 @@ NULL, 'YesNo' )");
 	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+    }
+
+    my $WCSD_version = '1.00.00.002';
+    if ( $DB_version < TransformToNum($WCSD_version) ) {
+	$version_string = '1.0000002';
+
+	$rev = 'wcsd_aeub';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'AllowEditUsedBiblio', 1,
+ 'If set to OFF librarians are not allowed to edit biblios also used by another library.  Otherwise they are allowed to edit any biblio as usual.',
+ '', 'YesNo' )");
+	    print "Add System Preference for AllowEditUsedBiblio\n";
+	    $version_string .= "|$rev";
+	    $version_changed = 1;
+	}
+
 
 	# New revisions go here.
+    }
 
-	if ( $version_changed ) {
-	    SetVersion( $version_string );
-	}
+    if ( $version_changed ) {
+	SetVersion( $version_string );
     }
 
     exit;
 }
 
 sub wcsd_version {
-    our $VERSION = '1.00.00.001';
+    our $VERSION = '1.00.00.002';
     return $VERSION;
 }
 
 sub wcsd_revision {
-    our $REVISION = 'sedc_crpi';
+    our $REVISION = 'wcsd_aeub';
     return $REVISION;
 }
 
