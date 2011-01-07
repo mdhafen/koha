@@ -893,6 +893,7 @@ if ($breedingid) {
 }
 
 $is_a_modif = 0;
+$edit_allowed = 1;
     
 if ($biblionumber) {
     $is_a_modif = 1;
@@ -909,12 +910,10 @@ if ($biblionumber) {
     $sth->execute($biblionumber);
     ($biblioitemnumber) = $sth->fetchrow;
 
-    # allow editing of biblios used by other branches according to sys pref
-    if ( C4::Biblio::EditUsedBiblioAllowed( $biblionumber ) ) {
-	$edit_allowed = 1;
-	$template->param( edit_allowed => $edit_allowed );
-    }
+    # allow editing of biblios also used by other branches according to sys pref
+    $edit_allowed = C4::Biblio::EditUsedBiblioAllowed( $biblionumber );
 }
+$template->param( edit_allowed => $edit_allowed );
 
 #-------------------------------------------------------------------------------------
 if ( $op eq "addbiblio" ) {
