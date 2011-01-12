@@ -911,7 +911,9 @@ if ($biblionumber) {
     ($biblioitemnumber) = $sth->fetchrow;
 
     # allow editing of biblios also used by other branches according to sys pref
-    $edit_allowed = C4::Biblio::EditUsedBiblioAllowed( $biblionumber );
+    unless ( $op eq "duplicate" ) {
+        $edit_allowed = C4::Biblio::EditUsedBiblioAllowed( $biblionumber );
+    }
 }
 $template->param( edit_allowed => $edit_allowed );
 
