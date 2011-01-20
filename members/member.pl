@@ -55,6 +55,7 @@ my @categories=C4::Category->all;
 
 my $branches = GetBranches;
 my @branchloop;
+my $all;
 
 foreach (sort { $branches->{$a}->{branchname} cmp $branches->{$b}->{branchname} } keys %$branches) {
   my $selected = 1 if $branches->{$_}->{branchcode} eq $$patron{branchcode};
@@ -82,7 +83,7 @@ if (C4::Context->preference("AddPatronLists")=~/code/){
 }  
 
 if ( C4::Context->preference('IndependantBranches') ) {
-    my $all = $input->param('showallbranches');
+    $all = $input->param('showallbranches');
     my $mybranch = C4::Branch::mybranch();
     unless ( $patron->{branchcode} || $all ) {
         $patron->{branchcode} = $mybranch;
