@@ -191,6 +191,99 @@ function refocus(calendar) {
 </div>
 
 <!-- TMPL_IF NAME="dateexpiry" --><div class="dialog message">Patron's account has been renewed until <!-- TMPL_VAR NAME="dateexpiry" --></div><!-- /TMPL_IF -->
+
+<!-- TMPL_IF NAME="soundon" -->
+    <!-- TMPL_IF NAME="IMPOSSIBLE" -->
+    <span id="soundon_critical">
+    <audio src="/intranet-tmpl/prog/sound/critical.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+    </span>
+    <script type="text/javascript">
+    // inspired by modernizr 1.1 (MIT License) and jPlayer (MIT License)
+    var soundon_el = document.createElement('audio');
+    var soundon_ogg = "";
+    if ( soundon_el['canPlayType'] ) {
+      soundon_ogg = soundon_el.canPlayType("audio/ogg");
+    }
+    if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+      soundon_el = document.getElementById( 'soundon_critical' );
+      var dom_obj = document.createElement( 'object' );
+      dom_obj.height = 1;
+      dom_obj.width = 1;
+      dom_obj.type = "application/x-shockwave-flash";
+      dom_obj.data = "/intranet-tmpl/prog/sound/error.swf";
+      soundon_el.appendChild( dom_obj );
+    }
+    </script>
+
+    <!-- TMPL_ELSE -->
+      <!-- TMPL_IF NAME="NEEDSCONFIRMATION" -->
+      <span id="soundon_confirmation">
+      <audio src="/intranet-tmpl/prog/sound/critical.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+      </span>
+      <script type="text/javascript">
+      // inspired by modernizr 1.1 (MIT License) and jPlayer (MIT License)
+      var soundon_el = document.createElement('audio');
+      var soundon_ogg = "";
+      if ( soundon_el['canPlayType'] ) {
+        soundon_ogg = soundon_el.canPlayType("audio/ogg");
+      }
+      if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+        soundon_el = document.getElementById( 'soundon_confirmation' );
+        var dom_obj = document.createElement( 'object' );
+        dom_obj.height = 1;
+        dom_obj.width = 1;
+        dom_obj.type = "application/x-shockwave-flash";
+        dom_obj.data = "/intranet-tmpl/prog/sound/error.swf";
+        soundon_el.appendChild( dom_obj );
+      }
+      </script>
+      <!-- TMPL_ELSE -->
+        <!-- TMPL_IF NAME="sounderror_borr" -->
+      <span id="soundon_borrerror">
+      <audio src="/intranet-tmpl/prog/sound/critical.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+      </span>
+      <script type="text/javascript">
+      // inspired by modernizr 1.1 (MIT License) and jPlayer (MIT License)
+      var soundon_el = document.createElement('audio');
+      var soundon_ogg = "";
+      if ( soundon_el['canPlayType'] ) {
+        soundon_ogg = soundon_el.canPlayType("audio/ogg");
+      }
+      if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+        soundon_el = document.getElementById( 'soundon_borrerror' );
+        var dom_obj = document.createElement( 'object' );
+        dom_obj.height = 1;
+        dom_obj.width = 1;
+        dom_obj.type = "application/x-shockwave-flash";
+        dom_obj.data = "/intranet-tmpl/prog/sound/error.swf";
+        soundon_el.appendChild( dom_obj );
+      }
+      </script>
+        <!-- TMPL_ELSE -->
+        <span id="soundon_beep">
+        <audio src="/intranet-tmpl/prog/sound/beep.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
+        </span>
+        <script type="text/javascript">
+        var soundon_el = document.createElement('audio');
+        var soundon_ogg = "";
+        if ( soundon_el['canPlayType'] ) {
+          soundon_ogg = soundon_el.canPlayType("audio/ogg");
+        }
+        if ( "no" == soundon_ogg || "" == soundon_ogg ) {
+          soundon_el = document.getElementById( 'soundon_beep' );
+          var dom_obj = document.createElement( 'object' );
+          dom_obj.height = 1;
+          dom_obj.width = 1;
+          dom_obj.type = "application/x-shockwave-flash";
+          dom_obj.data = "/intranet-tmpl/prog/sound/ok.swf";
+          soundon_el.appendChild( dom_obj );
+        }
+        </script>
+        <!-- /TMPL_IF -->
+      <!-- /TMPL_IF -->
+    <!-- /TMPL_IF -->
+<!-- /TMPL_IF -->        
+
 <!-- TMPL_IF NAME="NEEDSCONFIRMATION" -->
 <div class="yui-g">
 
@@ -283,29 +376,6 @@ function refocus(calendar) {
 
         <!-- TMPL_IF NAME="IMPOSSIBLE" -->
 
-<!-- TMPL_IF NAME="soundon" -->
-<span id="soundon_critical">
-<audio src="/intranet-tmpl/prog/sound/critical.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
-</span>
-<script type="text/javascript">
-// inspired by modernizr 1.1 (MIT License) and jPlayer (MIT License)
-var soundon_el = document.createElement('audio');
-var soundon_ogg = "";
-if ( soundon_el['canPlayType'] ) {
-  soundon_ogg = soundon_el.canPlayType("audio/ogg");
-}
-if ( "no" == soundon_ogg || "" == soundon_ogg ) {
-  soundon_el = document.getElementById( 'soundon_critical' );
-  var dom_obj = document.createElement( 'object' );
-  dom_obj.height = 1;
-  dom_obj.width = 1;
-  dom_obj.type = "application/x-shockwave-flash";
-  dom_obj.data = "/intranet-tmpl/prog/sound/error.swf";
-  soundon_el.appendChild( dom_obj );
-}
-</script>
-<!-- /TMPL_IF -->        
-
 <div class="yui-g">
 <div id="circ_impossible" class="dialog alert">
 <!-- RESULT OF ISSUING REQUEST -->
@@ -372,28 +442,6 @@ if ( "no" == soundon_ogg || "" == soundon_ogg ) {
     <!-- /TMPL_IF -->
 
 </div></div>
-<!-- TMPL_ELSE -->
-<!-- TMPL_IF NAME="soundon" -->
-<span id="soundon_beep">
-<audio src="/intranet-tmpl/prog/sound/beep.ogg" autoplay="autoplay" autobuffer="autobuffer"></audio>
-</span>
-<script type="text/javascript">
-var soundon_el = document.createElement('audio');
-var soundon_ogg = "";
-if ( soundon_el['canPlayType'] ) {
-  soundon_ogg = soundon_el.canPlayType("audio/ogg");
-}
-if ( "no" == soundon_ogg || "" == soundon_ogg ) {
-  soundon_el = document.getElementById( 'soundon_beep' );
-  var dom_obj = document.createElement( 'object' );
-  dom_obj.height = 1;
-  dom_obj.width = 1;
-  dom_obj.type = "application/x-shockwave-flash";
-  dom_obj.data = "/intranet-tmpl/prog/sound/ok.swf";
-  soundon_el.appendChild( dom_obj );
-}
-</script>
-<!-- /TMPL_IF -->
     <!--/TMPL_IF --> <!-- /impossible -->
 
 <!-- TMPL_IF NAME="issued" -->

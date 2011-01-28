@@ -92,6 +92,11 @@ my @failedrenews = $query->param('failedrenew');    # expected to be itemnumbers
 my %renew_failed;
 for (@failedrenews) { $renew_failed{$_} = 1; }
 
+my ( %soundederrors, $sounderror_borr );
+if ( $session->param( 'soundederrors' ) ) {
+    for ( @{ $session->param( 'soundederrors' ) } ) { $soundederrors{ $_ } = 1; }
+}
+
 my $findborrower = $query->param('findborrower');
 $findborrower =~ s|,| |g;
 my $borrowernumber = $query->param('borrowernumber') || $session->param( 'borrowernumber' );
@@ -200,7 +205,6 @@ if ($findborrower) {
     $session->clear( 'soundederrors' );
     $session->clear( 'borrowernumber' );
     $borrowernumber = 0;
-    @soundederrors = ();
     %soundederrors = ();
     my ($count, $borrowers) = SearchMember($findborrower, 'cardnumber', 'web');
     my @borrowers = @$borrowers;
@@ -235,6 +239,15 @@ if ($borrowernumber) {
     $borrower = GetMemberDetails( $borrowernumber, 0 );
     my ( $od, $issue, $fines ) = GetMemberIssuesAndFines( $borrowernumber );
 
+    if ( $od && ! $soundederrors{ ODUES } ) {
+	$soundederrors{ ODUES } = 1;
+	$sounderror_borr = 1;
+    }
+    if ( $fines > 0 && ! $soundederrors{ CHARGES } ) {
+	$soundederrors{ CHARGES } = 1;
+	$sounderror_borr = 1;
+    }
+
     # Warningdate is the date that the warning starts appearing
     my (  $today_year,   $today_month,   $today_day) = Today();
     my ($warning_year, $warning_month, $warning_day) = split /-/, $borrower->{'dateexpiry'};
@@ -258,6 +271,10 @@ if ($borrowernumber) {
             expired     => format_date($borrower->{dateexpiry}),
             renewaldate => format_date("$renew_year-$renew_month-$renew_day")
         );
+	unless ( $soundederrors{ EXPIRED } ) {
+	    $soundederrors{ EXPIRED } = 1;
+	    $sounderror_borr = 1;
+	}
     }
     # check for NotifyBorrowerDeparture
     elsif ( C4::Context->preference('NotifyBorrowerDeparture') &&
@@ -295,7 +312,6 @@ if ($barcode) {
             IMPOSSIBLE  => 1
         );
         $blocker = 1;
-        $sounderror = 1;
         if ( $impossible eq 'UNKNOWN_BARCODE' ) {
             # Not a copy barcode.  Check to see if it's a patron barcode
             if ( checkcardnumber( $barcode ) ) {  #it's a patron
@@ -308,12 +324,10 @@ if ($barcode) {
                         IMPOSSIBLE => 0
                     );
                     $blocker = 0;
-                    $sounderror = 0;
                 }
                 ( $barcode, $error, $question ) = ();
                 if ( $borrower && $borrower->{'borrowernumber'} != $borrowernumber ) {
                     $session->clear( 'soundederrors' );
-                    @soundederrors = ();
                     %soundederrors = ();
                 }
                 goto LOAD_BORROWER;
@@ -686,7 +700,9 @@ $template->param(
     is_child          => ($borrower->{'category_type'} eq 'C'),
     circview => 1,
     soundon           => C4::Context->preference("SoundOn"),
+    sounderror_borr    => $sounderror_borr,
 );
+$session->param( 'soundederrors', [ keys %soundederrors ] );
 
 # save stickyduedate to session
 if ($stickyduedate) {
