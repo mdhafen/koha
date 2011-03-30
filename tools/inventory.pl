@@ -137,6 +137,7 @@ $template->param(branchloop => \@branch_loop,
                 offset => $offset,
                 pagesize => $pagesize,
                 datelastseen => $datelastseen,
+		itemtype => $itemtype
                 );
 my @brcditems;
 if ($uploadbarcodes && length($uploadbarcodes)>0){
