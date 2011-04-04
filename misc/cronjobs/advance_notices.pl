@@ -55,7 +55,7 @@ use C4::Members;
 use C4::Members::Messaging;
 use C4::Overdues;
 use C4::Dates qw/format_date/;
-
+use C4::Branch;
 
 # These are defaults for command line options.
 my $confirm;                                                        # -c: Confirm that the user has read and configured this script.
@@ -211,7 +211,11 @@ UPCOMINGITEM: foreach my $upcoming ( @$upcoming_dues ) {
       }
       else {
         foreach my $transport ( @{$borrower_preferences->{'transports'}} ) {
+            my $branch = GetBranchDetail( $upcoming->{'branchcode'} );
+            my $from = ( $fromaddress eq C4::Context->preference('KohaAdminEmailAddress') ) ?
+                         $branch->{'branchemail'} || $fromaddress : $fromaddress;
             C4::Letters::EnqueueLetter( { letter                 => $letter,
+                                          from_address           => $from,
                                           borrowernumber         => $upcoming->{'borrowernumber'},
                                           message_transport_type => $transport } );
         }
@@ -261,7 +265,12 @@ PATRON: while ( my ( $borrowernumber, $count ) = each %$upcoming_digest ) {
     }
     else {
       foreach my $transport ( @{$borrower_preferences->{'transports'}} ) {
+        my $borr = GetMember( $borrowernumber, 'borrowernumber' );
+        my $branch = GetBranchDetail( $borr->{'branchcode'} );
+        my $from = ( $fromaddress eq C4::Context->preference('KohaAdminEmailAddress') ) ?
+                     $branch->{'branchemail'} || $fromaddress : $fromaddress;
         C4::Letters::EnqueueLetter( { letter                 => $letter,
+                                      from_address           => $from,
                                       borrowernumber         => $borrowernumber,
                                       message_transport_type => $transport } );
       }
@@ -297,7 +306,12 @@ PATRON: while ( my ( $borrowernumber, $count ) = each %$due_digest ) {
     }
     else {
       foreach my $transport ( @{$borrower_preferences->{'transports'}} ) {
+        my $borr = GetMember( $borrowernumber, 'borrowernumber' );
+        my $branch = GetBranchDetail( $borr->{'branchcode'} );
+        my $from = ( $fromaddress eq C4::Context->preference('KohaAdminEmailAddress') ) ?
+                     $branch->{'branchemail'} || $fromaddress : $fromaddress;
         C4::Letters::EnqueueLetter( { letter                 => $letter,
+                                      from_address           => $from,
                                       borrowernumber         => $borrowernumber,
                                       message_transport_type => $transport } );
       }
