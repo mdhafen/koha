@@ -166,6 +166,7 @@ UPCOMINGITEM: foreach my $upcoming ( @$upcoming_dues ) {
             $letter = parse_letter( { letter         => $letter,
                                       borrowernumber => $upcoming->{'borrowernumber'},
                                       branchcode     => $upcoming->{'branchcode'},
+                                      itemnumber     => $upcoming->{'itemnumber'},
                                       biblionumber   => $biblio->{'biblionumber'},
                                       substitute     => { 'items.content' => $titles }
                                     } );
@@ -195,6 +196,7 @@ UPCOMINGITEM: foreach my $upcoming ( @$upcoming_dues ) {
             $letter = parse_letter( { letter         => $letter,
                                       borrowernumber => $upcoming->{'borrowernumber'},
                                       branchcode     => $upcoming->{'branchcode'},
+                                      itemnumber     => $upcoming->{'itemnumber'},
                                       biblionumber   => $biblio->{'biblionumber'},
                                       substitute     => { 'items.content' => $titles }
                                     } );
@@ -329,6 +331,10 @@ sub parse_letter {
 
     if ( $params->{'branchcode'} ) {
         C4::Letters::parseletter( $params->{'letter'}, 'branches',    $params->{'branchcode'} );
+    }
+    
+    if ( $params->{'itemnumber'} ) {
+        C4::Letters::parseletter( $params->{'letter'}, 'items',    $params->{'itemnumber'} );
     }
     
     if ( $params->{'biblionumber'} ) {
