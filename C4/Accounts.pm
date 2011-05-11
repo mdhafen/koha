@@ -136,7 +136,7 @@ sub recordpayment {
 
 =head2 makepayment
 
-  &makepayment($borrowernumber, $acctnumber, $amount, $branchcode);
+  &makepayment($borrowernumber, $acctnumber, $amount, $desc, $user, $branchcode);
 
 Records the fact that a patron has paid off the entire amount he or
 she owes.
@@ -144,8 +144,9 @@ she owes.
 C<$borrowernumber> is the patron's borrower number. C<$acctnumber> is
 the account that was credited. C<$amount> is the amount paid (this is
 only used to record the payment. It is assumed to be equal to the
-amount owed). C<$branchcode> is the code of the branch where payment
-was made.
+amount owed).  C<$desc> is the new description for the account line.
+C<$user> is the user recording the payment.  C<$branchcode> is the code
+of the branch where payment was made.
 
 =cut
 
@@ -157,7 +158,7 @@ sub makepayment {
     #here we update both the accountoffsets and the account lines
     #updated to check, if they are paying off a lost item, we return the item
     # from their card, and put a note on the item record
-    my ( $borrowernumber, $accountno, $amount, $user, $branch ) = @_;
+    my ( $borrowernumber, $accountno, $amount, $desc, $user, $branch ) = @_;
     my $dbh = C4::Context->dbh;
 
     # begin transaction
@@ -172,7 +173,8 @@ sub makepayment {
 
     $dbh->do(
         "UPDATE  accountlines
-        SET     amountoutstanding = 0
+        SET     amountoutstanding = 0,
+                description = ". $dbh->quote($desc) ."
         WHERE   borrowernumber = $borrowernumber
           AND   accountno = $accountno
         "

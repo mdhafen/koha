@@ -80,7 +80,8 @@ for ( my $i = 0 ; $i < @names ; $i++ ) {
         my $amount         = $input->param( $names[ $i + 4 ] );
         my $borrowernumber = $input->param( $names[ $i + 5 ] );
         my $accountno      = $input->param( $names[ $i + 6 ] );
-        makepayment( $borrowernumber, $accountno, $amount, $user, $branch );
+	my $description    = $input->param( $names[ $i + 10 ] );
+        makepayment( $borrowernumber, $accountno, $amount, $description, $user, $branch );
         $check = 2;
     }
 }
@@ -188,7 +189,8 @@ else {
         my $itemno    = $input->param("itemnumber$value");
         my $amount    = $input->param("amount$value");
         my $accountno = $input->param("accountno$value");
-        writeoff( $borrowernumber, $accountno, $itemno, $accounttype, $amount );
+	my $desc      = $input->param("desc$value");
+        writeoff( $borrowernumber, $accountno, $itemno, $accounttype, $amount, $desc );
     }
     $borrowernumber = $input->param('borrowernumber');
     print $input->redirect(
@@ -196,15 +198,15 @@ else {
 }
 
 sub writeoff {
-    my ( $borrowernumber, $accountnum, $itemnum, $accounttype, $amount ) = @_;
+    my ( $borrowernumber, $accountnum, $itemnum, $accounttype, $amount, $desc ) = @_;
     my $user = $input->remote_user;
     my $dbh  = C4::Context->dbh;
     undef $itemnum unless $itemnum; # if no item is attached to fine, make sure to store it as a NULL
     my $sth =
       $dbh->prepare(
-"Update accountlines set amountoutstanding=0 where accountno=? and borrowernumber=?"
+"Update accountlines set amountoutstanding=0, description=? where accountno=? and borrowernumber=?"
       );
-    $sth->execute( $accountnum, $borrowernumber );
+    $sth->execute( $desc, $accountnum, $borrowernumber );
     $sth->finish;
     $sth = $dbh->prepare("select max(accountno) from accountlines");
     $sth->execute;
