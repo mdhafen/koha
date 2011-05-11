@@ -42,6 +42,7 @@ BEGIN {
 		&GetCategoryTypes
 		&GetBranchCategories
 		&GetBranchesInCategory
+		&GetBranchesWithProperty
 		&ModBranchCategoryInfo
 		&DelBranch
 		&DelBranchCategory
@@ -453,6 +454,28 @@ sub GetBranchesInCategory($) {
 	}
 	$sth->finish();
 	return( \@branches );
+}
+
+
+=head2 GetBranchesWithProperty
+
+  my $branches = GetBranchesWithProperty($propertycode);
+
+Returns an array ref of hash refs.  Each hash ref has the branchcode and
+branchname of a branch with the specified property.
+
+=cut
+
+sub GetBranchesWithProperty($) {
+    my ($propcode) = @_;
+    my @branches;
+    my $dbh = C4::Context->dbh();
+    my $sth = $dbh->prepare( "SELECT b.branchcode,b.branchname FROM branchrelations r CROSS JOIN branches b ON r.branchcode = b.branchcode WHERE r.categorycode = ?");
+    $sth->execute($propcode);
+    while ( my $branch = $sth->fetchrow_hashref() ) {
+        push @branches, $branch;
+    }
+    return \@branches;
 }
 
 =head2 GetBranchInfo
