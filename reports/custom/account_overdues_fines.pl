@@ -109,6 +109,10 @@ my @tables = ( "accountlines",  # ie "items"
 #FIXME build queryfilter
 my @filters = $input->param("Filter");
 my @queryfilter = ();
+my $local_only = 0;
+if ( $input->param( 'Options5' ) ) {
+    $local_only = 1;
+}
 
 push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote( $filters[0] ), title => 'sort1', value => $filters[0] } if ( $filters[0] );
 push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
@@ -116,10 +120,12 @@ push @queryfilter, { crit => 'categorycode', op => '=', filter => $dbh->quote( $
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
-    #FIXME change $hbranch here to match whatever tracks branch in the query
-    my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
     my $branch = $filters[3] || C4::Context->userenv->{branch};
-    push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR $hbranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    if ( $local_only ) {
+	push @queryfilter, { crit => "items.homebranch", op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    } else {
+	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    }
 }
 
 my @loopfilter = ();
@@ -293,6 +299,13 @@ if ($do_it) {
 	    count => 4,
 	    input_name => "Options4",
 	    label => "Don't Show Homeroom Teacher",
+	};
+
+	push @parameters, {
+	    check_box => 1,
+	    count => 5,
+	    input_name => "Options5",
+	    label => "Only Students At Your School",
 	};
 
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
