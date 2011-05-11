@@ -29,7 +29,7 @@ use warnings;
 use CGI;
 use C4::Auth;
 use C4::Output;
-use C4::Branch;  # GetBranchesLoop
+use C4::Branch;  # GetBranchesLoop GetBranchesWithProperty
 use C4::Reserves;  # GetReservesFromBorrowernumber
 use C4::Members;  # MoveMemberToDeleted DelMember AddMember ModMember GetMemberIssuesAndFines
 use C4::MembersExternal;  # GetMemberDetails_External ListMembers_External GetExternalMappedCategories
@@ -56,6 +56,11 @@ my @categories = GetExternalMappedCategories();
 
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
+    my $historical_branch = GetBranchesWithProperty( 'HIST' );
+    if ( @$historical_branch ) {
+	$historical_branch = $$historical_branch[0];
+    }
+
     my ( $dbhash, $dirhash ) = ListMembers_External( $category, $branch );
     my ( %deleted, %added, %existing );
     my ( $numdeleted, $numadded, $numchanged ) = ( "0", "0", "0" );
@@ -124,7 +129,7 @@ if ( $op eq 'Sync' and @categories ) {
 		}
 	    }
 
-	    if ( $allow_delete ) {
+	    if ( $allow_delete || $historical_branch ) {
 		$deleted{ $cardnumber } = 1;
 	    }
 	}
@@ -151,16 +156,22 @@ if ( $op eq 'Sync' and @categories ) {
 	my ( @fields ) = $get->fetchrow;
 	$get->finish;
 
+	my $action = ( $historical_branch ) ? 'historical' : 'deleted';
+
 	if ( $confirmed ) {
-	    MoveMemberToDeleted( $fields[0] );
-	    DelMember( $fields[0] );
+	    if ( $historical_branch ) {
+		$branch_update->execute( $$historical_branch{'branchcode'}, $cardnumber );
+	    } else {
+		MoveMemberToDeleted( $fields[0] );
+		DelMember( $fields[0] );
+	    }
 	}
 
 	$numdeleted++;
 	push @report, {
 	    name => $fields[2] .', '. $fields[3],
 	    cardnumber => $cardnumber,
-	    deleted => 1,
+	    $action => 1,
 	};
     }
 
