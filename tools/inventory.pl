@@ -50,6 +50,7 @@ my $pagesize = $input->param('pagesize');
 $pagesize=50 unless $pagesize;
 my $branchcode = $input->param('branchcode') || '';
 my $branch     = $input->param('branch');
+my $checkin    = $input->param('checkin');
 my $op = $input->param('op');
 my $res;    #contains the results loop
 # warn "uploadbarcodes : ".$uploadbarcodes;
@@ -170,14 +171,16 @@ if ($uploadbarcodes && length($uploadbarcodes)>0){
                 ModItem({ datelastseen => $date }, undef, $item->{'itemnumber'});
                 push @brcditems, $item;
                 $count++;
-                $qonloan->execute($barcode);
-                if ($qonloan->rows){
-                    my $data = $qonloan->fetchrow_hashref;
-                    my ($doreturn, $messages, $iteminformation, $borrower) =AddReturn($barcode, $data->{homebranch});
-                    if ($doreturn){
-                        push @errorloop, {'barcode'=>$barcode,'ERR_ONLOAN_RET'=>1}
-                    } else {
-                        push @errorloop, {'barcode'=>$barcode,'ERR_ONLOAN_NOT_RET'=>1}
+                if ( $checkin ) {
+                    $qonloan->execute($barcode);
+                    if ($qonloan->rows){
+                        my $data = $qonloan->fetchrow_hashref;
+                        my ($doreturn, $messages, $iteminformation, $borrower) =AddReturn($barcode, $data->{homebranch});
+                        if ($doreturn){
+                            push @errorloop, {'barcode'=>$barcode,'ERR_ONLOAN_RET'=>1}
+                        } else {
+                            push @errorloop, {'barcode'=>$barcode,'ERR_ONLOAN_NOT_RET'=>1}
+                        }
                     }
                 }
             } else {
