@@ -693,6 +693,8 @@ $template->param(
     country           => $borrower->{'country'},
     phone             => $borrower->{'phone'} || $borrower->{'mobile'},
     cardnumber        => $borrower->{'cardnumber'},
+    sort1             => $borrower->{'sort1'},
+    sort2             => $borrower->{'sort2'},
     amountold         => $amountold,
     barcode           => $barcode,
     stickyduedate     => $stickyduedate,
