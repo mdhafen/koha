@@ -107,7 +107,7 @@ NULL, 'YesNo' )");
 
 	$rev = 'wcsd_smlfir';
 	unless ( $revisions{ $rev } ) {
-	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip mediumext default NULL");
+	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip mediumtext default NULL");
 	    print "Extend branches branchip field to allow for multiple ip addresses\n";
 	    $version_string .= "|$rev";
 	    $version_changed = 1;
@@ -141,7 +141,7 @@ NULL, 'YesNo' )");
 	}
     }
 
-    my $WCSD_version = '1.00.00.002';
+    $WCSD_version = '1.00.00.002';
     if ( $DB_version < TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000002';
 
