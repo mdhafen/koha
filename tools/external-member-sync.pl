@@ -129,7 +129,7 @@ if ( $op eq 'Sync' and @categories ) {
 		}
 	    }
 
-	    if ( $allow_delete || $historical_branch ) {
+	    if ( $allow_delete ) { # || $historical_branch ) {
 		$deleted{ $cardnumber } = 1;
 	    }
 	}
