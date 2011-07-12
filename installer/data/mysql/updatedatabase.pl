@@ -2688,6 +2688,15 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 
 $DBversion = "3.01.00.062";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
+    $sth = $dbh->prepare("SELECT COUNT(*) AS count FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'labels_conf'");
+    $sth->execute( C4::Context->config('database') );
+    my ( $labels ) = $sth->fetchrow_array();
+    if ( $labels ) {
+        my $upgrade_script = C4::Context->config("intranetdir") . "/installer/data/mysql/labels_upgrade.pl";
+        system("perl $upgrade_script");
+        print "Upgrade to 3.01.00.053 done (Migrated labels tables and data to new schema.) NOTE: All existing label batches have been assigned to the first branch in the list of branches. This is ONLY true of migrated label batches.\n";
+    }
+
     $dbh->do("INSERT INTO permissions (module_bit, code, description) VALUES ( 13, 'manage_csv_profiles', 'Manage CSV export profiles')");
     $dbh->do(q/
 	CREATE TABLE `export_format` (
@@ -2699,6 +2708,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Used for CSV export';
     /);
     print "Upgrade to $DBversion done (added csv export profiles)\n";
+    SetVersion ($DBversion);
 }
 
 $DBversion = "3.01.00.063";
@@ -2713,6 +2723,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
           PRIMARY KEY  (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
              ");
+    print "Upgrade to $DBversion done (Adding fieldmapping table)\n";
     SetVersion ($DBversion);
 }
 
@@ -2761,7 +2772,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 $DBversion = "3.01.00.068";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("ALTER TABLE issuingrules ADD COLUMN `finedays` int(11) default NULL AFTER `fine` ");
-	print "Upgrade done (Adding finedays in issuingrules table)\n";
+	print "Upgrade to $DBversion done (Adding finedays in issuingrules table)\n";
     SetVersion ($DBversion);
 }
 
@@ -2784,13 +2795,15 @@ CREATE TABLE IF NOT EXISTS `search_history` (
 SEARCHHIST
 	$dbh->do($create);
 
-	print "Upgrade done (added OPAC search history preference and table)\n";
+	print "Upgrade to $DBversion done (added OPAC search history preference and table)\n";
+	SetVersion ($DBversion);
 }
 
 $DBversion = "3.01.00.070";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("ALTER TABLE authorised_values ADD COLUMN `lib_opac` VARCHAR(80) default NULL AFTER `lib`");
-	print "Upgrade done (Added a lib_opac field in authorised_values table)\n";
+	print "Upgrade to $DBversion done (Added a lib_opac field in authorised_values table)\n";
+	SetVersion ($DBversion);
 }
 
 $DBversion = "3.01.00.071";
@@ -2798,6 +2811,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("ALTER TABLE `subscription` ADD `enddate` date default NULL");
 	$dbh->do("ALTER TABLE subscriptionhistory CHANGE enddate histenddate DATE default NULL");
 	print "Upgrade to $DBversion done ( Adding enddate to subscription)\n";
+	SetVersion ($DBversion);
 }
 
 # Acquisitions update
@@ -3165,7 +3179,7 @@ ALTER table suggestions
     ADD itemtype VARCHAR(30) default NULL
     ;
 SUGGESTIONS
-    print "Upgrade to $DBversion done Suggestions";
+    print "Upgrade to $DBversion done Suggestions\n";
     SetVersion ($DBversion);
 }
 
@@ -3315,7 +3329,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 $DBversion = "3.01.00.100";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("INSERT INTO `systempreferences` (`variable`, `value`, `options`, `explanation`, `type`) VALUES ('casAuthentication', '0', '', 'Enable or disable CAS authentication', 'YesNo'), ('casLogout', '1', '', 'Does a logout from Koha should also log out of CAS ?', 'YesNo'), ('casServerUrl', 'https://localhost:8443/cas', '', 'URL of the cas server', 'Free')");
-	print "Upgrade done (added CAS authentication system preferences)\n";
+	print "Upgrade to $DBversion done (added CAS authentication system preferences)\n";
     SetVersion ($DBversion);
 }
 
@@ -3337,14 +3351,14 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
     $dbh->do(
     "UPDATE permissions set description = 'Edit catalog (Modify bibliographic/holdings data)' where module_bit = 9 and code = 'edit_catalogue'"
     );
-	print "Upgrade done (fixed spelling error in edit_catalogue permission)\n";
+	print "Upgrade to $DBversion done (fixed spelling error in edit_catalogue permission)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = "3.01.00.103";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("INSERT INTO permissions (module_bit, code, description) VALUES (13, 'moderate_tags', 'Moderate patron tags')");
-	print "Upgrade done (adding patron permissions for tags tool)\n";
+	print "Upgrade to $DBversion done (adding patron permissions for tags tool)\n";
     SetVersion ($DBversion);
 }
 
@@ -3398,7 +3412,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 $DBversion = "3.01.00.106";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("INSERT INTO `systempreferences` (variable,value,options,explanation,type) VALUES ( 'OpacAddMastheadLibraryPulldown', '0', '', 'Adds a pulldown menu to select the library to search on the opac masthead.', 'YesNo' )");
-	print "Upgrade done (added OpacAddMastheadLibraryPulldown system preferences)\n";
+	print "Upgrade to $DBversion done (added OpacAddMastheadLibraryPulldown system preferences)\n";
     SetVersion ($DBversion);
 }
 
@@ -3417,7 +3431,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	ADD `field_separator` VARCHAR( 2 ) NOT NULL AFTER `csv_separator` ,
 	ADD `subfield_separator` VARCHAR( 2 ) NOT NULL AFTER `field_separator` 
 	});
-	print "Upgrade done (added separators for csv export)\n";
+	print "Upgrade to $DBversion done (added separators for csv export)\n";
     SetVersion ($DBversion);
 }
 
@@ -3426,27 +3440,27 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do(qq{
 	ALTER TABLE `export_format` ADD `encoding` VARCHAR(255) NOT NULL AFTER `subfield_separator`
 	});
-	print "Upgrade done (added encoding for csv export)\n";
+	print "Upgrade to $DBversion done (added encoding for csv export)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = '3.01.00.110';
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
     $dbh->do('ALTER TABLE `categories` ADD COLUMN `enrolmentperioddate` DATE NULL DEFAULT NULL AFTER `enrolmentperiod`');
-    print "Upgrade done (Add enrolment period date support)\n";
+    print "Upgrade to $DBversion done (Add enrolment period date support)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = '3.01.00.111';
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
-    print "Upgrade done (mark DBrev for 3.2-alpha release)\n";
+    print "Upgrade to $DBversion done (mark DBrev for 3.2-alpha release)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = '3.01.00.112';
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("INSERT INTO `systempreferences` (variable,value,options,explanation,type) VALUES ('SpineLabelShowPrintOnBibDetails', '0', '', 'If turned on, a \"Print Label\" link will appear for each item on the bib details page in the staff interface.', 'YesNo');");
-	print "Upgrade done ( added Show Spine Label Printer on Bib Items Details preferences )\n";
+	print "Upgrade to $DBversion done ( added Show Spine Label Printer on Bib Items Details preferences )\n";
     SetVersion ($DBversion);
 }
 
@@ -3460,7 +3474,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
     $dbh->do(
         "INSERT INTO systempreferences (variable,value,type)
          VALUES('OPACXSLTDetailsDisplay',?,'YesNo')", {}, $value ? 1 : 0);
-    print "Upgrade done (added two new syspref: OPACXSLTResultsDisplay and OPACXSLTDetailDisplay). You may have to go in Admin > System preference to tweak XSLT related syspref both in OPAC and Search tabs.\n     ";
+    print "Upgrade to $DBversion done (added two new syspref: OPACXSLTResultsDisplay and OPACXSLTDetailDisplay). You may have to go in Admin > System preference to tweak XSLT related syspref both in OPAC and Search tabs.\n     ";
     SetVersion ($DBversion);
 }
 
@@ -3486,7 +3500,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	if (C4::Context->preference('OrderPdfFormat') eq 'pdfformat::example'){
 		$dbh->do("UPDATE `systempreferences` set value='pdfformat::layout2pages' WHERE variable='OrderPdfFormat'");
 	}
-	print "Upgrade done ( corrected default OrderPdfFormat value if still set wrong )\n";
+	print "Upgrade to $DBversion done ( corrected default OrderPdfFormat value if still set wrong )\n";
     SetVersion ($DBversion);
 }
 
@@ -3611,7 +3625,7 @@ $DBversion = "3.01.00.129";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 	$dbh->do("UPDATE `permissions` SET `code` = 'items_batchdel' WHERE `permissions`.`module_bit` =13 AND `permissions`.`code` = 'batchdel' LIMIT 1 ;");
 	$dbh->do("UPDATE `permissions` SET `code` = 'items_batchmod' WHERE `permissions`.`module_bit` =13 AND `permissions`.`code` = 'batchmod' LIMIT 1 ;");
-	print "Upgrade done (Change permissions names for item batch modification / deletion)\n";
+	print "Upgrade to $DBversion done (Change permissions names for item batch modification / deletion)\n";
 
     SetVersion ($DBversion);
 }
@@ -3619,7 +3633,7 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
 $DBversion = "3.01.00.130";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
     $dbh->do("UPDATE reserves SET expirationdate = NULL WHERE expirationdate = '0000-00-00'");
-    print "Upgrade done (change reserves.expirationdate values of 0000-00-00 to NULL (bug 1532)"; 
+    print "Upgrade to $DBversion done (change reserves.expirationdate values of 0000-00-00 to NULL (bug 1532)\n"; 
     SetVersion ($DBversion);
 }
 
@@ -3651,7 +3665,7 @@ if (C4::Context->preference('Version') < TransformToNum($DBversion)){
 $DBversion = '3.01.00.134';
 if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do("INSERT INTO systempreferences (variable,value,explanation,options,type) VALUES ('DisplayMultiPlaceHold','1','Display the ability to place multiple holds or not','','YesNo')");
-    print "Upgrade to $DBversion done adding syspref DisplayMultiPlaceHold to control whether multiple holds can be placed from the search results page";
+    print "Upgrade to $DBversion done adding syspref DisplayMultiPlaceHold to control whether multiple holds can be placed from the search results page\n";
     SetVersion ($DBversion);
 }
 
@@ -3661,7 +3675,7 @@ if (C4::Context->preference('Version') < TransformToNum($DBversion)){
         INSERT INTO `letter` (module, code, name, title, content) VALUES
 ('reserves', 'HOLD_PRINT', 'Hold Available for Pickup (print notice)', 'Hold Available for Pickup (print notice)', '<<branches.branchname>>\r\n<<branches.branchaddress1>>\r\n<<branches.branchaddress2>>\r\n\r\n\r\nChange Service Requested\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n<<borrowers.firstname>> <<borrowers.surname>>\r\n<<borrowers.address>>\r\n<<borrowers.city>> <<borrowers.zipcode>>\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n<<borrowers.firstname>> <<borrowers.surname>> <<borrowers.cardnumber>>\r\n\r\nYou have a hold available for pickup as of <<reserves.waitingdate>>:\r\n\r\nTitle: <<biblio.title>>\r\nAuthor: <<biblio.author>>\r\nCopy: <<items.copynumber>>\r\n')
 ");
-    print "Upgrade to $DBversion done (bug 4377: added HOLD_PRINT message template)";
+    print "Upgrade to $DBversion done (bug 4377: added HOLD_PRINT message template)\n";
     SetVersion ($DBversion);
 }
 
@@ -3670,7 +3684,7 @@ if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do(qq{
 INSERT INTO permissions (module_bit, code, description) VALUES
    ( 9, 'edit_items', 'Edit Items');});
-    print "Upgrade to $DBversion done Adding a new permission to edit items";
+    print "Upgrade to $DBversion done Adding a new permission to edit items\n";
     SetVersion ($DBversion);
 }
 
@@ -3687,14 +3701,14 @@ if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
           (15, 'renew_subscription', 'Renew a subscription'),
           (15, 'routing', 'Routing');
                  ");
-    print "Upgrade to $DBversion done (adding granular permissions for serials)";
+    print "Upgrade to $DBversion done (adding granular permissions for serials)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = "3.01.00.138";
 if (C4::Context->preference("Version") < TransformToNum($DBversion)) {
     $dbh->do("DELETE FROM systempreferences WHERE variable = 'GranularPermissions'");
-    print "Upgrade to $DBversion done (bug 4896: removing GranularPermissions syspref; use of granular permissions is now the default)";
+    print "Upgrade to $DBversion done (bug 4896: removing GranularPermissions syspref; use of granular permissions is now the default)\n";
     SetVersion ($DBversion);
 }
 
@@ -3716,14 +3730,14 @@ $DBversion = '3.01.00.141';
 if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do(qq{DELETE FROM message_attributes WHERE message_attribute_id=3;});
     $dbh->do(qq{DELETE FROM letter WHERE code='EVENT' AND title='Upcoming Library Event';});
-    print "Upgrade to $DBversion done Remove upcoming events messaging option (bug 2434)";
+    print "Upgrade to $DBversion done Remove upcoming events messaging option (bug 2434)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = '3.01.00.142';
 if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do(qq{DELETE FROM message_transports WHERE message_attribute_id=3;});
-    print "Upgrade to $DBversion done Remove upcoming events messaging option part 2 (bug 2434)";
+    print "Upgrade to $DBversion done Remove upcoming events messaging option part 2 (bug 2434)\n";
     SetVersion ($DBversion);
 }
 
@@ -3731,14 +3745,14 @@ $DBversion = '3.01.00.143';
 if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do(qq{CREATE INDEX auth_value_idx ON authorised_values (authorised_value)});
     $dbh->do(qq{CREATE INDEX auth_val_cat_idx ON borrower_attribute_types (authorised_value_category)});
-    print "Create index on authorised_values and borrower_attribute_types (bug 4139)";
+    print "Create index on authorised_values and borrower_attribute_types (bug 4139)\n";
     SetVersion ($DBversion);
 }
 
 $DBversion = '3.01.00.144';
 if (C4::Context->preference('Version') < TransformToNum($DBversion)){
     $dbh->do(qq{UPDATE systempreferences SET value='normal' where value='default' and variable='IntranetBiblioDefaultView'});
-    print "Update the 'default' to 'normal' for the IntranetBiblioDefaultView syspref (bug 5007)";
+    print "Update the 'default' to 'normal' for the IntranetBiblioDefaultView syspref (bug 5007)\n";
     SetVersion ($DBversion);
 }
 
