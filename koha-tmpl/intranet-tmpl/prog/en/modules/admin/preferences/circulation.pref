@@ -11,6 +11,7 @@ Circulation:
             - pref: itemBarcodeInputFilter
               choices:
                   OFF: "Don't filter"
+                  trim-whitespace: Remove leading and trailing spaces from
                   whitespace: Remove spaces from
                   cuecat: Convert from CueCat form
                   T-prefix: Remove the first number from T-prefix style
