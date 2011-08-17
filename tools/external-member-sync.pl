@@ -57,8 +57,11 @@ my @categories = GetExternalMappedCategories();
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
     my $historical_branch = GetBranchesWithProperty( 'HIST' );
-    if ( @$historical_branch && $$historical_branch[0]{'branchcode'} ) {
+    if ( @$historical_branch ) {
 	$historical_branch = $$historical_branch[0];
+    }
+    else {
+	$historical_branch = 0;
     }
 
     my ( $dbhash, $dirhash ) = ListMembers_External( $category, $branch );
