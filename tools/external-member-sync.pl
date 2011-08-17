@@ -57,7 +57,7 @@ my @categories = GetExternalMappedCategories();
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
     my $historical_branch = GetBranchesWithProperty( 'HIST' );
-    if ( @$historical_branch ) {
+    if ( @$historical_branch && $$historical_branch[0]{'branchcode'} ) {
 	$historical_branch = $$historical_branch[0];
     }
 
