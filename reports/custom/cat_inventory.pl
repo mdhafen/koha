@@ -90,7 +90,7 @@ my @options = ( $input->param("Check1") ."", $input->param("Check2") ."" );
 my @queryfilter = ();
 my @loopfilter = ();
 
-my $where;
+my $where = "itemlost = 0 AND wthdrawn = 0";
 my $order = "$columns[0]";
 my $page_breaks;
 my $set_lost;
