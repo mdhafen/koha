@@ -224,6 +224,9 @@ function verify_images() {
 
 <div id="holdings">
 <!-- TMPL_IF name="count" -->
+        <p><strong>
+	    <!-- TMPL_VAR NAME="item_total" --> Items<!-- TMPL_IF NAME="item_avail_count" -->, <!-- TMPL_VAR NAME="item_avail_count" --> Available<!-- /TMPL_IF --><!-- TMPL_IF NAME="item_unavail_count" -->, <!-- TMPL_VAR NAME="item_unavail_count" --> Unavailable<!-- /TMPL_IF -->
+	</strong></p>
         <table>
             <tr>
                 <!-- TMPL_IF NAME="item-level_itypes" --><th>Item type</th><!-- /TMPL_IF -->

@@ -141,6 +141,7 @@ $dat->{'count'} = scalar @items;
 my $shelflocations = GetKohaAuthorisedValues('items.location', $fw);
 my $collections    = GetKohaAuthorisedValues('items.ccode'   , $fw);
 my (@itemloop, %itemfields);
+my ( $item_avail_count, $item_unavail_count, $item_total ) = ( 0, 0, 0 );
 my $norequests = 1;
 my $authvalcode_items_itemlost = GetAuthValCode('items.itemlost',$fw);
 my $authvalcode_items_damaged  = GetAuthValCode('items.damaged', $fw);
@@ -170,6 +171,14 @@ foreach my $item (@items) {
     if ($item->{damaged}) {
         $item->{itemdamagedloop} = GetAuthorisedValues($authvalcode_items_damaged, $item->{damaged}) if $authvalcode_items_damaged;
     }
+
+    # Item status for summary
+    if ( $item->{itemlost} || $item->{damaged} || $item->{wthdrawn} || $item->{notforloan} ) {
+	$item_unavail_count++;
+    } else {
+	$item_avail_count++;
+    }
+
     #get shelf location and collection code description if they are authorised value.
     my $shelfcode = $item->{'location'};
     $item->{'location'} = $shelflocations->{$shelfcode} if ( defined( $shelfcode ) && defined($shelflocations) && exists( $shelflocations->{$shelfcode} ) );
@@ -215,6 +224,7 @@ foreach my $item (@items) {
 
     push @itemloop, $item;
 }
+$item_total = scalar @itemloop;
 
 $template->param( norequests => $norequests );
 $template->param(
@@ -247,6 +257,9 @@ foreach ( keys %{$dat} ) {
 
 $template->param(
     itemloop        => \@itemloop,
+    item_total          => $item_total,
+    item_avail_count    => $item_avail_count,
+    item_unavail_count  => $item_unavail_count,
     biblionumber        => $biblionumber,
     detailview => 1,
     subscriptions       => \@subs,
