@@ -173,7 +173,7 @@ foreach my $item (@items) {
     }
 
     # Item status for summary
-    if ( $item->{itemlost} || $item->{damaged} || $item->{wthdrawn} || $item->{notforloan} ) {
+    if ( $item->{itemlost} || $item->{damaged} || $item->{wthdrawn} || $item->{notforloan} || $item->{itemnotforloan} || $item->{datedue} ) {
 	$item_unavail_count++;
     } else {
 	$item_avail_count++;
