@@ -1,0 +1,4 @@
+Uses the cron job external_powerschool_sync.pl
+
+Creates a database for powerschool table Students. The cron job pulls the Students table from powerschool and imports it into this database and table.
+Modify the .sql before running and the cron job before running to match your needs.
