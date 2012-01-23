@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_lost";
 my $reporttitle = "Copies By Status";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "authorised_values.lib AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(',', av1.lib, av2.lib, IF(wthdrawn,'Withdrawn',NULL) ) AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
 my @column_titles = ( "Title", "Barcode", "Call Number", "Status", "Date Last Seen", "Last Borrower" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -70,14 +70,14 @@ my @tables = ( "items",
 	       ],
 	       [ # Left Joined Tables
 		 {
-		     table => 'authorised_values',
-		     on_l => 'authorised_value',
-		     on_r => 'itemlost AND authorised_values.category = "LOST"',
+		     table => 'authorised_values AS av1',
+		     on_l => 'av1.authorised_value',
+		     on_r => 'itemlost AND av1.category = "LOST"',
 		 },
 		 {
-		     table => 'authorised_values',
-		     on_l => 'authorised_value',
-		     on_r => 'damaged AND authorised_values.category = "DAMAGED"',
+		     table => 'authorised_values AS av2',
+		     on_l => 'av2.authorised_value',
+		     on_r => 'damaged AND av2.category = "DAMAGED"',
 		 },
 	       ],
 	       );
