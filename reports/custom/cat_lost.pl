@@ -54,8 +54,8 @@ my ($template, $borrowernumber, $cookie)
 				});
 
 my $reportname = "cat_lost";
-my $reporttitle = "Lost Copies";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "authorised_values.lib AS Status", "datelastseen", "itemnumber" );
+my $reporttitle = "Copies By Status";
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "authorised_values.lib AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
 my @column_titles = ( "Title", "Barcode", "Call Number", "Status", "Date Last Seen", "Last Borrower" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -73,6 +73,11 @@ my @tables = ( "items",
 		     table => 'authorised_values',
 		     on_l => 'authorised_value',
 		     on_r => 'itemlost AND authorised_values.category = "LOST"',
+		 },
+		 {
+		     table => 'authorised_values',
+		     on_l => 'authorised_value',
+		     on_r => 'damaged AND authorised_values.category = "DAMAGED"',
 		 },
 	       ],
 	       );
@@ -96,7 +101,8 @@ my $page_breaks;
 for ( $filters[0] ) {
     if ( /lost/ ) { $where = "items.itemlost <> 0" }
     elsif ( /withdrawn/ ) { $where = "items.wthdrawn <> 0" }
-    else { $where = "( items.itemlost <> 0 OR items.wthdrawn <> 0 )" }
+    elsif ( /damaged/ ) { $where = "items.damaged <> 0" }
+    else { $where = "( items.itemlost <> 0 OR items.wthdrawn <> 0 OR items.damaged <> 0 )" }
 }
 
 if ( $input->param( "ItemTypes" ) ) {
@@ -176,9 +182,10 @@ if ($do_it) {
 	my @parameters;
 
 	my @where_loop;
-	push @where_loop, { value => '', label => 'Lost and Withdrawn' };
+	push @where_loop, { value => '', label => 'Lost, Withdrawn, or Damaged' };
 	push @where_loop, { value => 'lost', label => 'Lost' };
 	push @where_loop, { value => 'withdrawn', label => 'Withdrawn' };
+	push @where_loop, { value => 'damaged', label => 'Damaged' };
 	push @parameters, {
 	    select_box => 1,
 	    select_loop => \@where_loop,
@@ -403,12 +410,13 @@ CALC_MAIN_LOOP:
 		}
 	    }
 
-	    $sth_last->execute( $values[ $#values ], $values[ $#values ] );
+	    $sth_last->execute( $values[ $#column_titles ], $values[ $#column_titles ] );
 	    ( $values[ $#values ] ) = $sth_last->fetchrow;
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
 	    $mapped_values[4]{value} = C4::Dates->new( $values[4], 'iso' )->output();
+	    $mapped_values[2]{link} = "/cgi-bin/koha/catalogue/moredetail.pl?biblionumber=$values[6]&bi=$values[6]&itemnumber=$values[7]#item$values[7]";
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
