@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_lost";
 my $reporttitle = "Copies By Status";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(',', IF(itemlost,av1.lib,NULL), IF(damaged,av2.lib,NULL), IF(wthdrawn,'Withdrawn',NULL) ) AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(', ', IF(itemlost,av1.lib,NULL), IF(damaged,av2.lib,NULL), IF(wthdrawn,'Withdrawn',NULL) ) AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
 my @column_titles = ( "Title", "Barcode", "Call Number", "Status", "Date Last Seen", "Last Borrower" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -411,7 +411,7 @@ CALC_MAIN_LOOP:
 	    }
 
 	    $sth_last->execute( $values[ $#column_titles ], $values[ $#column_titles ] );
-	    ( $values[ $#values ] ) = $sth_last->fetchrow;
+	    ( $values[ $#column_titles ] ) = $sth_last->fetchrow;
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
