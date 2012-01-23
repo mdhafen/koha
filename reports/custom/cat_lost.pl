@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_lost";
 my $reporttitle = "Copies By Status";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(',', av1.lib, av2.lib, IF(wthdrawn,'Withdrawn',NULL) ) AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemcallnumber", "CONCAT_WS(',', IF(itemlost,av1.lib,NULL), IF(damaged,av2.lib,NULL), IF(wthdrawn,'Withdrawn',NULL) ) AS Status", "datelastseen", "itemnumber", "biblionumber", "itemnumber" );
 my @column_titles = ( "Title", "Barcode", "Call Number", "Status", "Date Last Seen", "Last Borrower" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
