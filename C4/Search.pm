@@ -1633,10 +1633,9 @@ sub searchResults {
 		    ($reservestatus, $reserveitem) = C4::Reserves::CheckReserves($item->{itemnumber});
                 }
 
-                # item is withdrawn, lost or damaged
+                # item is withdrawn, lost or notforloan
                 if (   $item->{wthdrawn}
                     || $item->{itemlost}
-                    || $item->{damaged}
                     || $item->{notforloan} > 0
 		    || $reservestatus eq 'Waiting'
                     || ($transfertwhen ne ''))
@@ -1646,7 +1645,7 @@ sub searchResults {
                     $itemdamaged_count++     if $item->{damaged};
                     $item_in_transit_count++ if $transfertwhen ne '';
 		    $item_onhold_count++     if $reservestatus eq 'Waiting';
-                    $item->{status} = $item->{wthdrawn} . "-" . $item->{itemlost} . "-" . $item->{damaged} . "-" . $item->{notforloan};
+                    $item->{status} = $item->{wthdrawn} . "-" . $item->{itemlost} . "-" . $item->{notforloan};
                     $other_count++;
 
 					my $key = $prefix . $item->{status};
@@ -1665,8 +1664,9 @@ sub searchResults {
                 else {
                     $can_place_holds = 1;
                     $available_count++;
+                    $itemdamaged_count++     if $item->{damaged};
 					$available_items->{$prefix}->{count}++ if $item->{$hbranch};
-					foreach (qw(branchname itemcallnumber barcode)) {
+					foreach (qw(branchname itemcallnumber barcode damaged)) {
                     	$available_items->{$prefix}->{$_} = $item->{$_};
 					}
 					$available_items->{$prefix}->{location} = $shelflocations->{ $item->{location} };
