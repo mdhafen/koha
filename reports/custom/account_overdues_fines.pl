@@ -83,7 +83,7 @@ my @tables = ( "accountlines",  # ie "items"
 		  "borrowers.sort2",
 		  "borrowers.cardnumber",
 		  "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron",
-		  "CONCAT_WS( '<br>', CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ), CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( 'Replacement Price: ', replacementprice ) ) AS description",
+		  "CONCAT_WS( '<br>', CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ), CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( '<b>Replacement Price: ', replacementprice, '</b>' ) ) AS description",
 		  "NULL",
 		  "borrowers.cardnumber"
 	       ],
