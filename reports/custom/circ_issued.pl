@@ -26,6 +26,7 @@ use CGI;
 use C4::Auth;
 use C4::Context;
 use C4::Output;
+use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
 use C4::Members;  # GetMemberSortValues
 use C4::Koha;
@@ -99,6 +100,10 @@ if ( $filters[1] ) {
     push @queryfilter, { crit => "borrowers.sort2", op => "=", filter => $dbh->quote( $filters[1] ), title => "Homeroom Teacher", value => $filters[1] };
 }
 
+if ( $filters[2] ) {
+    push @queryfilter, { crit => "issues.date_due", op => ">=", filter => $dbh->quote( format_date_in_iso($filters[2]) ), title => "Copies Due", value => $filters[2] };
+}
+
 my @types_array = $input->param( "ItemTypes" );
 if ( @types_array ) {
     my $itype_field = ( C4::Context->preference('item-level_itypes') )
@@ -121,7 +126,8 @@ my $where;
 my $order = "$columns[0]";
 
 $where = "date_due < NOW()" if ( $filters[3] );  # just overdues
-for ( $filters[2] ) {
+
+for ( $filters[4] ) {
     if ( /duedate/i ) { $order = "date_due ASC" }
     if ( /borrower/i ) { $order = "Borrower" }
     if ( /itemtype/i ) {
@@ -232,6 +238,18 @@ if ($do_it) {
 	    multiple => 1,
 	};
 
+	push @parameters, {
+	    calendar => 1,
+	    label => "Only Copies Due On or After",
+	    id => "dueafter",
+	};
+
+	push @parameters, {
+	    check_box => 1,
+	    input_name => 'Filter',
+	    label => 'Only Overdues',
+	};
+
 	my @order_loop;
 	push @order_loop, { value => 'borrower', label => 'Patron' };
 	push @order_loop, { value => 'duedate', label => 'Due Date' };
@@ -240,12 +258,6 @@ if ($do_it) {
 	    select_box => 1,
 	    select_loop => \@order_loop,
 	    label => 'Sort By',
-	};
-
-	push @parameters, {
-	    check_box => 1,
-	    input_name => 'Filter',
-	    label => 'Only Overdues',
 	};
 
 	my @break_loop;
@@ -265,6 +277,7 @@ if ($do_it) {
 	}
 
 	$template->param(
+	    DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
 	    parameter_loop => \@parameters,
 	    sep_loop => \@dels,
 	    );
