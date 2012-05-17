@@ -125,15 +125,15 @@ my @loopfilter = ();
 my $where;
 my $order = "$columns[0]";
 
-$where = "date_due < NOW()" if ( $filters[3] );  # just overdues
+$where = "date_due < NOW()" if ( $input->param("Option2") );  # just overdues
 
-for ( $filters[4] ) {
-    if ( /duedate/i ) { $order = "date_due ASC" }
-    if ( /borrower/i ) { $order = "Borrower" }
+for ( $filters[3] ) {
+    if ( /duedate/i ) { $order .= ",date_due ASC" }
+    if ( /borrower/i ) { $order .= ",Borrower" }
     if ( /itemtype/i ) {
-	$order = ( C4::Context->preference('item-level_itypes') )
-	    ? 'items.itype'           # item-level
-	    : 'biblioitems.itemtype'; # biblio-level
+	$order .= ( C4::Context->preference('item-level_itypes') )
+	    ? ',items.itype'           # item-level
+	    : ',biblioitems.itemtype'; # biblio-level
     }
 }
 my $page_breaks = $input->param("Option1");
@@ -246,7 +246,7 @@ if ($do_it) {
 
 	push @parameters, {
 	    check_box => 1,
-	    input_name => 'Filter',
+	    input_name => 'Option2',
 	    label => 'Only Overdues',
 	};
 
