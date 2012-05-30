@@ -289,18 +289,36 @@ sub Search {
         push @filters, $filter;
     }
     if ( C4::Context->preference('ExtendedPatronAttributes') ) {
+        my @extended_filters;
         my $matching_records = C4::Members::Attributes::SearchIdMatchingAttribute($filter);
         if(scalar(@$matching_records)>0) {
 			foreach my $matching_record (@$matching_records) {
 				$filtersmatching_record{$$matching_record[0]}=1;
 			}
 			foreach my $k (keys(%filtersmatching_record)) {
-				push @filters, {"borrowernumber"=>$k};
+				push @extended_filters, {"borrowernumber"=>$k};
 			}
+			if ( scalar(@filters) <= 1 ) {
+				push @extended_filters, @filters;
+			} else {
+				foreach my $f ( @filters ) {
+					if ( ref($f) eq 'HASH' ) {
+						push @finalfilter, $f;
+					} elsif ( ref($f) eq 'ARRAY' ) {
+						push @extended_filters, @$f;
+					} else {
+						push @extended_filters, $f;
+					}
+				}
+			}
+			push @finalfilter, \@extended_filters;
+		} else {
+			@finalfilter = @filters;
 		}
+    } else {
+        @finalfilter = @filters;
     }
     $searchtype ||= "start_with";
-	push @finalfilter, \@filters;
 	my $data = SearchInTable( "borrowers", \@finalfilter, $orderby, $limit, $columns_out, $search_on_fields, $searchtype );
     return ($data);
 }
