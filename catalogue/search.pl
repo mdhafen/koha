@@ -219,7 +219,7 @@ for my $branch_hash (sort { $branches->{$a}->{branchname} cmp $branches->{$b}->{
 }
 
 if ( C4::Branch::onlymine() ) {
-    @branch_loop = grep { $_->{value} eq $user->{branch} } @branch_loop;
+    @branch_loop = grep { $_->{value} eq $borrowerbranchcode } @branch_loop;
 }
 
 my $categories = GetBranchCategories(undef,'searchdomain');

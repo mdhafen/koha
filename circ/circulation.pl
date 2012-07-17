@@ -357,7 +357,7 @@ if ($barcode) {
                     if ( $needsconfirmation eq 'BORRNOTSAMEBRANCH' ) {
                         $soundederrors{ BORRNOTSAMEBRANCH } = 1;
                     }
-                    $sounderror = 1;
+                    $sounderror_borr = 1;
                 }
             }
         }
@@ -546,6 +546,7 @@ if ($borrowerslist) {
         -id       => 'borrowernumber',
         -values   => \@values,
         -labels   => \%labels,
+        -onclick  => "this.form.submit();",
         -size     => 7,
         -tabindex => '',
         -multiple => 0

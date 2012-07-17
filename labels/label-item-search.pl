@@ -52,6 +52,18 @@ my $batch_id  = $query->param('batch_id');
 my $ccl_query = $query->param('ccl_query');
 my $startfrom = $query->param('startfrom') || 1;
 my ($template, $loggedinuser, $cookie) = (undef, undef, undef);
+
+    ( $template, $loggedinuser, $cookie ) = get_template_and_user(
+        {
+            template_name   => ( $op eq "do_search" ) ? "labels/result.tmpl" : "labels/search.tmpl",
+            query           => $query,
+            type            => "intranet",
+            authnotrequired => 0,
+            flagsrequired   => { catalogue => 1 },
+            debug           => 1,
+        }
+    );
+
 my (
     $total_hits,  $orderby, $results,  $total,  $error,
     $marcresults, $idx,     $datefrom, $dateto, $ccl_textbox
@@ -143,18 +155,6 @@ if ($show_results) {
         }
     }
 
-    ( $template, $loggedinuser, $cookie ) = get_template_and_user(
-        {
-            template_name   => "labels/result.tmpl",
-            query           => $query,
-            type            => "intranet",
-            authnotrequired => 0,
-            flagsrequired   => { borrowers => 1 },
-            flagsrequired   => { catalogue => 1 },
-            debug           => 1,
-        }
-    );
-
     # build page nav stuff.
     my ( @field_data, @numbers );
     $total = $total_hits;
@@ -222,16 +222,6 @@ if ($show_results) {
 #
 
 else {
-    ( $template, $loggedinuser, $cookie ) = get_template_and_user(
-        {
-            template_name   => "labels/search.tmpl",
-            query           => $query,
-            type            => "intranet",
-            authnotrequired => 0,
-            flagsrequired   => { catalogue => 1 },
-            debug           => 1,
-        }
-    );
     my $itemtypes = GetItemTypes;
     my @itemtypeloop;
     foreach my $thisitemtype ( keys %$itemtypes ) {
