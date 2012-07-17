@@ -19,6 +19,7 @@ sub _check_params {
         'label_id',
         'batch_id',
         'item_number',
+	'borrower_number',
         'card_number',
         'branch_code',
         'creator',
@@ -196,10 +197,12 @@ sub delete {
 
 sub remove_duplicates {
     my $self = shift;
+    ref($self) =~ m/C4::(.+)::.+$/;
+    my $number_type = ($1 eq 'Patroncards' ? 'borrower_number' : 'item_number');
     my %seen=();
     my $query = "DELETE FROM creator_batches WHERE label_id = ?;"; # ORDER BY timestamp ASC LIMIT ?;";
     my $sth = C4::Context->dbh->prepare($query);
-    my @duplicate_items = grep{$seen{$_->{'item_number'}}++} @{$self->{'items'}};
+    my @duplicate_items = grep{$seen{$_->{$number_type}}++} @{$self->{'items'}};
     foreach my $item (@duplicate_items) {
         $sth->execute($item->{'label_id'});
         if ($sth->err) {
