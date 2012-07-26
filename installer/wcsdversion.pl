@@ -156,6 +156,26 @@ NULL, 'YesNo' )");
 	    $version_changed = 1;
 	}
 
+	$rev = 'wcsd_apclt';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `creator_layouts` ( barcode_type,start_label,
+ printing_type,layout_name,guidebox,font,font_size,units,callnum_split,
+ text_justify,format_string,layout_xml,creator ) VALUES ( 'CODE39',1,'BAR',
+ 'Generic Patron Card',0,'TR',10,'POINT',0,'L','barcode',
+ '<opt guide_box=\"0\" page_side=\"F\" units=\"POINT\">
+ <barcode print=\"1\" text_print=\"1\" type=\"CODE39\" />
+ <text>&lt;surname&gt; , &lt;firstname&gt;</text>
+ <text font=\"TR\" font_size=\"11\" llx=\"0\" lly=\"25\" text_alignment=\"C\" />
+</opt>','Patroncards' )");
+	    $dbh->do("INSERT INTO `creator_templates` ( profile_id,
+ template_code,template_desc,page_width,page_height,label_width,label_height,
+ top_text_margin,left_text_margin,top_margin,left_margin,cols,rows,col_gap,
+ row_gap,units,creator ) VALUES ( 0,'Avery 5160','Default template',8.5,11,
+ 2.625,1,0,0,0.5,0.1875,3,10,0.125,0,'INCH','Patroncards' )");
+	    print "Add a basic template and layout for patron cards\n";
+	    $version_string .= "|$rev";
+	    $version_changed = 1;
+	}
 
 	# New revisions go here.
     }
@@ -173,7 +193,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_aeub';
+    our $REVISION = 'wcsd_apclt';
     return $REVISION;
 }
 
