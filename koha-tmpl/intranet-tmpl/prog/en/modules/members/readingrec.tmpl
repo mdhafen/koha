@@ -30,12 +30,13 @@
 	<div class="yui-b">
 <!-- TMPL_INCLUDE NAME="circ-toolbar.inc" -->
 <h1>Circulation History</h1>
-<p>
+<div>
     Show A Years Items Only Starting:
     <form id="showyear_selected" name="showyear_selected" method="get" action="readingrec.pl">
     <input type="hidden" name="borrowernumber" value="<!-- TMPL_VAR name="borrowernumber" -->" />
     <input type="hidden" name="limit" value="year" />
     <select name="startmonth" onchange="this.form.submit()">
+    <option value="">Select Month</option>
     <option value="1">January</option>
     <option value="2">February</option>
     <option value="3">March</option>
@@ -55,7 +56,11 @@
     document.forms.showyear_selected.startmonth.options[<!-- TMPL_VAR name="showyear_selected" -->-1].selected = "selected";
     </script>
     <!-- /TMPL_IF -->
-<form action="/cgi-bin/koha/members/readingrec.pl" method="get"><input type="hidden" name="borrowernumber" id="borrowernumber" value="<!-- TMPL_VAR NAME="borrowernumber" -->" /></form>
+<form action="/cgi-bin/koha/members/readingrec.pl" method="get">
+  <input type="hidden" name="borrowernumber" id="borrowernumber" value="<!-- TMPL_VAR NAME="borrowernumber" -->" />
+  <input type="submit" value="Show All">
+</form>
+</div>
 
 <span id="pagertable_readingrec" class="pager">
 	<form class="formpager">&nbsp;<strong>page(s)</strong>&nbsp;:

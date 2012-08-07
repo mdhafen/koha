@@ -52,10 +52,10 @@ if ($input->param('borrowernumber')) {
 
 my $order = 'date_due desc';
 my $limit = 0;
-my $startMonth = $input->param('startmonth') || 7;
+my $startMonth = $input->param('startmonth') || '';
 my $startDate = '';
 
-if ( $input->param('limit') eq 'year' && $startMonth ) {
+if ( $input->param('limit') && $input->param('limit') eq 'year' && $startMonth ) {
     my @dateArray = localtime();
     if ( $dateArray[4] < $startMonth - 1 ) { # check month
         #  Handle a start of the year that is not January
