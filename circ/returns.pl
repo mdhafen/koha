@@ -223,7 +223,7 @@ if ($barcode) {
     my $biblio = GetBiblioFromItemNumber($itemnumber);
     # fix up item type for display
     $biblio->{'itemtype'} = C4::Context->preference('item-level_itypes') ? $biblio->{'itype'} : $biblio->{'itemtype'};
-    my $record = GetMarcRecord( $biblio->{'biblionumber'} );
+    my $record = GetMarcBiblio( $biblio->{'biblionumber'} );
 
     $template->param(
         title            => $biblio->{'title'},
@@ -479,7 +479,7 @@ if ($borrower) {
             my $items = $flags->{$flag}->{'itemlist'};
             foreach my $item (@$items) {
                 my $biblio = GetBiblioFromItemNumber( $item->{'itemnumber'});
-                my $record = GetMarcRecord( $biblio->{'biblionumber'} );
+                my $record = GetMarcBiblio( $biblio->{'biblionumber'} );
                 push @waitingitemloop, {
                     biblionum => $biblio->{'biblionumber'},
                     barcode   => $biblio->{'barcode'},
