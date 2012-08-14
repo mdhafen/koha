@@ -155,6 +155,11 @@ NULL, 'YesNo' )");
 	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+    }
+
+    $WCSD_version = '1.00.00.003';
+    if ( $DB_version < TransformToNum($WCSD_version) ) {
+	$version_string = '1.0000003';
 
 	$rev = 'wcsd_apclt';
 	unless ( $revisions{ $rev } ) {
@@ -176,9 +181,9 @@ NULL, 'YesNo' )");
 	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
-
-	# New revisions go here.
     }
+
+    # New revisions go here.
 
     if ( $version_changed ) {
 	SetVersion( $version_string );
@@ -188,7 +193,7 @@ NULL, 'YesNo' )");
 }
 
 sub wcsd_version {
-    our $VERSION = '1.00.00.002';
+    our $VERSION = '1.00.00.003';
     return $VERSION;
 }
 
