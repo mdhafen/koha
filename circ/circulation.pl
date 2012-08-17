@@ -318,7 +318,7 @@ if ($barcode) {
             # Not a copy barcode.  Check to see if it's a patron barcode
             if ( checkcardnumber( $barcode ) ) {  #it's a patron
                 # Wish I could get just the borrowernumber here.
-                my $borr = GetMember( $barcode, 'cardnumber' );
+                my $borr = GetMember( 'cardnumber' => $barcode );
                 $borrowernumber = $borr->{borrowernumber};
                 foreach my $impossible ( keys %$error ) {
                     $template->param(
