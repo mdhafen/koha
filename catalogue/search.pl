@@ -544,6 +544,8 @@ for (my $i=0;$i<@servers;$i++) {
 
 
         if ($hits) {
+	    foreach (@newresults) { $_->{'no_edit'} = ! C4::Biblio::EditUsedBiblioAllowed( $_->{'biblionumber'} ); }
+
             $template->param(total => $hits);
             my $limit_cgi_not_availablity = $limit_cgi;
             $limit_cgi_not_availablity =~ s/&limit=available//g;
