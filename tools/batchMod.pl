@@ -188,6 +188,13 @@ if ($op eq "show"){
             @itemnumbers = @contentlist;
         }
     } else {
+	if ( my $list = $input->param('bibliolist') ) {
+	    push my @biblionumbers, split( /\s\n/, $list );
+	    my $info = get_itemnumbers_of( @biblionumbers );
+	    foreach my $bib ( keys %$info ) {
+		push @itemnumbers, @{ $info->{$bib} };
+	    }
+	}
         if ( my $list=$input->param('barcodelist')){
             push my @barcodelist, split(/\s\n/, $list);
 

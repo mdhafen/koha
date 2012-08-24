@@ -51,6 +51,15 @@
                                     </li>
                                 </ol>
                             </fieldset>
+                            <fieldset class="rows">
+                                <legend>Or enter record number</legend>
+                                <ol>
+                                    <li>
+                                      <label for="bibliolist">Record Number list (one number per line): </label>
+                                      <textarea rows="10" cols="30" id="bibliolist" name="bibliolist"></textarea>
+                                    </li>
+                                </ol>
+                            </fieldset>
                             <input type="hidden" name="op" value="show" />
                             <!-- TMPL_IF name="del" --><input type="hidden" name="del" value="1" /><!-- /TMPL_IF -->
                             <fieldset class="action">
