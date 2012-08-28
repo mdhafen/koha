@@ -13,9 +13,9 @@ my $dbh = C4::Context->dbh;
 #	unless ( $revisions{ $rev } ) {
 #	    $dbh->do("");
 #	    print "\n";
-#	    $version_string .= "|$rev";
 #	    $version_changed = 1;
 #	}
+#	$version_string .= "|$rev";
 #
 #
 
@@ -29,16 +29,16 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
     my $version_changed = 0;
 
     my $WCSD_version = '1.00.00.001';
-    if ( $DB_version < TransformToNum($WCSD_version) ) {
+    if ( $DB_version <= TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000001';
 
 	$rev = 'wcsd_nuib';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx`, ADD KEY `itembarcodeidx` (`barcode`)");
 	    print "Non-Unique Item Barcodes update\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_bes';
 	unless ( $revisions{ $rev } ) {
@@ -56,9 +56,9 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
   CONSTRAINT `bes_fk_categorycode` FOREIGN KEY (`categorycode`) REFERENCES `categories` (`categorycode`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 	    print "MembersFromExternal feature mapping table\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_nbcoppsp';
 	unless ( $revisions{ $rev } ) {
@@ -67,9 +67,9 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
  'If ON, patrons mailing and email addresses are not listed on the Print Page screen',
 NULL, 'YesNo' )");
 	    print "NoBorrowerContactOnPrintPage System Preference\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_alesp';
 	unless ( $revisions{ $rev } ) {
@@ -77,9 +77,9 @@ NULL, 'YesNo' )");
  explanation, options, type ) VALUES ( 'AccountLinesEditable', 0,
  'If ON Patron account lines can be changed in the staff client', NULL, 'YesNo' )");
 	    print "AccountLinesEditable System Preference\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_ahdifsp';
 	unless ( $revisions{ $rev } ) {
@@ -93,41 +93,41 @@ NULL, 'YesNo' )");
  '', 'YesNo' )");
 
 	    print "AllowHoldDateInFuture and OPACAllowHoldDateInFuture System Preferences\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_besf';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("alter table borrowers_external_structure add column filter varchar(64) default null after dblink");
 	    print "Adding filter column to borrowers_external_structure table\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_smlfir';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("ALTER TABLE `branches` MODIFY COLUMN branchip mediumtext default NULL");
 	    print "Extend branches branchip field to allow for multiple ip addresses\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_rot';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("ALTER TABLE `biblio` ADD COLUMN `remainderoftitle` mediumtext AFTER `title`");
 	    print "Add remainderoftitle column to biblio table\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'wcsd_ibiftws';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("UPDATE `systempreferences` SET options = 'whitespace|trim-whitespace|T-prefix|cuecat' WHERE variable = 'itemBarcodeInputFilter'");
 	    print "Changing itemBarcodeInputFilter System Preference to add trim-whitespace option\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
 
 	$rev = 'sedc_crpi';
 	unless ( $revisions{ $rev } ) {
@@ -136,13 +136,13 @@ NULL, 'YesNo' )");
  'If set, when a title is checked out warn the staff if the patron has checked out this title before.',
  '', 'YesNo' )");
 	    print "Add System Preference for CircRestrictPreviouslyIssued\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
     }
 
     $WCSD_version = '1.00.00.002';
-    if ( $DB_version < TransformToNum($WCSD_version) ) {
+    if ( $DB_version <= TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000002';
 
 	$rev = 'wcsd_aeub';
@@ -152,13 +152,13 @@ NULL, 'YesNo' )");
  'If set to OFF librarians are not allowed to edit biblios also used by another library.  Otherwise they are allowed to edit any biblio as usual.',
  '', 'YesNo' )");
 	    print "Add System Preference for AllowEditUsedBiblio\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
     }
 
     $WCSD_version = '1.00.00.003';
-    if ( $DB_version < TransformToNum($WCSD_version) ) {
+    if ( $DB_version <= TransformToNum($WCSD_version) ) {
 	$version_string = '1.0000003';
 
 	$rev = 'wcsd_apclt';
@@ -178,9 +178,17 @@ NULL, 'YesNo' )");
  row_gap,units,creator ) VALUES ( 0,'Avery 5160','Default template',8.5,11,
  2.625,1,0,0,0.5,0.1875,3,10,0.125,0,'INCH','Patroncards' )");
 	    print "Add a basic template and layout for patron cards\n";
-	    $version_string .= "|$rev";
 	    $version_changed = 1;
 	}
+	$version_string .= "|$rev";
+
+	$rev = 'wcsd_afmfrot';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `fieldmapping` ( field,fieldcode,subfieldcode ) VALUES ( 'subtitle', 245, 'b' ), ( 'additionaltitles', 740, 'a' ), ( 'additionaltitles', 740, 'p' )");
+	    print "Adding MARC keyword mappings for Subtitle and Additional Titles\n";
+	    $version_changed = 1;
+	}
+	$version_string .= "|$rev";
     }
 
     # New revisions go here.
@@ -198,7 +206,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_apclt';
+    our $REVISION = 'wcsd_afmfrot';
     return $REVISION;
 }
 
