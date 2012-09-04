@@ -224,6 +224,13 @@
 	<!-- /TMPL_LOOP -->
 </select></li>
 
+<li><label for="order">Sort2 By:</label> <select name="sort2" id="order">
+ <option value=""></option>
+<!-- TMPL_LOOP NAME="sort2_loop" -->
+ <option value="<!-- TMPL_VAR name="value" escape="html" -->"><!-- TMPL_VAR name="label" --></option>
+<!-- /TMPL_LOOP -->
+</select></li>
+
 <li class="radio"><label for="showall">Show any items currently checked out:</label>
 	<!-- TMPL_IF NAME="showall" -->
             <input type="checkbox" id="showall" name="showall" value="show" checked="checked" />

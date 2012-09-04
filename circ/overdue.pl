@@ -29,9 +29,10 @@ use C4::Debug;
 use C4::Dates qw/format_date/;
 use Date::Calc qw/Today/;
 use Text::CSV_XS;
-
+use C4::Members;
 my $input = new CGI;
 my $order           = $input->param('order') || '';
+my $sort2           = $input->param('sort2') || '';
 my $showall         = $input->param('showall');
 my $bornamefilter   = $input->param('borname') || '';
 my $borcatfilter    = $input->param('borcat') || '';
@@ -169,7 +170,6 @@ if (@patron_attr_filter_loop) {
             defined $row->{avdescription} ? $row->{avdescription} : $row->{val},
         ];
     }
-
     for my $bn (keys %borrowernumber_to_attributes) {
         my $pattrs = $borrowernumber_to_attributes{$bn};
         my $keep = 1;
@@ -198,7 +198,14 @@ if (@patron_attr_filter_loop) {
     }
 }
 
-
+my ( $sort1_values, $sort2_values ) = GetMemberSortValues();
+my ( @sort1_loop, @sort2_loop );
+	foreach ( sort @$sort1_values ) {
+	    push @sort1_loop, { value => $_, label => $_ } if ( $_ );
+	}
+	foreach ( sort @$sort2_values ) {
+	    push @sort2_loop, { value => $_, label => $_ } if ( $_ );
+	}
 $template->param(
     patron_attr_header_loop => [ map { { header => $_->{description} } } grep { ! $_->{isclone} } @patron_attr_filter_loop ],
     branchloop   => GetBranchesLoop($branchfilter, $onlymine),
@@ -208,7 +215,8 @@ $template->param(
     patron_attr_filter_loop => \@patron_attr_filter_loop,
     borname => $bornamefilter,
     order => $order,
-    showall => $showall);
+    showall => $showall,
+    sort2_loop => \@sort2_loop);
 
 if ($noreport) {
     # la de dah ... page comes up presto-quicko
@@ -261,6 +269,7 @@ if ($noreport) {
     $strsth.=" AND biblioitems.itemtype   = '" . $itemtypefilter . "' " if $itemtypefilter;
     $strsth.=" AND borrowers.flags        = '" . $borflagsfilter . "' " if $borflagsfilter;
     $strsth.=" AND borrowers.branchcode   = '" . $branchfilter   . "' " if $branchfilter;
+    $strsth.=" AND borrowers.sort2		  = '" . $sort2			 . "' " if $sort2;
     # restrict patrons (borrowers) to those matching the patron attribute filter(s), if any
     my $bnlist = $have_pattr_filter_data ? join(',',keys %borrowernumber_to_attributes) : '';
     $strsth =~ s/WHERE 1=1/WHERE 1=1 AND borrowers.borrowernumber IN ($bnlist)/ if $bnlist;
