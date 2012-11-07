@@ -198,7 +198,7 @@ CALC_MAIN_LOOP:
 	    }
 	}
 
-	foreach my $year ( sort keys %big_hash ) {
+	foreach my $year ( reverse sort keys %big_hash ) {
 	    my $year_hash = $big_hash{ $year };
 	    foreach my $type ( sort keys %$year_hash ) {
 		my %row;
