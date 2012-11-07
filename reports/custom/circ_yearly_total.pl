@@ -28,12 +28,10 @@ use C4::Context;
 use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
-use C4::Members;  # GetMemberSortValues
 use C4::Koha;
 use C4::Circulation;
 
 # Watch out for:
-#  C4::Context->preference('MembersViaExternal')
 #  C4::Context->preference("IndependantBranches")
 
 my $input = new CGI;
@@ -172,6 +170,7 @@ sub calculate {
 	my ($query, $column_titles) = @_;
 
 	my $dbh = C4::Context->dbh;
+	my $itemtypes = GetItemTypes();
 	my @loopheader;
 	my @looprow;
 	my %globalline;
@@ -186,11 +185,12 @@ CALC_MAIN_LOOP:
 	    my $year;
 	    # FIXME this needs to be updated every year.
 	    for ( $date ) {
-		if    ( $_ > '2014-05-22' ) { $year = '2014-2015' }
-		elsif ( $_ > '2013-05-23' ) { $year = '2013-2014' }
-		elsif ( $_ > '2012-05-23' ) { $year = '2012-2013' }
-		elsif ( $_ > '2011-05-25' ) { $year = '2011-2012' }
-		elsif ( $_ > '2010-05-27' ) { $year = '2010-2011' }
+		if    ( $_ gt '2014-05-22' ) { $year = '2014-2015' }
+		elsif ( $_ gt '2013-05-23' ) { $year = '2013-2014' }
+		elsif ( $_ gt '2012-05-23' ) { $year = '2012-2013' }
+		elsif ( $_ gt '2011-05-25' ) { $year = '2011-2012' }
+		elsif ( $_ gt '2010-05-27' ) { $year = '2010-2011' }
+		elsif ( $_ gt '2009-05-22' ) { $year = '2009-2010' }
 	    }
 	    if ( $year ) {
 		$big_hash{ $year }{ $itype }++;
@@ -206,7 +206,7 @@ CALC_MAIN_LOOP:
 
 		push @mapped_values,
 		    { value => $year },
-		    { value => ( $type eq '_total' ) ? 'Total' : $type },
+		    { value => ( $type eq '_total' ) ? 'Total' : $itemtypes->{$type}{'description'} },
 		    { value => $year_hash->{ $type } };
 
 		if ( $type eq '_total' ) {
