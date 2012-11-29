@@ -299,10 +299,53 @@ sub AddItemsToImportBiblio {
     my ($item_tag,$item_subfield) = &GetMarcFromKohaField("items.itemnumber",'');
     if ( $marc_record->field( $item_tag ) ) {
 	foreach my $item_field ($marc_record->field($item_tag)) {
+	    my ($b_tag,$b_sub) = &GetMarcFromKohaField("items.barcode",'');
+	    my ($c_tag,$c_sub) = &GetMarcFromKohaField("items.itemcallnumber",'');
+	    unless ( $item_field->subfield( $item_subfield ) || $item_field->subfield( $b_sub ) || $item_field->subfield( $c_sub ) ) {
+		# No itemnumber, barcode, or call number.
+		# This is probably a repeated subfield stuffed into it's own
+		# field.  The best action would be to join it to the previous
+		# item record so we don't loose any data.
+		# Yes, I have actually seen records like this from a vendor
+		my $import_id = $import_items_ids[ $#import_items_ids ];
+		my $sth = $dbh->prepare("SELECT marcxml FROM import_items WHERE import_items_id = ?");
+		$sth->bind_param(1, $import_id);
+		$sth->execute();
+		my ( $xml ) = $sth->fetchrow_array;
+		my $item_marc = MARC::Record->new_from_xml( $xml );
+		foreach my $subfield ( $item_field->subfields() ) {
+		    my $data = $item_marc->subfield( $item_tag, $subfield->[0] );
+		    $data .= " | " if ( $data );
+		    $data .= $subfield->[1];
+		    for my $field ( $item_marc->field( $item_tag ) ) {
+			$field->update( $subfield->[0] => $data );
+		    }
+		}
+
+		$sth = $dbh->prepare("UPDATE import_items SET marcxml = ? WHERE import_items_id = ?");
+		$sth->bind_param(1, $item_marc->as_xml());
+		$sth->bind_param(2, $import_id);
+		$sth->execute();
+
+		next;
+	    }
+
+	    # make sure home and holding branch are set
+	    my $branch = C4::Context::userenv->{branch};
+	    my ($h_tag,$h_sub) = &GetMarcFromKohaField("items.homebranch",'');
+	    my ($h2_tag,$h2_sub) = &GetMarcFromKohaField("items.holdingbranch",'');
+	    unless ( $item_field->subfield( $h_sub ) ) {
+		$item_field->add_subfields( $h_sub, $branch ) if ( $branch );
+	    }
+	    unless ( $item_field->subfield( $h2_sub ) ) {
+		$item_field->add_subfields( $h2_sub, $branch ) if ( $branch );
+	    }
+
 	    my $item_marc = MARC::Record->new();
            $item_marc->leader("00000    a              "); # must set Leader/09 to 'a'
 	    $item_marc->append_fields($item_field);
 	    $marc_record->delete_field($item_field);
+
 	    my $sth = $dbh->prepare_cached("INSERT INTO import_items (import_record_id, status, marcxml)
                                         VALUES (?, ?, ?)");
 	    $sth->bind_param(1, $import_record_id);
@@ -312,7 +355,7 @@ sub AddItemsToImportBiblio {
 	    push @import_items_ids, $dbh->{'mysql_insertid'};
 	    $sth->finish();
 	}
-    } elsif ( $marc_flavor eq 'MARC21' ) {
+    } elsif ( $marc_flavor eq 'MARC21' && $marc_record->field( '852' ) ) {
 	#  Tags I care about
 	my ($b_tag,$b_sub) = &GetMarcFromKohaField("items.barcode",'');
 	my ($h_tag,$h_sub) = &GetMarcFromKohaField("items.homebranch",'');
