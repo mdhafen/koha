@@ -87,6 +87,11 @@ my @filters = $input->param("Filter");
 my @options = ( $input->param( "Option1" ) );
 my @queryfilter = ();
 
+my $where = "";
+my $order = "title";
+my $group = "";
+my $page_breaks = "";
+
 {
 my ( $crit, $op, $filt, $title, $val );
 for ( $filters[0] ) {
@@ -108,19 +113,20 @@ for ( $filters[0] ) {
 push @queryfilter, { crit => $crit, op => $op, filter => $filt, title => $title, value => $val } if ( $crit );
 }
 
+for ( $filters[3] ) {
+    if    ( $_ eq 'title' )      {$order = "title"}
+    elsif ( $_ eq 'callnumber' ) {$order = "itemcallnumber"}
+    else  {$order = "title"}
+}
+
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[4] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[3];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
 my @loopfilter = ();
-
-my $where = "";
-my $order = "title";
-my $group = "";
-my $page_breaks = "";
 
 $group = "biblioitems.biblioitemnumber" if ( $options[0] );
 
@@ -247,6 +253,15 @@ if ($do_it) {
 	    check_box => 1,
 	    label => "Show Only One Copy",
 	    input_name => 'Option1',
+	};
+
+	my @order_loop;
+	push @order_loop, { value => 'title', label => 'Title' };
+	push @order_loop, { value => 'callnumber', label => 'Call Number' };
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@order_loop,
+	    label => 'Sort By',
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {
