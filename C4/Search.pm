@@ -773,7 +773,7 @@ sub _build_weighted_query {
     else {
         $weighted_query .= " $index,ext,r1=\"$operand\"";    # exact index
           #$weighted_query .= " or (title-sort-az=0 or $index,startswithnt,st-word,r3=$operand #)";
-        $weighted_query .= " or $index,phr,r3=\"$operand\"";    # phrase index
+        $weighted_query .= " or $index,phr,r2=\"$operand\"";    # phrase index
         $weighted_query .=
           " or $index,rt,wrdl,r3=\"$operand\"";    # word list index
     }
@@ -1100,6 +1100,7 @@ sub buildQuery {
                     $remove_stopwords = 0;
                 } else {
                     $operands[$i] =~ s/\?/{?}/g; # need to escape question marks
+                    $operands[$i] =~ s/(and|or|not)/\{$1\}/gi; # escape bool ops
                 }
                 my $operand = $operands[$i];
                 my $index   = $indexes[$i];
