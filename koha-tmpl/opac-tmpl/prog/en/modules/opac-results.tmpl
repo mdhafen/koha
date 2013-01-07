@@ -199,6 +199,7 @@ $(document).ready(function(){
     $("#holdDetails").hide();
 
 <!-- TMPL_IF NAME="query_desc" --><!-- TMPL_IF NAME="OpacHighlightedWords" -->var query_desc = "<!-- TMPL_VAR NAME="query_desc" ESCAPE="JS"-->";
+        query_desc = query_desc.replace( /{(and|or|not)}/gi, "$1" );
         q_array = query_desc.split(" ");
         highlightOn();
         $("#highlight_toggle_on" ).hide().click(function() {highlightOn() ;});
