@@ -1100,7 +1100,7 @@ sub buildQuery {
                     $remove_stopwords = 0;
                 } else {
                     $operands[$i] =~ s/\?/{?}/g; # need to escape question marks
-                    $operands[$i] =~ s/\b(and|or|not\b)/\{$1\}/gi; # escape bool ops
+                    $operands[$i] =~ s/\b(and|or|not)\b/\{$1\}/gi; # escape bool ops
                 }
                 my $operand = $operands[$i];
                 my $index   = $indexes[$i];
