@@ -272,6 +272,7 @@ function GetZ3950Terms(){
         <!-- TMPL_IF NAME="scan" -->
             <h1>Scan Index:</h1>
             <form action="/cgi-bin/koha/catalogue/search.pl" method="get">
+<!-- TMPL_IF NAME="mylibraryfirst" --><input type="hidden" name="limit" value="branch:<!-- TMPL_VAR NAME="mylibraryfirst" -->"><!-- /TMPL_IF -->
             <table>
                 <tr>
                     <td>
@@ -303,6 +304,7 @@ function GetZ3950Terms(){
             </form>
 
             <form action="/cgi-bin/koha/catalogue/search.pl" method="get">
+<!-- TMPL_IF NAME="mylibraryfirst" --><input type="hidden" name="limit" value="branch:<!-- TMPL_VAR NAME="mylibraryfirst" -->"><!-- /TMPL_IF -->
             <table>
                 <tr>
                     <th>Term/Phrase</th>
@@ -403,7 +405,7 @@ function GetZ3950Terms(){
                                 </p>
                                 <!-- TMPL_IF name="summary" -->
                                         <!-- TMPL_IF NAME="author" -->
-                                            <a href="/cgi-bin/koha/catalogue/search.pl?q=au:<!-- TMPL_VAR NAME="author" ESCAPE="URL" -->" title="Search for this Author"><!-- TMPL_VAR NAME="author" --></a>
+                                            <a href="/cgi-bin/koha/catalogue/search.pl?q=au:<!-- TMPL_VAR NAME="author" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->" title="Search for this Author"><!-- TMPL_VAR NAME="author" --></a>
                                         <!-- TMPL_ELSE -->
                                             &nbsp;
                                         <!-- /TMPL_IF -->
@@ -423,7 +425,7 @@ function GetZ3950Terms(){
                                     <!-- /TMPL_UNLESS -->
 
                                         <!-- TMPL_IF NAME="author" -->
-                                            <a href="/cgi-bin/koha/catalogue/search.pl?q=au:<!-- TMPL_VAR NAME="author" ESCAPE="URL" -->" title="Search for this Author"><!-- TMPL_VAR NAME="author" --></a>
+                                            <a href="/cgi-bin/koha/catalogue/search.pl?q=au:<!-- TMPL_VAR NAME="author" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->" title="Search for this Author"><!-- TMPL_VAR NAME="author" --></a>
                                         <!-- TMPL_ELSE -->
                                             &nbsp;
                                         <!-- /TMPL_IF -->
@@ -435,7 +437,7 @@ function GetZ3950Terms(){
                                         <!-- TMPL_IF name="size" --> ; <!-- TMPL_VAR name="size" --><!-- /TMPL_IF --> <!-- TMPL_IF NAME="normalized_isbn" -->ISBN: <!-- TMPL_VAR NAME="normalized_isbn" --><!-- /TMPL_IF -->
                                         <!-- TMPL_VAR name="description" -->
                                         <!-- TMPL_IF name="timestamp" --> <i>(modified on <!-- TMPL_VAR name="timestamp" -->)</i><!-- /TMPL_IF -->
-                                        <!-- TMPL_IF name="cn_class" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="cn_class" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="cn_class" --></a>]<!-- /TMPL_IF -->
+                                        <!-- TMPL_IF name="cn_class" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="cn_class" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="cn_class" --></a>]<!-- /TMPL_IF -->
                                     </p>
                                     <!-- TMPL_IF NAME="additionaltitles" -->
                                     <p>Additional Titles:
@@ -481,7 +483,7 @@ function GetZ3950Terms(){
                                         <!-- TMPL_IF NAME="noItemTypeImages" --><li><!-- TMPL_ELSE --><!-- TMPL_IF NAME="item-level_itypes" --><!-- TMPL_IF name="imageurl" --><li style="list-style: none; list-style-type: none;"><img src="<!-- TMPL_VAR name="imageurl" -->" title="<!-- TMPL_VAR name="description" -->" alt="<!-- TMPL_VAR name="description" -->" /><!-- TMPL_ELSE --><li><!-- /TMPL_IF --><!-- TMPL_ELSE --><li><!-- /TMPL_IF --><!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="branchname" --><!-- TMPL_VAR NAME="branchname" --><!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="location" --><!-- TMPL_VAR NAME="location" --><!-- /TMPL_IF -->
-                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
+                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="barcode" -->(<!-- TMPL_VAR NAME="barcode" -->)<!-- /TMPL_IF -->
                                         (<!-- TMPL_VAR NAME="count" -->)</li>
                                     <!-- /TMPL_LOOP --></ul>
@@ -499,7 +501,7 @@ function GetZ3950Terms(){
 
                                         <!-- TMPL_IF NAME="branchname" --><!-- TMPL_VAR NAME="branchname" --><!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="location" --><!-- TMPL_VAR NAME="location" --><!-- /TMPL_IF -->
-                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
+                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="barcode" -->(<!-- TMPL_VAR NAME="barcode" -->)<!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="damaged" --><span class="dmg">(Damaged)</span><!-- /TMPL_IF -->
                                         (<!-- TMPL_VAR NAME="count" --><!-- TMPL_IF NAME="longoverdue" -->, <span class="lost"><!-- TMPL_VAR NAME="longoverdue" --> long overdue</span><!-- /TMPL_IF -->) date due: <!-- TMPL_VAR NAME="due_date" --></li>
@@ -518,7 +520,7 @@ function GetZ3950Terms(){
 
                                         <!-- TMPL_IF NAME="branchname" --><!-- TMPL_VAR NAME="branchname" --><!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="location" --><!-- TMPL_VAR NAME="location" --><!-- /TMPL_IF -->
-                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
+                                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/catalogue/search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="barcode" -->(<!-- TMPL_VAR NAME="barcode" -->)<!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="wthdrawn" --><span class="wdn">(Withdrawn)</span><!-- /TMPL_IF -->
                                         <!-- TMPL_IF NAME="itemlost" --><span class="lost">(Lost)</span><!-- /TMPL_IF -->
