@@ -66,11 +66,6 @@ definition file (probably something like {biblio,authority}-koha-indexdefs.xml) 
             <xsl:call-template name="handle-index-heading"/>
             <xsl:call-template name="handle-index-match-heading"/>
             <xsl:apply-templates/>
-            <xslo:template match="*">
-                <z:index name="Any:w Any:p">
-                    <xslo:value-of select="."/>
-                </z:index>
-            </xslo:template>
             <xslo:template name="chopPunctuation">
             <xslo:param name="chopString"/>
                 <xslo:variable name="length" select="string-length($chopString)"/>
