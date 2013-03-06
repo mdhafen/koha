@@ -614,7 +614,7 @@
   </index_subfields>
   <!--record.abs line 177: melm 650$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="650" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--custom melm 651$a      Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="651" subfields="a">
@@ -626,15 +626,15 @@
   </index_subfields>
   <!--record.abs line 179: melm 651$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="651" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 181: melm 652$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="652" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 183: melm 653$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="653" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 184: melm 653$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="653" subfields="a">
@@ -645,7 +645,7 @@
   </index_subfields>
   <!--record.abs line 185: melm 654$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="654" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 186: melm 654$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="654" subfields="a">
@@ -656,7 +656,7 @@
   </index_subfields>
   <!--record.abs line 187: melm 655$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="655" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 188: melm 655$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="655" subfields="a">
@@ -667,7 +667,7 @@
   </index_subfields>
   <!--record.abs line 189: melm 656$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="656" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 190: melm 656$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="656" subfields="a">
@@ -678,7 +678,7 @@
   </index_subfields>
   <!--record.abs line 191: melm 657$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="657" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 192: melm 657$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="657" subfields="a">
@@ -708,7 +708,7 @@
   </index_subfields>
   <!--record.abs line 197: melm 690$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="690" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 198: melm 690$a        Subject,Subject:p-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="690" subfields="a">
@@ -762,7 +762,7 @@
   </index_subfields>
   <!--record.abs line 211: melm 710$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="710" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 212: melm 710        Author,Author:p,Corporate-name,Name-->
   <index_data_field xmlns="http://www.koha-community.org/schemas/index-defs" tag="710">
@@ -780,7 +780,7 @@
   </index_subfields>
   <!--record.abs line 216: melm 711$9      Koha-Auth-Number    -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="711" subfields="9">
-    <target_index>Koha-Auth-Number    :w</target_index>
+    <target_index>Koha-Auth-Number:w</target_index>
   </index_subfields>
   <!--record.abs line 218: melm 711        Author,Author:p,Author-name-corporate,Name,Conference-name-->
   <index_data_field xmlns="http://www.koha-community.org/schemas/index-defs" tag="711">
@@ -1045,7 +1045,7 @@
   </index_subfields>
   <!--record.abs line 286: melm 952$3      materials-specified -->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="952" subfields="3">
-    <target_index>materials-specified :w</target_index>
+    <target_index>materials-specified:w</target_index>
   </index_subfields>
   <!--record.abs line 287: melm 952$4      damaged:n,damaged:w-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="952" subfields="4">
