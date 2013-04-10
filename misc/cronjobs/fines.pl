@@ -73,7 +73,7 @@ ENDUSAGE
 die $usage if $help;
 
 use vars qw(@borrower_fields @item_fields @other_fields);
-use vars qw($fldir $libname $control $mode $delim $dbname $today $today_iso $today_days);
+use vars qw($fldir $libname $control $mode $maxfine $delim $dbname $today $today_iso $today_days);
 use vars qw($filename);
 
 CHECK {
@@ -83,6 +83,7 @@ CHECK {
     $libname = C4::Context->preference('LibraryName');
     $control = C4::Context->preference('CircControl');
     $mode    = C4::Context->preference('finesMode');
+    $maxfine = C4::Context->preference('MaxFine');
     $dbname  = C4::Context->config('database');
     $delim   = "\t"; # ?  C4::Context->preference('delimiter') || "\t";
 
@@ -147,6 +148,9 @@ for (my $i=0; $i<scalar(@$data); $i++) {
 	$type = 'Overdue';
 	if ( C4::Context->preference('IndependantBranches') ) {
 		$type .= " at $branchcode";
+	}
+	if ( $maxfine && $amount > $maxfine ) {
+		$amount = $maxfine;
 	}
 	# Don't update the fine if today is a holiday.  
   	# This ensures that dropbox mode will remove the correct amount of fine.
