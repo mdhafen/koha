@@ -505,6 +505,7 @@ No patron matched <span class="ex"><!-- TMPL_VAR name="message" --></span>
     <!-- /TMPL_IF -->
 
     <label for="barcode">Checking out to <!-- TMPL_VAR name="firstname" --> <!-- TMPL_VAR name="surname" --> (<!-- TMPL_VAR NAME="cardnumber" -->) </label>
+    <div><!-- TMPL_IF NAME="othernames" --> &ldquo;<!-- TMPL_VAR NAME="othernames" -->&rdquo;<!-- /TMPL_IF --></div>
 	<div class="hint">Enter item barcode:</div>
 
     <!-- TMPL_IF NAME="NEEDSCONFIRMATION" -->

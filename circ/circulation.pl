@@ -680,6 +680,7 @@ $template->param(
     printername       => $printer,
     firstname         => $borrower->{'firstname'},
     surname           => $borrower->{'surname'},
+    othernames        => $borrower->{'othernames'},
     dateexpiry        => format_date($newexpiry),
     expiry            => format_date($borrower->{'dateexpiry'}),
     categorycode      => $borrower->{'categorycode'},
