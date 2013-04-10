@@ -21,6 +21,7 @@
 <h5>Patrons</h5>
 	<ul>
 		<li><a href="/cgi-bin/koha/reports/custom/account_fines.pl">Fines</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/borrowers_messages.pl">Borrower Messages</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/borrowers_list.pl">List Borrowers</a></li>
 	</ul>
 <h5>Guided Reports</h5>

@@ -32,14 +32,7 @@ use C4::Members;  # GetMemberSortValues GetBorrowercategoryList
 use C4::Koha;
 use C4::Circulation;
 
-my $accesses_borrowers = 1;  # bool to indicate this report uses the borrowers table
-
-if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
-    use C4::MembersExternal;
-}
-
 # Watch out for:
-#  C4::Context->preference('MembersViaExternal')
 #  C4::Context->preference("IndependantBranches")
 
 my $input = new CGI;
@@ -117,12 +110,13 @@ if ( $input->param( 'Options5' ) ) {
 push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote( $filters[0] ), title => 'sort1', value => $filters[0] } if ( $filters[0] );
 push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
 push @queryfilter, { crit => 'categorycode', op => '=', filter => $dbh->quote( $filters[2] ), title => 'Patron Category', value => $filters[2] } if ( $filters[2] );
+push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "=", filter => "0", title => 'Not flagged', value => 'Gone' } if ( $input->param( 'Options6' ) );
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     my $branch = $filters[3] || C4::Context->userenv->{branch};
     if ( $local_only ) {
-	push @queryfilter, { crit => "items.homebranch", op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch)." AND items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     } else {
 	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     }
@@ -308,6 +302,14 @@ if ($do_it) {
 	    label => "Only Students At Your School",
 	};
 
+	push @parameters, {
+	    check_box => 1,
+	    count => 6,
+            checked => 1,
+	    input_name => "Options6",
+	    label => "Exclude students flagged as Gone",
+	};
+
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
 	foreach my $limiter ( @dels ) {
 	    my $selected = ( $limiter eq C4::Context->preference("delimiter") );
@@ -369,26 +371,7 @@ sub calculate {
 
 	if ( @$qfilters ) {
 	    foreach ( @$qfilters ) {
-		if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-		    my %okfields = (
-				    borrowernumber => 1,
-				    cardnumber => 1,
-				    surname => 1,
-				    firstname => 1,
-				    othernames => 1,
-				    branchcode => 1,
-				    );
-		    #  External fields will have to be handled down in the loop
-		    unless ( $okfields{ $1 } ) {
-			#  leading and trailing ' will muddle MembersExternal
-			$$_{filter} =~ s/^\'(.*)\'$/$1/;
-			push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
-		    } else {
-			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		    }
-		} else {
-		    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		}
+                push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
 	    }
 	}
 	$query .= join "AND ", @wheres;
@@ -418,31 +401,6 @@ sub calculate {
 	    $query .= "WHERE ";
 	    $query .= "$$where[1] " if ( $$where[1] );
 	    $query .= "AND " if ( $$where[1] && @$qfilters );
-
-	    if ( @$qfilters ) {
-		foreach ( @$qfilters ) {
-		    if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-			my %okfields = (
-			    borrowernumber => 1,
-			    cardnumber => 1,
-			    surname => 1,
-			    firstname => 1,
-			    othernames => 1,
-			    branchcode => 1,
-			    );
-			#  External fields will have to be handled below
-			unless ( $okfields{ $1 } ) {
-			    # leading and trailing ' will muddle MembersExternal
-			    $$_{filter} =~ s/^\'(.*)\'$/$1/;
-			    push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
-			} else {
-			    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-			}
-		    } else {
-			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		    }
-		}
-	    }
 	    $query .= join "AND ", @wheres;
 	    $query .= " ) ";
 	}
@@ -454,51 +412,7 @@ sub calculate {
 
 CALC_MAIN_LOOP:
 	while ( my ( @values ) = $sth_col->fetchrow ) {
-	    #  This block is to handle MembersViaExternal stuff, and
-	    #   for other custom loop filters
-	    if ( @$lfilters ) {
-		my %external_bor_fields;
-		foreach ( @$lfilters ) {
-		    if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-			$external_bor_fields{ $1 } = $$_{filter};
-		    } else {
-			# Process other loop filters here
-		    }
-
-		}
-		if ( %external_bor_fields ) {
-		    # FIXME borrowers.cardnumber needs to be last in the columns for this
-		    my $cardnumber = $values[ $#values ];
-		    my $temp = GetMemberDetails_External( $cardnumber );
-
-		    foreach my $field ( sort keys %external_bor_fields ) {
-			my $index = $columns_reverse_hash{ $field };
-			my $compare_value;
-			if ( ref $temp eq 'HASH' && %$temp ) {
-			    $compare_value = ( exists $temp->{$field} ) ? $temp->{$field} : $values[ $index ];
-			} else { # non-external patron, compare against @values
-			    $compare_value = $values[ $index ];
-			}
-			next CALC_MAIN_LOOP if ( $external_bor_fields{$field} ne $compare_value );
-		    }
-		}
-	    }
 	    push @big_loop, \@values;
-	}
-
-	# FIXME Sort big_loop here
-	#  This is necessary if MembersViaExternal is on and
-	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
-
-	if ( $accesses_borrowers && $order =~ /sort2/ ) {
-	    my $num = 1;  # sort2 is always [0], others might be offset by sort1
-	    $num = 0 if ( $$columns[1] ne 'borrowers.cardnumber' );
-	    my $sort_func = sub {
-		( uc $$a[0] cmp uc $$b[0] ) ||
-		    ( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
-		    ( uc $$a[ $num+2 ] cmp uc $$b[ $num+2 ] )
-	    };
-	    @big_loop = sort $sort_func @big_loop;
 	}
 
 	$break = 'break';
