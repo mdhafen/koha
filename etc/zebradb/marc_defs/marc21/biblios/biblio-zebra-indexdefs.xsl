@@ -441,7 +441,7 @@ definition file (probably something like {biblio,authority}-koha-indexdefs.xml) 
   <xslo:template mode="index_subfields" match="marc:datafield[@tag='521']">
     <xslo:for-each select="marc:subfield">
       <xslo:if test="contains('a', @code)">
-        <z:index name="lex:n">
+        <z:index name="lex:w lex:n">
           <xslo:value-of select="."/>
         </z:index>
       </xslo:if>
