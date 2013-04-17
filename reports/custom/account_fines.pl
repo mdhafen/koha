@@ -100,9 +100,9 @@ my $group = "";
 my $page_breaks;
 
 if ( $filters[2] ) {
-    $columns[4] = 'SUM(accountlines.amountoutstanding)';
-    splice @columns,2,2;
-    splice @column_titles,2,2;
+    $columns[5] = 'SUM(accountlines.amountoutstanding)';
+    splice @columns,2,3;
+    splice @column_titles,2,3;
     push @queryfilter, { crit => '1', op => '>=', filter => '1', title => 'Fine', value => $filters[2] };
     $group = "borrowernumber HAVING SUM(amountoutstanding) >= ";
     $group .= $dbh->quote( $filters[2] );
@@ -354,19 +354,21 @@ CALC_MAIN_LOOP:
 
 	    if ( $sub_break ne $values[ 1 ] ) {
 		if ( $sub_break ne 'break' ) {
-		    push @looprow, {
-			 'values' => [
-				       {
-					   'width' => @$column_titles - 1,
-					   'value' => 'Subtotal',
-					   'header' => 1,
-				       },
-				       {
-					   'value' => sprintf( "%.2f", $subtotal ),
-					   'header' => 1,
-				       }
-				     ]
-		       };
+                    unless ( $group ) {
+                        push @looprow, {
+                            'values' => [
+                                {
+                                    'width' => @$column_titles - 1,
+                                    'value' => 'Subtotal',
+                                    'header' => 1,
+                                },
+                                {
+                                    'value' => sprintf( "%.2f", $subtotal ),
+                                    'header' => 1,
+                                }
+                                ]
+                        };
+                    }
 		    $subtotal = 0;
 		}
 		$sub_break = $values[ 1 ];
@@ -384,19 +386,21 @@ CALC_MAIN_LOOP:
 	    $subtotal += @values[ $#$column_titles ];
 	}
 	#  And last subtotal row
-	push @looprow, {
-	    'values' => [
-		{
-		    'width' => @$column_titles - 1,
-		    'value' => 'Subtotal',
-		    'header' => 1,
-		},
-		{
-		    'value' => sprintf( "%.2f", $subtotal ),
-		    'header' => 1,
-		}
-		]
-	};
+        unless ( $group ) {
+            push @looprow, {
+                'values' => [
+                    {
+                        'width' => @$column_titles - 1,
+                        'value' => 'Subtotal',
+                        'header' => 1,
+                    },
+                    {
+                        'value' => sprintf( "%.2f", $subtotal ),
+                        'header' => 1,
+                    }
+                    ]
+            };
+        }
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };
