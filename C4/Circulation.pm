@@ -1516,11 +1516,6 @@ sub AddReturn {
         return ( $doreturn, $messages, $issue, $borrower );
     }
 
-    if ( $item->{'wthdrawn'} ) { # book has been cancelled
-        $messages->{'wthdrawn'} = 1;
-        $doreturn = 0;
-    }
-
     # case of a return of document (deal with issues and holdingbranch)
     if ($doreturn) {
         $borrower or warn "AddReturn without current borrower";
