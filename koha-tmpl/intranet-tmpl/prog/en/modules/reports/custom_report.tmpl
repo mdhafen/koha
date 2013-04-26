@@ -9,12 +9,11 @@
 }
 </style>
 <style type="text/css" media="print">
-table {
-  positoin: relative;
-}
-
-div.yui-b {
-  position: relative;
+/*
+ *  Firefox can't print a table in nested block elements
+ */
+div#doc3, div#bd, div#yui-main {
+  display: inline !important;
 }
 
 .page-break {
