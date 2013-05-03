@@ -1136,6 +1136,8 @@
   </index_subfields>
   <!--record.abs line 309: melm 952$o      Local-classification:w,Local-classification:p,Local-classification:s-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="952" subfields="o">
+    <target_index>Any:w</target_index>
+    <target_index>Any:p</target_index>
     <target_index>Local-classification:w</target_index>
     <target_index>Local-classification:p</target_index>
     <target_index>Local-classification:s</target_index>
