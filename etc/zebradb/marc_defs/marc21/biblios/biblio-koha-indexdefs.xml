@@ -487,6 +487,12 @@
     <target_index>Title-series:w</target_index>
     <target_index>Title-series:p</target_index>
   </index_subfields>
+  <!-- custom series volume -->
+  <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="490" subfields="v">
+    <target_index>Any:p</target_index>
+    <target_index>Volume-series:w</target_index>
+    <target_index>Volume-series:p</target_index>
+  </index_subfields>
   <!--record.abs line 143: melm 490$9      Koha-Auth-Number-->
   <index_subfields xmlns="http://www.koha-community.org/schemas/index-defs" tag="490" subfields="9">
     <target_index>Koha-Auth-Number:w</target_index>

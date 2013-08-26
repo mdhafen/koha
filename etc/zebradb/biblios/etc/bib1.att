@@ -186,6 +186,10 @@ att 9900    Author-personal-bibliography
 att 9902    Author-in-order
 # Lexile number
 att 9903    lex
+# Accelerated Reader Reading level
 att 9904    arl
 att 9013    arp
+# The item tag?
 att 9520    Item
+# Series Volume in 490$v
+att 9014    Volume-series

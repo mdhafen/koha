@@ -11,6 +11,7 @@
     <option value="ti">Title</option>
     <option value="ti,phr">&nbsp;&nbsp;&nbsp;&nbsp; Title as Phrase</option>
     <option value="se">&nbsp;&nbsp;&nbsp;&nbsp; Series Title</option>
+    <option value="vol">&nbsp;&nbsp;&nbsp;&nbsp; Series Volume</option>
     <option value="su">Subject</option>
     <option value="su,phr">&nbsp;&nbsp;&nbsp;&nbsp; Subject as Phrase</option>
     <option value="bc">Barcode</option>
