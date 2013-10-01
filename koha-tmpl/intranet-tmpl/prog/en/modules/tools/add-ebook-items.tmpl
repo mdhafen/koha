@@ -1,0 +1,211 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" --><title>Koha &rsaquo; Tools &rsaquo; Add items to ebook MARC batch</title><!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+</head>
+
+<body>
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="cat-search.inc" -->
+
+<div id="breadcrumbs">
+	<a href="/cgi-bin/koha/mainpage.pl">Home</a>
+	&rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a>
+	&rsaquo; Add items to ebook MARC batch
+</div>
+
+<div id="doc3" class="yui-t2">
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+<!-- TMPL_IF NAME="error" -->
+<div class="dialog alert">
+<h3>There was a problem</h3>
+<!-- TMPL_IF NAME="NO_BATCH" --><p>An import batch hasn't been selected yet.</p><!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="NO_BRANCH" --><p>A location hasn't been selected. <!-- How did you manage that? --></p><!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="NO_URI_ACTION" --><p>An action to take on URI's found in the biblio records has not been selected.</p><!-- /TMPL_IF -->
+</div>
+<!-- /TMPL_IF -->
+
+<!-- Pages actually begin here -->
+<!-- TMPL_IF NAME="RESULTS" -->
+	<div id="addebookresult">
+		<h3>Results</h3>
+		<p><!-- TMPL_VAR NAME="num_bibs" --> biblio records processes</p>
+		<p><!-- TMPL_VAR NAME="num_items" --> item records created</p>
+	</div>
+<!-- TMPL_ELSE --><!-- TMPL_IF NAME="LIST" -->
+<script type="text/javascript" src="<!-- TMPL_VAR name="themelang" -->/lib/jquery/plugins/jquery.tablesorter.min.js"></script>
+<script type="text/JavaScript">
+//<![CDATA[
+    $(document).ready(function() {
+        $("#files").tablesorter({
+            headers: {
+                4: { sorter: false },
+            }
+        });
+    });
+//]]>
+</script>
+	<div id="addebooklist">
+		<h3>Select a MARC batch with ebooks</h3>
+
+                   <table id="files">
+                     <thead>
+                     <tr>
+                       <th>File name</th>
+                       <th>Comments</th>
+                       <th>Staged on</th>
+                       <th># Bibs</th>
+                       <th colspan="2">&nbsp;</th>
+                     </tr>
+                     </thead>
+                     <tbody>
+                     <!-- TMPL_LOOP name="batch_list" -->
+                     <tr>
+                       <td><!-- TMPL_VAR name="file_name" --></td>
+                       <td><!-- TMPL_VAR name="comments" --></td>
+                       <td><!-- TMPL_VAR name="upload_timestamp" --></td>
+                       <td><!-- TMPL_VAR name="num_biblios" --></td>
+
+                       <td><a href="/cgi-bin/koha/tools/add-ebook-items.pl?op=init&batch_id=<!-- TMPL_VAR NAME="import_batch_id" -->&branchcode=<!-- TMPL_VAR NAME="branchcode" -->&handle_url=<!-- TMPL_VAR NAME="handle_url" -->&itype=<!-- TMPL_VAR NAME="itype" -->&entered_url=<!-- TMPL_VAR NAME="entered_url" -->">Select</a></td>
+                       <td><a href="/cgi-bin/koha/tools/add-ebook-items.pl?op=details&batch_id=<!-- TMPL_VAR NAME="import_batch_id" -->&branchcode=<!-- TMPL_VAR NAME="branchcode" -->&handle_url=<!-- TMPL_VAR NAME="handle_url" -->&itype=<!-- TMPL_VAR NAME="itype" -->&entered_url=<!-- TMPL_VAR NAME="entered_url" -->">Details</a></td>
+                     </tr>
+                     <!-- /TMPL_LOOP -->
+                     </tbody>
+                   </table>
+	</div>
+<!-- TMPL_ELSE --><!-- TMPL_IF NAME="DETAIL"-->
+<script type="text/javascript" src="<!-- TMPL_VAR name="themelang" -->/lib/jquery/plugins/jquery.tablesorter.min.js"></script>
+<script type="text/JavaScript">
+//<![CDATA[
+    $(document).ready(function() {
+        $("#records").tablesorter({
+            headers: {
+                0: { sorter: false },
+                5: { sorter: false },
+            }
+        });
+    });
+//]]>
+</script>
+	<div id="addebooklist">
+		<h3>Select MARC records with ebooks</h3>
+
+		<form action="/cgi-bin/koha/tools/add-ebook-items.pl" method="post">
+		<fieldset class="rows">
+                   <table id="records">
+                     <thead>
+                     <tr>
+                       <th>&nbsp;</th>
+                       <th>#</th>
+                       <th>Citation</th>
+                       <th>Status</th>
+                       <th>Match?</th>
+                       <th>Bib</th>
+                     </tr>
+                     </thead>
+                     <tbody>
+                     <!-- TMPL_LOOP name="records_list" -->
+                     <tr>
+                       <td><!-- TMPL_IF NAME="can_add" --><input type="checkbox" name="biblios" id="biblios_<!-- TMPL_VAR NAME="matched_biblionumber" -->" value="<!-- TMPL_VAR NAME="matched_biblionumber" -->"/><!-- TMPL_ELSE -->&nbsp;<!-- /TMPL_IF --></td>
+                       <td><!-- TMPL_VAR name="record_sequence" --></td>
+                       <td><!-- TMPL_VAR name="citation" --></td>
+                       <td><!-- TMPL_VAR name="status" --></td>
+                       <td><!-- TMPL_VAR name="overlay_status" --></td>
+                       <td><!-- TMPL_VAR name="matched_biblionumber" --></td>
+
+                     </tr>
+                     <!-- /TMPL_LOOP -->
+                     </tbody>
+                   </table>
+		</fieldset>
+
+		<fieldset class="action">
+			<input type="hidden" name="op" value="init"/>
+			<input type="hidden" name="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->"/>
+			<input type="submit" value="Submit"/>
+			<a href="/cgi-bin/koha/tools/add-ebook-items.pl?op=select&batch_id=<!-- TMPL_VAR NAME="import_batch_id" -->&branchcode=<!-- TMPL_VAR NAME="branchcode" -->&handle_url=<!-- TMPL_VAR NAME="handle_url" -->&itype=<!-- TMPL_VAR NAME="itype" -->&entered_url=<!-- TMPL_VAR NAME="entered_url" -->" class="cancel">Back</a>
+		</fieldset>
+		</form>
+	</div>
+<!-- TMPL_ELSE --><!-- TMPL_IF NAME="INIT"-->
+	<div id="addebookinit">
+		<h3>Add items to ebook MARC batch</h3>
+
+		<form action="/cgi-bin/koha/tools/add-ebook-items.pl" method="post">
+		<fieldset class="rows">
+			<ol>
+				<li><label for="batch_id">Import batch: </label>
+					<input type="text" name="batch_id" id="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->" readonly>
+					<!-- TMPL_IF NAME="biblios" -->( Biblios: 
+					<!-- TMPL_LOOP NAME="biblios" --><!-- TMPL_UNLESS NAME="__first__" -->, <!-- /TMPL_UNLESS --><!-- TMPL_VAR NAME="value" --><!-- /TMPL_LOOP --> )
+					<!-- /TMPL_IF -->
+				</li>
+			</ol>
+		</fieldset>
+		<fieldset class="action">
+			<input type="hidden" name="op" value="select"/>
+			<input type="hidden" name="branchcode" value="<!-- TMPL_VAR NAME="branchcode" -->"/>
+			<input type="hidden" name="handle_url" value="<!-- TMPL_VAR NAME="handle_url" -->"/>
+			<input type="submit" value="Select import batch"/>
+		</fieldset>
+		</form>
+
+	<!-- TMPL_IF NAME="batch_id" -->
+		<form action="/cgi-bin/koha/tools/add-ebook-items.pl" method="post">
+		<fieldset class="rows">
+			<ol>
+				<li><label for="handle_url">Copy URI from MARC: </label>
+				<select id="handle_url" name="handle_url" />
+					<option value="">Select an action</option>
+					<option value="enter"<!-- TMPL_IF NAME="handle_url_enter" --> selected<!-- /TMPL_IF -->>Enter the URI below</option>
+					<option value="nothing"<!-- TMPL_IF NAME="handle_url_nothing" --> selected<!-- /TMPL_IF -->>Don't set the URI</option>
+					<option value="copy"<!-- TMPL_IF NAME="handle_url_copy" --> selected<!-- /TMPL_IF -->>Copy the URI</option>
+					<option value="move"<!-- TMPL_IF NAME="handle_url_move" --> selected<!-- /TMPL_IF -->>Move the URI</option>
+				</select>
+				</li>
+
+				<li><label for="entered_url">URI for action #1: </label>
+					<input type="text" name="entered_url" id="entered_url" value="<!-- TMPL_VAR NAME="entered_url" -->">
+				</li>
+
+				<li><label for="itype">Item type: </label>
+				<select id="itype" name="itype" />
+				<!-- TMPL_LOOP NAME="itype_list" -->
+					<option value="<!-- TMPL_VAR NAME="value" -->" <!-- TMPL_IF NAME="selected" --> selected<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="description" --></option>
+				<!-- /TMPL_LOOP -->
+				</select>
+				</li>
+
+				<li><label for="branchcode">Location: </label>
+				<select id="branchcode" name="branchcode" />
+				<!-- TMPL_LOOP NAME="branch_list" -->
+					<option value="<!-- TMPL_VAR NAME="value" -->" <!-- TMPL_IF NAME="selected" --> selected<!-- /TMPL_IF -->><!-- TMPL_VAR NAME="branchname" --></option>
+				<!-- /TMPL_LOOP -->
+				</select>
+				</li>
+			</ol>
+		</fieldset>
+		<fieldset class="action">
+			<input type="hidden" name="op" value="submit"/>
+			<input type="hidden" name="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->"/>
+			<!-- TMPL_IF NAME="biblios" --><!-- TMPL_LOOP NAME="biblios" -->
+			<input type="hidden" name="biblios" value="<!-- TMPL_VAR NAME="value" -->"/>
+			<!-- /TMPL_LOOP --><!-- /TMPL_IF -->
+			<input type="submit" value="Submit"/>
+			<a href="/cgi-bin/koha/tools/tools-home.pl" class="cancel">Cancel</a>
+		</fieldset>
+		</form>
+	<!-- /TMPL_IF -->
+	</div>
+<!-- /TMPL_IF -->
+<!-- /TMPL_IF -->
+<!-- /TMPL_IF -->
+<!-- /TMPL_IF -->
+<!-- End of actual pages -->
+
+		</div>
+	</div>
+	<div class="yui-b noprint">
+	<!-- TMPL_INCLUDE NAME="tools-menu.inc" -->
+	</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->

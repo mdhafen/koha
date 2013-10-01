@@ -53,6 +53,9 @@
 	<li><a href="/cgi-bin/koha/tools/batchMod.pl">Batch item modification</a></li>
     <!--/TMPL_IF-->
     <!-- TMPL_IF NAME="CAN_user_tools" -->
+	<li><a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add item records for ebooks</a></li>
+    <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools" -->
 	<li><a href="/cgi-bin/koha/tools/set-itype.pl">Set Item Type on copies</a></li>
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_export_catalog" -->
