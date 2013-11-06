@@ -68,7 +68,17 @@
         <option selected="selected" value="callnum">Call Number</option>
 		<!-- TMPL_ELSE -->
         <option value="callnum">Call Number</option>
-		<!-- /TMPL_IF --></select>
+		<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="ms_lex" -->
+        <option selected="selected" value="lex">Lexile</option>
+                <!-- TMPL_ELSE -->
+        <option value="lex,phr">Lexile</option>
+                <!-- /TMPL_IF -->
+                <!-- TMPL_IF NAME="ms_arl" -->
+        <option selected="selected" value="arl,phr">Reading Level</option>
+                <!-- TMPL_ELSE -->
+        <option value="arl,phr">Reading Level</option>
+                <!-- /TMPL_IF --></select>
 <!-- TMPL_IF NAME="ms_value" -->
         <input type="text" id = "transl1" name="q" value="<!-- TMPL_VAR ESCAPE="HTML" NAME="ms_value" -->" class="left" style="width: 35%; font-size: 111%;"/><div id="translControl"></div>
 <!-- TMPL_ELSE -->
