@@ -120,8 +120,37 @@ for ( my $tabloop = 0 ; $tabloop <= 10 ; $tabloop++ ) {
     my @fields = $record->fields();
     for ( my $x_i = 0 ; $x_i <= $#fields ; $x_i++ ) {
 
+        unless ( $tagslib->{ $fields[$x_i]->tag() } ) {
+            $tagslib->{ $fields[$x_i]->tag() } = {
+                lib => '',
+                tab => '',
+                mandatory => 0,
+                repeatable => 0,
+            };
+        }
+
         # if tag <10, there's no subfield, use the "@" trick
         if ( $fields[$x_i]->tag() < 10 ) {
+
+            unless ( $tagslib->{ $fields[$x_i]->tag() }->{ '@' } ) {
+                my $sf_def = {
+                    tab=>substr($fields[$x_i]->tag(),0,1),
+                    lib=>'',
+                    repeatable=>0,
+                    mandatory=>0,
+                    kohafield=>'',
+                    authorised_value=>'',
+                    authtypecode=>'',
+                    value_builder=>'',
+                    isurl=>'',
+                    hidden=>0,
+                    seealso=>'',
+                    link=>'',
+                    defaultvalue=>''
+                };
+                $tagslib->{ $fields[$x_i]->tag() }->{ '@' } = $sf_def;
+            }
+
             next
               if (
                 $tagslib->{ $fields[$x_i]->tag() }->{'@'}->{tab} ne $tabloop );
@@ -141,6 +170,24 @@ for ( my $tabloop = 0 ; $tabloop <= 10 ; $tabloop++ ) {
             for my $i ( 0 .. $#subf ) {
                 $subf[$i][0] = "@" unless $subf[$i][0];
                 my $sf_def = $tagslib->{ $fields[$x_i]->tag() }->{ $subf[$i][0] };
+                unless ( $sf_def ) {  # subfield in MARC but not in Koha
+                    $sf_def = {
+                        tab=>substr($fields[$x_i]->tag(),0,1),
+                        lib=>'',
+                        repeatable=>0,
+                        mandatory=>0,
+                        kohafield=>'',
+                        authorised_value=>'',
+                        authtypecode=>'',
+                        value_builder=>'',
+                        isurl=>'',
+                        hidden=>0,
+                        seealso=>'',
+                        link=>'',
+                        defaultvalue=>''
+                    };
+                    $tagslib->{ $fields[$x_i]->tag() }->{ $subf[$i][0] } = $sf_def;
+                }
                 next if ( $sf_def->{tab} ne $tabloop );
                 next if ( $sf_def->{hidden} > 0 ); 
                 my %subfield_data;
@@ -207,12 +254,14 @@ my %witness
   ; #---- stores the list of subfields used at least once, with the "meaning" of the code
 my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'items.homebranch' : 'items.holdingbranch';
 my ($homebrtagf,$homebrtagsubf) = &GetMarcFromKohaField($bfield,$itemtype);
+my ($losttagf,$losttagsubf) = &GetMarcFromKohaField('items.itemlost',$itemtype);
+my ($withdrawntagf,$withdrawntagsubf) = &GetMarcFromKohaField('items.wthdrawn',$itemtype);
 my @big_array;
 foreach my $field (@fields) {
     next if ( $field->tag() < 10 );
     my @subf = $field->subfields;
     my %this_row;
-    my $homebranch;
+    my ($homebranch,$itemlost,$withdrawn);
 
     # loop through each subfield
     for my $i ( 0 .. $#subf ) {
@@ -234,9 +283,15 @@ foreach my $field (@fields) {
 	if ( $subf[$i][0] eq $homebrtagsubf ) {
 	    $homebranch = $subf[$i][1];
 	}
+	if ( $subf[$i][0] eq $losttagsubf ) {
+	    $itemlost = $subf[$i][1];
+	}
+	if ( $subf[$i][0] eq $withdrawntagsubf ) {
+	    $withdrawn = $subf[$i][1];
+	}
     }
     if (%this_row) {
-	unless ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && $homebranch ne C4::Context->userenv->{branch} ) {
+	unless ( ( C4::Context->preference("IndependantBranches") && C4::Context->userenv && $homebranch ne C4::Context->userenv->{branch} ) || ( C4::Context->preference('hidelostitems') && $itemlost ) || ( C4::Context->preference('HideWithdrawnItems') && $withdrawn ) ) {
 	    push( @big_array, \%this_row );
 	}
     }

@@ -257,30 +257,34 @@ if ( $template_type && $template_type eq 'advsearch' ) {
 
 # if SearchMyLibraryFirst is on allow the opac user to switch libraries here
 if ( C4::Context->preference("SearchMyLibraryFirst") ) {
+    my $newbranch = '';
     foreach ( @params ) {
         if ( /^branch/ ) {
             my ( undef, $search_branch ) = split ":";
-            if ( C4::Context::userenv->{branch} ne $search_branch ) {
-                my $branchname = $branches->{$search_branch}->{'branchname'};
-                my $sessionID = $cgi->cookie("CGISESSID");
-                my $session = C4::Auth::get_session($sessionID);
+            $newbranch = $search_branch;
 
-                $session->param('branch',$search_branch);
-                $session->param('branchname',$branchname);
-                C4::Context::set_userenv(
-                    undef, undef,
-                    undef, undef,
-                    undef, $search_branch,
-                    $branchname, undef,
-                    undef, undef
-                    );
-                $template->param(
-                    LoginBranchname => $branchname,
-                    LoginBranchcode => $search_branch,
-                    mylibraryfirst => $search_branch,
-                    );
-            }
         }
+    }
+    if ( C4::Context::userenv->{branch} ne $newbranch ) {
+        my $branchname = $branches->{$newbranch} ? $branches->{$newbranch}->{'branchname'} : '';
+        my $sessionID = $cgi->cookie("CGISESSID");
+        my $session = C4::Auth::get_session($sessionID);
+
+        $session->param('branch',$newbranch);
+        $session->param('branchname',$branchname);
+        my $env = C4::Context::userenv;
+        C4::Context::set_userenv(
+            $env->{number}, $env->{id},
+            $env->{cardnumber}, $env->{firstname},
+            $env->{surname}, $newbranch,
+            $branchname, $env->{flags},
+            $env->{emailaddress}, $env->{branchprinter}
+            );
+        $template->param(
+            LoginBranchname => $branchname,
+            LoginBranchcode => $newbranch,
+            mylibraryfirst => $newbranch,
+            );
     }
 }
 
@@ -476,13 +480,11 @@ for (my $i=0;$i<@servers;$i++) {
                 # because pazGetRecords handles retieving only the records
                 # we want as specified by $offset and $results_per_page,
                 # we need to set the offset parameter of searchResults to 0
-                my @group_results = searchResults( 'opac', $query_desc, $group->{'group_count'},$results_per_page, 0, $scan,
-                                                   @{ $group->{"RECORDS"} }, C4::Context->preference('hidelostitems'));
+                my @group_results = searchResults( 'opac', $query_desc, $group->{'group_count'},$results_per_page, 0, $scan, C4::Context->preference('hidelostitems'), @{ $group->{"RECORDS"} });
                 push @newresults, { group_label => $group->{'group_label'}, GROUP_RESULTS => \@group_results };
             }
         } else {
-            @newresults = searchResults('opac', $query_desc, $hits, $results_per_page, $offset, $scan,
-                                        @{$results_hashref->{$server}->{"RECORDS"}},, C4::Context->preference('hidelostitems'));
+            @newresults = searchResults('opac', $query_desc, $hits, $results_per_page, $offset, $scan, C4::Context->preference('hidelostitems'), @{$results_hashref->{$server}->{"RECORDS"}});
         }
 		my $tag_quantity;
 		if (C4::Context->preference('TagsEnabled') and

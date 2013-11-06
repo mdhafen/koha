@@ -189,6 +189,17 @@ NULL, 'YesNo' )");
 	    $version_changed = 1;
 	}
 	$version_string .= "|$rev";
+
+	$rev = 'wcsd_hwi';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO `systempreferences` ( variable, value,
+ explanation, options, type ) VALUES ( 'HideWithdrawnItems', 1,
+ 'If set to ON items which are marked withdrawn will not be displayed in the OPAC in the search results or biblio details pages.',
+ '', 'YesNo' )");
+	    print "Add System Preference for HideWithdrawnItems\n";
+	    $version_changed = 1;
+	}
+	$version_string .= "|$rev";
     }
 
     # New revisions go here.
@@ -206,7 +217,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_afmfrot';
+    our $REVISION = 'wcsd_hwi';
     return $REVISION;
 }
 

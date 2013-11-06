@@ -80,19 +80,22 @@ $template->param('OPACShowCheckoutName' => C4::Context->preference("OPACShowChec
 # change back when ive fixed request.pl
 my @all_items = &GetItemsInfo( $biblionumber, 'opac' );
 my @items;
-@items = @all_items unless C4::Context->preference('hidelostitems');
+@items = @all_items unless C4::Context->preference('hidelostitems') || C4::Context->preference('HideWithdrawnItems');
 
 if (C4::Context->preference('hidelostitems')) {
-    # Hide host items
-    for my $itm (@all_items) {
-        push @items, $itm unless $itm->{itemlost};
-    }
+    # Hide lost items
+    @items = grep { ! $_->{itemlost} } @all_items;
+    @all_items = @items; # need this for the wthdrawn check below
+}
+if (C4::Context->preference('HideWithdrawnItems')) {
+    # Hide withdrawn items
+    @items = grep { ! $_->{wthdrawn} } @all_items;
 }
 if ( C4::Context->preference("IndependantBranches") ) {
     @all_items = ();
     my $bfield = C4::Context->preference('HomeOrHoldingBranch') eq 'holdingbranch' ? 'homebranch' : 'holdingbranch';
     for my $item ( @items ) {
-	push @all_items, $item unless (C4::Context->userenv && $item->{$bfield} ne C4::Context->userenv->{branch});
+	push @all_items, $item unless (C4::Context->userenv->{branch} && $item->{$bfield} ne C4::Context->userenv->{branch});
     }
     @items = @all_items;
 }
@@ -609,7 +612,7 @@ if (my $search_for_title = C4::Context->preference('OPACSearchForTitleIn')){
 
 # We try to select the best default tab to show, according to what
 # the user wants, and what's available for display
-my $opac_serial_default = C4::Context->preference('opacSerialDefaultTab');
+my $opac_serial_default = C4::Context->preference('opacSerialDefaultTab') || '';
 my $defaulttab = 
     $opac_serial_default eq 'subscriptions' && $subscriptionsnumber
         ? 'subscriptions' :

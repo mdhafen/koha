@@ -111,7 +111,7 @@ for my $authvfield (@$statuses) {
     $staton->{$authvfield->{fieldname}} = [];
     for my $authval (@{$authvfield->{values}}){
         if ( defined $input->param('status-' . $authvfield->{fieldname} . '-' . $authval->{id}) && $input->param('status-' . $authvfield->{fieldname} . '-' . $authval->{id}) eq 'on' ){
-            push @{$staton->{$authvfield->{fieldname}}}, $authval->{id};
+            push @{$staton->{$authvfield->{fieldname}}}, $authval->{authorised_value};
         }
     }
 }

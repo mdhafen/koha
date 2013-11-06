@@ -1376,11 +1376,17 @@ Format results in a form suitable for passing to the template
 # IMO this subroutine is pretty messy still -- it's responsible for
 # building the HTML output for the template
 sub searchResults {
-    my ( $search_context, $searchdesc, $hits, $results_per_page, $offset, $scan, @marcresults, $hidelostitems ) = @_;
+    my ( $search_context, $searchdesc, $hits, $results_per_page, $offset, $scan, @marcresults ) = @_;
     my $dbh = C4::Context->dbh;
     my @newresults;
 
     $search_context = 'opac' unless $search_context eq 'opac' or $search_context eq 'intranet';
+
+    my ( $hidewithdrawnitems, $hidelostitems ) = (0,0);
+    if ( $search_context eq 'opac' ) {
+        $hidelostitems = C4::Context->preference('hidelostitems') || 0;
+        $hidewithdrawnitems = C4::Context->preference('HideWithdrawnItems') || 0;
+    }
 
     #Build branchnames hash
     #find branchname
@@ -1571,10 +1577,17 @@ sub searchResults {
             }
 
 	    # IndependantBranches, etc...  dont show copies at other branches
-	    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv && $item->{$hbranch} ne C4::Context->userenv->{branch} ) {
+	    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv->{branch} && $item->{$hbranch} ne C4::Context->userenv->{branch} ) {
 		undef $field;
 		next;
 	    }
+            if (
+                ( $hidelostitems && $item->{itemlost} )
+                or ( $hidewithdrawnitems && $item->{wthdrawn} )
+                ) {
+                undef $field;
+                next;
+            }
 
 			my $prefix = $item->{$hbranch} . '--' . $item->{location} . $item->{itype} . $item->{itemcallnumber};
 # For each grouping of items (onloan, available, unavailable), we build a key to store relevant info about that item
@@ -1676,16 +1689,12 @@ sub searchResults {
                 }
             }
         }    # notforloan, item level and biblioitem level
+
 	# There may be empty spots in the items array
 	#  because of IndependantBranches pruning done above
 	#  remove these blank spots here
-	if ( C4::Context->preference('IndependantBranches') ) {
-	    for ( my $c = 0; $c < scalar( @fields ); $c++ ) {
-		unless ( defined $fields[ $c ] ) {
-		    splice @fields, $c, 1;
-		    $c--;
-		}
-	    }
+	if ( C4::Context->preference('IndependantBranches') || $hidelostitems || $hidewithdrawnitems ) {
+            @fields = grep {defined} @fields;
             $items_count = scalar(@fields);
 	}
 
@@ -1747,9 +1756,7 @@ sub searchResults {
         $oldbiblio->{isbn} =~
           s/-//g;    # deleting - in isbn to enable amazon content
         push( @newresults, $oldbiblio )
-            if(not $hidelostitems
-               or (($items_count > $itemlost_count )
-                    && $hidelostitems));
+            if($items_count);
     }
 
     return @newresults;
