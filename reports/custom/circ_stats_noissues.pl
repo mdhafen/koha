@@ -56,10 +56,11 @@ my ($template, $borrowernumber, $cookie)
 				});
 
 my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
+my $itype = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'biblioitems.itemtype';
 
 my $reportname = "circ_stats_noissues";  # ie "collection_itemnums"
 my $reporttitle = "Copies With No Check Outs";  # ie "Item Number by Branch"
-my @columns = ( "itemcallnumber", "barcode", "title", $hbranch );
+my @columns = ( "itemcallnumber", "barcode", "title", $hbranch, "items.biblionumber" );
 my @column_titles = ( "Call Number", "Barcode", "Title", "Branch" );
 my @tables = ( "items",
 	       [ # Joined Tables
@@ -68,6 +69,11 @@ my @tables = ( "items",
 	           table => 'biblio',  # Table name
 	           on => 'items.biblionumber = biblio.biblionumber',
 	           #using => 'biblionumber',  # Using column
+	         },
+	         {
+		   join => "LEFT",
+	           table => 'biblioitems',
+	           on => 'items.biblioitemnumber = biblioitems.biblioitemnumber',
 	         },
 		 {
 		   join => "LEFT",
@@ -88,21 +94,23 @@ my @queryfilter = ();
 
 if ( $filters[0] ) {
     push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued After", value => $filters[0] };
-    $tables[1][1]{'on'} .= " AND issues.issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
-    $tables[1][1]{'on'} .= " AND issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
-    $tables[1][2]{'on'} .= " AND old_issues.issuedate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
-    $tables[1][2]{'on'} .= " AND old_issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+    $tables[1][2]{'on'} .= " AND issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
+    $tables[1][3]{'on'} .= " AND old_issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
 }
 
 if ( $filters[1] ) {
     push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued Before", value => $filters[1] };
-    $tables[1][1]{'on'} .= " AND issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
-    $tables[1][1]{'on'} .= " AND issues.returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
-    $tables[1][2]{'on'} .= " AND old_issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
-    $tables[1][2]{'on'} .= " AND old_issues.returndate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+    $tables[1][2]{'on'} .= " AND issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
+    $tables[1][3]{'on'} .= " AND old_issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
 }
 
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+if ( $input->param( "ItemTypes" ) ) {
+    my @types = $input->param( "ItemTypes" );
+    my $types_str = "(". join( ',', map( $dbh->quote($_), @types ) ) .")";
+    push @queryfilter, { crit => $itype, op => "IN", filter => $types_str, title => "Item Type", value => join ',', @types };
+}
+
+if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
@@ -202,6 +210,25 @@ if ($do_it) {
 	    limit => "cal_from",
 	    limit_op => '>',
 	    value => $dateto,
+	};
+
+	my $itemtypes = GetItemTypes;
+	my @itemtypesloop;
+	foreach my $thisitype ( sort keys %$itemtypes ){
+		my %row = (
+			   value => $thisitype,
+			   label => $itemtypes->{$thisitype}->{description},
+			   );
+		push @itemtypesloop, \%row;
+	}
+	push @parameters, {
+	    select_box => 1,  # other options: checkbox, text, calendar
+	    select_loop => \@itemtypesloop,
+	    label => "Item Types",
+	    input_name => 'ItemTypes',
+	    first_blank => 1,
+	    size => 5,
+	    multiple => 1,
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {
@@ -413,6 +440,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
+            $mapped_values[2]{link} = '/cgi-bin/koha/catalogue/detail.pl?biblionumber='. @values[4];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
