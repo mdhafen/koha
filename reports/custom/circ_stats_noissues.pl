@@ -110,7 +110,7 @@ if ( $input->param( "ItemTypes" ) ) {
     push @queryfilter, { crit => $itype, op => "IN", filter => $types_str, title => "Item Type", value => join ',', @types };
 }
 
-if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
