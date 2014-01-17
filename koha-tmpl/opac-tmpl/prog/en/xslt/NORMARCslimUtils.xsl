@@ -176,13 +176,13 @@
                         </xsl:when>
                        <xsl:when test="boolean($index) and boolean(marc:subfield[@code=9])">
                             <a>
-                                <xsl:attribute name="href">/cgi-bin/koha/opac-search.pl?q=an:<xsl:value-of  select="marc:subfield[@code=9]"/></xsl:attribute>
+                                <xsl:attribute name="href">/cgi-bin/koha/opac-search.pl?idx=an&amp;q=<xsl:value-of  select="marc:subfield[@code=9]"/></xsl:attribute>
                                   <xsl:value-of select="$str"/>
                             </a>
                         </xsl:when>
                         <xsl:when test="boolean($index)">
                             <a>
-                                <xsl:attribute name="href">/cgi-bin/koha/opac-search.pl?q=<xsl:value-of  select="$index"/>:<xsl:value-of  select="marc:subfield[@code='a']"/></xsl:attribute>
+                                <xsl:attribute name="href">/cgi-bin/koha/opac-search.pl?idx=<xsl:value-of  select="$index"/>&amp;q=<xsl:value-of  select="marc:subfield[@code='a']"/></xsl:attribute>
                                 <xsl:value-of select="$str"/>
                             </a>
                         </xsl:when>

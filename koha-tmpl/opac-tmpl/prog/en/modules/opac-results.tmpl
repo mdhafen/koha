@@ -429,7 +429,7 @@ $(document).ready(function(){
 <!-- TMPL_IF NAME="volume" --> <!-- TMPL_VAR NAME="volume" --><!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="volumeddesc" --> <!-- TMPL_VAR NAME="volumeddesc" --><!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="number" --> <!-- TMPL_VAR NAME="number" --><!-- /TMPL_IF -->
-                                <!-- TMPL_IF NAME="author" -->by <a href="/cgi-bin/koha/opac-search.pl?q=au:<!-- TMPL_VAR NAME="author" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->" title="Search for works by this author" class="author"><!-- TMPL_VAR NAME="author" --></a>
+                                <!-- TMPL_IF NAME="author" -->by <a href="/cgi-bin/koha/opac-search.pl?idx=au&amp;q=<!-- TMPL_VAR NAME="author" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->" title="Search for works by this author" class="author"><!-- TMPL_VAR NAME="author" --></a>
                                 <!-- TMPL_ELSE -->&nbsp;
                                 <!-- /TMPL_IF -->
                                 <!-- TMPL_IF NAME="additionaltitles" -->
@@ -454,7 +454,7 @@ $(document).ready(function(){
 
                     <!-- TMPL_IF name="OPACItemsResultsDisplay" -->
 					    <!-- TMPL_UNLESS NAME="singleBranchMode" --><!-- TMPL_VAR NAME="location" --><!-- /TMPL_UNLESS -->
-                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/opac-search.pl?q=callnum:<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
+                        <!-- TMPL_IF NAME="itemcallnumber" -->[<a href="/cgi-bin/koha/opac-search.pl?idx=callnum&amp;q=<!-- TMPL_VAR NAME="itemcallnumber" ESCAPE="URL" --><!-- TMPL_IF NAME="mylibraryfirst" -->&amp;limit=branch:<!-- TMPL_VAR NAME="mylibraryfirst" --><!-- /TMPL_IF -->"><!-- TMPL_VAR NAME="itemcallnumber" --></a>]<!-- /TMPL_IF -->
                     <!-- /TMPL_IF -->
                     (<!-- TMPL_VAR NAME="count" -->),
                     <!-- /TMPL_LOOP -->
