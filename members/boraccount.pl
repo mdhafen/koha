@@ -32,12 +32,18 @@ use CGI;
 use C4::Members;
 use C4::Branch;
 use C4::Accounts;
+use C4::Biblio qw/GetBiblioFromItemNumber GetFrameworkCode GetRecordValue GetMarcBiblio/;
 
 my $input=new CGI;
+my $print = $input->param('print') || '';
+my $template = "members/boraccount.tmpl";
 
+if ( $print ) { #  eq 'page'
+    $template = 'members/boraccount-print.tmpl';
+}
 
 my ($template, $loggedinuser, $cookie)
-    = get_template_and_user({template_name => "members/boraccount.tmpl",
+    = get_template_and_user({template_name => $template,
                             query => $input,
                             type => "intranet",
                             authnotrequired => 0,
@@ -71,6 +77,14 @@ if($total <= 0){
 
 my $reverse_col = 0; # Flag whether we need to show the reverse column
 foreach my $accountline ( @{$accts}) {
+    if ( $accountline->{itemnumber} ) {
+        my $biblio = GetBiblioFromItemNumber($accountline->{itemnumber});
+        my $fw = GetFrameworkCode($biblio->{biblionumber});
+        my $record = GetMarcBiblio($biblio->{biblionumber});
+        my $subtitle = GetRecordValue('subtitle', $record, $fw);
+        $accountline->{subtitle} = $subtitle;
+        $accountline->{barcode} = $biblio->{barcode};
+    }
     $accountline->{amount} += 0.00;
     if ($accountline->{amount} <= 0 ) {
         $accountline->{amountcredit} = 1;

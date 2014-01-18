@@ -35,6 +35,7 @@ function update_child() {
 
 	 $(document).ready(function() {
 	    $("#printslip").parent().remove();
+	    $("#printfines").parent().remove();
 		$("#patronflags").parent().remove();
 		$("#deletepatron").parent().remove();
 		$("#moremenuc").empty();
@@ -47,12 +48,17 @@ function update_child() {
 		window.open("/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;print=" + print_type, "printwindow");
 		return false;
 	}
+	function printa_window(print_type) {
+		window.open("/cgi-bin/koha/members/boraccount.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;print=" + print_type, "printwindow");
+		return false;
+	}
 
 	function yuiToolbar() {
 	    var printmenu = [
 	        { text: _("Print Page"), onclick: {fn: function(){printx_window("page")}} },
 	        { text: _("Print Slip"), onclick: {fn: function(){printx_window("slip")}} },
-	        { text: _("Quick Slip"), onclick: {fn: function(){printx_window("qslip")}} }
+	        { text: _("Quick Slip"), onclick: {fn: function(){printx_window("qslip")}} },
+	        { text: _("Fines"), onclick: {fn: function(){printa_window("page")}} }
 	    ];
 
 		var moremenu = [
@@ -84,6 +90,7 @@ function update_child() {
 	    new YAHOO.widget.Button("changepassword");
 	    new YAHOO.widget.Button("printslip");
 		new YAHOO.widget.Button("printpage");
+		new YAHOO.widget.Button("printfines");
 	    new YAHOO.widget.Button("renewpatron");
 		new YAHOO.widget.Button("patronflags");
 		new YAHOO.widget.Button("deletepatron");
@@ -112,5 +119,6 @@ function update_child() {
 	<li><a id="changepassword" href="/cgi-bin/koha/members/member-password.pl?member=<!-- TMPL_VAR NAME="borrowernumber" -->">Change Password</a></li>
 	<li id="printmenuc"><a id="printpage" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;print=page">Print Page</a></li>
 	<li><a id="printslip" href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;print=slip">Print Slip</a></li>
+	<li><a id="printfines" href="/cgi-bin/koha/members/boraccount.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;print=page">Fines</a></li>
 	<li id="moremenuc"><a id="renewpatron" href="/cgi-bin/koha/members/moremember.pl?reregistration=y&amp;borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->">Renew Account</a></li><!-- TMPL_IF NAME="CAN_user_permissions" --><li><a id="patronflags" href="/cgi-bin/koha/members/member-flags.pl?member=<!-- TMPL_VAR NAME="borrowernumber" -->">Set Permissions</a></li><!-- /TMPL_IF --><li><a id="deletepatron" href="javascript:confirm_deletion();">Delete</a></li>
 </ul></div>
