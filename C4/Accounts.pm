@@ -38,7 +38,7 @@ BEGIN {
 		&recordpayment &makepayment &manualinvoice
 		&getnextacctno &reconcileaccount &getcharges &getcredits
 		&getrefunds &chargelostitem &updateline &deleteline
-		&ReversePayment
+		&getoffsetline &ReversePayment
 	); # removed &fixaccounts
 }
 
@@ -366,7 +366,7 @@ sub manualinvoice {
     {
         my $amount2 = -$amount;
         $amountleft =
-          fixcredit( $borrowernumber, $amount2, $itemnum, $type, $user );
+          fixcredit( $borrowernumber, $amount2, $itemnum, $type, $accountno, $user );
     }
     if ( $type eq 'N' ) {
         $desc .= " New Card";
@@ -429,7 +429,7 @@ sub manualinvoice {
 sub fixcredit {
 
     #here we update both the accountoffsets and the account lines
-    my ( $borrowernumber, $data, $itemnum, $type, $user ) = @_;
+    my ( $borrowernumber, $data, $itemnum, $type, $offsetaccount, $user ) = @_;
     my $dbh        = C4::Context->dbh;
     my $newamtos   = 0;
     my $accdata    = "";
@@ -464,7 +464,7 @@ sub fixcredit {
         my $sth = $dbh->prepare( $query . $query_type_part . $query_item_part );
         $sth->execute( @bind );
         while ( $accdata = $sth->fetchrow_hashref ) {
-            my $nextaccntno = getnextacctno($borrowernumber);
+            my $nextaccntno = $offsetaccount || getnextacctno($borrowernumber);
             if ( $accdata->{'amountoutstanding'} < $amountleft ) {
                 $newamtos = 0;
                 $amountleft -= $accdata->{'amountoutstanding'};
@@ -485,7 +485,7 @@ sub fixcredit {
                VALUES (?,?,?,?)"
                 );
             $usth->execute( $borrowernumber, $accdata->{'accountno'},
-                            $nextaccntno, $newamtos );
+                            $nextaccntno, $accdata->{'amountoutstanding'} - $newamtos );
             $usth->finish;
         }
         if ( $amountleft && $query_type_part ) {
@@ -514,14 +514,14 @@ sub fixcredit {
 sub refund {
 
     #here we update both the accountoffsets and the account lines
-    my ( $borrowernumber, $data ) = @_;
+    my ( $borrowernumber, $data, $offsetaccount ) = @_;
     my $dbh        = C4::Context->dbh;
     my $newamtos   = 0;
     my $accdata    = "";
     my $amountleft = $data * -1;
 
     # begin transaction
-    my $nextaccntno = getnextacctno($borrowernumber);
+    my $nextaccntno = $offsetaccount || getnextacctno($borrowernumber);
 
     # get lines with outstanding amounts to offset
     my $sth = $dbh->prepare(
@@ -557,7 +557,7 @@ sub refund {
      VALUES (?,?,?,?)"
         );
         $usth->execute( $borrowernumber, $accdata->{'accountno'},
-            $nextaccntno, $newamtos );
+            $nextaccntno, $accdata->{'amountoutstanding'} - $newamtos );
         $usth->finish;
     }
     $sth->finish;
@@ -593,7 +593,7 @@ sub updateline {
     my @bind;
     my %data = (
 	description => $desc,
-	type => $type,
+	accounttype => $type,
 	amount => $amount,
 	amountoutstanding => $outstanding,
 	);
@@ -685,6 +685,17 @@ sub getrefunds {
     return (@results);
 }
 
+sub getoffsetlines {
+  my ( $borrowernumber, $accountno ) = @_;
+  my $dbh = C4::Context->dbh;
+  
+  my $sth = $dbh->prepare('SELECT * FROM accountoffsets WHERE borrowernumber = ? AND offsetaccount = ?');
+  $sth->execute( $borrowernumber, $accountno );
+  my $data = $sth->fetchall_arrayref({});
+
+  return $data;
+}
+
 sub ReversePayment {
   my ( $borrowernumber, $accountno ) = @_;
   my $dbh = C4::Context->dbh;
@@ -700,6 +711,20 @@ sub ReversePayment {
   } else {
     $sth = $dbh->prepare('UPDATE accountlines SET amountoutstanding = 0, description = CONCAT( description, " Reversed -" ) WHERE borrowernumber = ? AND accountno = ?');
     $sth->execute( $borrowernumber, $accountno );
+  }
+
+  if ( my $offsets = getoffsetlines($borrowernumber,$accountno) ) {
+      foreach $offset ( @$offsets ) {
+          my $line = getcharges( $borrowernumber, '', $offset->{'accountno'} );
+          my $desc = $line->{'description'};
+          my $amount = $line->{'amount'};
+          my $type = $line->{'accounttype'};
+          if ( $offset->{'offsetamount'} ) {
+              updateline( $borrowernumber, $offset->{'accountno'}, $desc, $amount, $offset->{'offsetamount'}, $type );
+          else {  # Old line, guess that amountoutstanding was equal to amount
+              updateline( $borrowernumber, $offset->{'accountno'}, $desc, $amount, $amount, $type );
+          }
+      }
   }
 }
 
