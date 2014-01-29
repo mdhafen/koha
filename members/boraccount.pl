@@ -36,14 +36,14 @@ use C4::Biblio qw/GetBiblioFromItemNumber GetFrameworkCode GetRecordValue GetMar
 
 my $input=new CGI;
 my $print = $input->param('print') || '';
-my $template = "members/boraccount.tmpl";
+my $template_file = "members/boraccount.tmpl";
 
 if ( $print ) { #  eq 'page'
-    $template = 'members/boraccount-print.tmpl';
+    $template_file = 'members/boraccount-print.tmpl';
 }
 
 my ($template, $loggedinuser, $cookie)
-    = get_template_and_user({template_name => $template,
+    = get_template_and_user({template_name => $template_file,
                             query => $input,
                             type => "intranet",
                             authnotrequired => 0,
@@ -97,7 +97,8 @@ foreach my $accountline ( @{$accts}) {
     $accountline->{date} = format_date($accountline->{date});
     $accountline->{amount} = sprintf '%.2f', $accountline->{amount};
     $accountline->{amountoutstanding} = sprintf '%.2f', $accountline->{amountoutstanding};
-    if (getoffsetlines($accountline->{borrowernumber},$accountline->{accountno}) {
+    my $offsetlines = getoffsetlines($accountline->{borrowernumber},$accountline->{accountno});
+    if ( @$offsetlines ) {
         $accountline->{reverseable} = 1;
         $reverse_col = 1;
     }

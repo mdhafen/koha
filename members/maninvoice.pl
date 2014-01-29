@@ -102,6 +102,7 @@ if ($add){
     $template->param( picture => 1 ) if $picture;
 
 	$template->param(
+                finesview => 1,
                 borrowernumber => $borrowernumber,
 		firstname => $data->{'firstname'},
                 surname  => $data->{'surname'},

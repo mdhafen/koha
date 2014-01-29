@@ -147,6 +147,7 @@ $template->param( picture => 1 ) if $picture;
 	
     $template->param(
         allfile        => \@allfile,
+        finesview      => 1,
         firstname      => $data->{'firstname'},
         surname        => $data->{'surname'},
         borrowernumber => $borrowernumber,
@@ -208,8 +209,8 @@ sub writeoff {
       );
     $sth->execute( $desc, $accountnum, $borrowernumber );
     $sth->finish;
-    $sth = $dbh->prepare("select max(accountno) from accountlines");
-    $sth->execute;
+    $sth = $dbh->prepare("select max(accountno) from accountlines where borrowernumber=?");
+    $sth->execute( $borrowernumber );
     my $account = $sth->fetchrow_hashref;
     $sth->finish;
     $account->{'max(accountno)'}++;
@@ -218,7 +219,14 @@ sub writeoff {
 						values (?,?,?,now(),?,'Writeoff','W')"
     );
     $sth->execute( $borrowernumber, $account->{'max(accountno)'},
-        $itemnum, $amount );
+        $itemnum, $amount * -1 );
+    $sth->finish;
+    $sth = $dbh->prepare(
+	"insert into accountoffsets (borrowernumber,accountno,offsetaccount,offsetamount)
+	values (?,?,?,?)"
+    );
+    $sth->execute( $borrowernumber, $accountnum, $account->{'max(accountno)'},
+        $amount );
     $sth->finish;
     UpdateStats( $branch, 'writeoff', $amount, '', '', '',
         $borrowernumber );

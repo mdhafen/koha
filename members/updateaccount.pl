@@ -55,7 +55,7 @@ unless ( $borrowernumber && $accountno ) {
 my $op = $input->param('button');
 my $result = 0;
 my ( $desc, $type, $amount, $outstanding ) = ( '', '', 0, 0 );
-my $borr = GetMember( $borrowernumber, 'borrowernumber' );
+my $borr = GetMember( 'borrowernumber' => $borrowernumber );
 
 if ( $op ) {
     $desc = $input->param('description');
@@ -103,6 +103,7 @@ $template->param( adultborrower => 1 ) if ( $borr->{'category_type'} eq 'A' );
 my ($picture, $dberror) = GetPatronImage($borr->{'cardnumber'});
 $template->param( picture => 1 ) if $picture;
 $template->param(
+    finesview => 1,
     firstname => $borr->{'firstname'},
     surname  => $borr->{'surname'},
     cardnumber => $borr->{'cardnumber'},
