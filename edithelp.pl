@@ -63,8 +63,10 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 
 sub _get_filepath ($;$) {
     my $referer = shift;
-    $referer =~ /.*koha\/(.+)\.pl.*/;
-    my $from   = "help/$1.tmpl";
+    $referer =~ /koha\/(.*)\.pl/;
+    my $file = $1;
+    $file =~ s/[^0-9a-zA-Z_\-\/]*//g;
+    my $from = "help/$file.tmpl";
     my $htdocs = C4::Context->config('intrahtdocs');
     my ($theme, $lang) = themelanguage( $htdocs, $from, "intranet", $input );
 	$debug and print STDERR "help filepath: $htdocs/$theme/$lang/modules/$from";
