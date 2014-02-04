@@ -31,7 +31,7 @@
     <!-- /TMPL_IF -->
 
     <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
-    <dt><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar Fined Patrons</a></dt>
+    <dt><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar patrons with fines</a></dt>
 	<dd>Mark Patrons debarred who have more than a certain amount of fines.</dd>
     <!-- /TMPL_IF -->
 
@@ -40,16 +40,16 @@
     <dd>Define notices (print and email notification messages for overdues, etc.)</dd>
     <!-- /TMPL_IF -->
 
-    <!-- TMPL_IF NAME="CAN_user_tools" -->
-    <dt><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines Rules</a></dt>
-    <dd>Define circulation and fines rules for combinations of libraries, patron categories, and item types</dd>
-    <!-- /TMPL_IF -->
-
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notice_status_triggers" -->
     <dt><a href="/cgi-bin/koha/tools/overduerules.pl">Overdue notice/status triggers</a></dt>
     <dd>Set notice/status triggers for overdue items</dd>
     <!-- /TMPL_IF -->
     
+    <!-- TMPL_IF NAME="CAN_user_tools" -->
+    <dt><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines Rules</a></dt>
+    <dd>Define circulation and fines rules for combinations of libraries, patron categories, and item types</dd>
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="CAN_user_tools_label_creator" -->
     <dt><a href="/cgi-bin/koha/patroncards/home.pl">Patron card creator</a></dt>
     <dd>Create printable patron cards</dd>

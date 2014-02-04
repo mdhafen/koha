@@ -22,14 +22,20 @@
     <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
 	<li><a href="/cgi-bin/koha/tools/import_borrowers.pl">Import patrons</a></li>
     <!-- /TMPL_IF -->
-    <!-- TMPL_IF NAME="CAN_user_tools" -->
-	<li><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines rules</a></li>
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+	<li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></li>
+    <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
+	<li><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar patrons with fines</a></li>
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notices" -->
 	<li><a href="/cgi-bin/koha/tools/letter.pl">Notices</a></li>
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notice_status_triggers" -->
 	<li><a href="/cgi-bin/koha/tools/overduerules.pl">Overdue notice/status triggers</a></li>
+    <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools" -->
+	<li><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines rules</a></li>
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_label_creator" -->
     <li><a href="/cgi-bin/koha/patroncards/home.pl">Patron card creator</a></li>
@@ -93,12 +99,6 @@
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_edit_news" -->
 	<li><a href="/cgi-bin/koha/tools/koha-news.pl">News</a></li>
-    <!-- /TMPL_IF -->
-    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
-	<li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></li>
-    <!-- /TMPL_IF -->
-    <!-- TMPL_IF NAME="CAN_user_tools_import_patrons" -->
-	<li><a href="/cgi-bin/koha/tools/debar-fined-members.pl">Debar Fined Patrons</a></li>
     <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools_schedule_tasks" -->
 	<li><a href="/cgi-bin/koha/tools/scheduler.pl">Task scheduler</a></li>
