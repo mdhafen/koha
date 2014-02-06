@@ -34,6 +34,9 @@
     <!-- TMPL_IF NAME="CAN_user_tools_edit_notice_status_triggers" -->
 	<li><a href="/cgi-bin/koha/tools/overduerules.pl">Overdue notice/status triggers</a></li>
     <!-- /TMPL_IF -->
+    <!-- TMPL_IF NAME="CAN_user_tools_edit_notice_status_triggers" -->
+	<li><a href="/cgi-bin/koha/tools/trigger-overdue-fine-notices.pl">Trigger Overdue or Fine notices</a></li>
+    <!-- /TMPL_IF -->
     <!-- TMPL_IF NAME="CAN_user_tools" -->
 	<li><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines rules</a></li>
     <!-- /TMPL_IF -->

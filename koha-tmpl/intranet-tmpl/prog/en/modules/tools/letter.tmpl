@@ -215,6 +215,11 @@ $(document).ready(function() {
                                     <!--TMPL_ELSE-->
                                     <option value="members">Members</option>
                                     <!--/TMPL_IF-->
+                                    <!--TMPL_IF Name="accounts"-->
+                                    <option value="accounts" selected="selected">Accounts</option>
+                                    <!--TMPL_ELSE-->
+                                    <option value="accounts">Accounts</option>
+                                    <!--/TMPL_IF-->
                                     <!--TMPL_IF Name="serial"-->
                                     <option value="serial" selected="selected">Serials (Routing List)</option>
                                     <!--TMPL_ELSE-->

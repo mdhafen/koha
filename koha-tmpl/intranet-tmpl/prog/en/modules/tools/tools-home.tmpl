@@ -45,6 +45,11 @@
     <dd>Set notice/status triggers for overdue items</dd>
     <!-- /TMPL_IF -->
     
+    <!-- TMPL_IF NAME="CAN_user_tools_edit_notice_status_triggers" -->
+	<dt><a href="/cgi-bin/koha/tools/trigger-overdue-fine-notices.pl">Trigger Overdue or Fine notices</a></dt>
+        <dd>Trigger notices for overdues or fines.</dd>
+    <!-- /TMPL_IF -->
+
     <!-- TMPL_IF NAME="CAN_user_tools" -->
     <dt><a href="/cgi-bin/koha/admin/smart-rules.pl">Circulation and Fines Rules</a></dt>
     <dd>Define circulation and fines rules for combinations of libraries, patron categories, and item types</dd>

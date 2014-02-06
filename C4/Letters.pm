@@ -487,6 +487,7 @@ sub parseletter_sth {
     ($table eq 'items'        ) ? "SELECT * FROM $table WHERE     itemnumber = ?"                      :
     ($table eq 'reserves'     ) ? "SELECT * FROM $table WHERE borrowernumber = ? and biblionumber = ?" :
     ($table eq 'borrowers'    ) ? "SELECT * FROM $table WHERE borrowernumber = ?"                      :
+    ($table eq 'accountlines' ) ? "SELECT * FROM $table WHERE borrowernumber = ? and accountno = ?"    :
     ($table eq 'branches'     ) ? "SELECT * FROM $table WHERE     branchcode = ?"                      :
     ($table eq 'suggestions'  ) ? "SELECT * FROM $table WHERE   suggestionid = ?"                      :
     ($table eq 'aqbooksellers') ? "SELECT * FROM $table WHERE             id = ?"                      : undef ;

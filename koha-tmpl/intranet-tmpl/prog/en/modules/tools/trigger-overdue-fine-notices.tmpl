@@ -1,0 +1,128 @@
+<!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
+<title>Koha &rsaquo; Tools &rsaquo; Trigger overdue or fine notices</title>
+
+<script type="text/javascript">
+//<![CDATA[
+function swap_selects( value, options ) {
+         for ( i in options ) {
+             li_block = document.getElementById( options[i] );
+             if ( i == value ) {
+                li_block.style.display = "list-item";
+             }
+             else {
+                li_block.style.display = "none";
+             }
+         }
+}
+//]]>
+</script>
+
+<!-- TMPL_INCLUDE NAME="doc-head-close.inc" -->
+</head>
+<body>
+
+<!-- TMPL_INCLUDE NAME="header.inc" -->
+<!-- TMPL_INCLUDE NAME="patron-search.inc"-->
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a> &rsaquo; <!-- TMPL_UNLESS NAME="op" -->Trigger overdue or fine notices<!-- TMPL_ELSE --><a href="/cgi-bin/koha/tools/trigger-overdue-fine-notices.pl">Trigger overdue or fine notices</a> &rsaquo; Results of pulling the trigger<!-- /TMPL_UNLESS --> </div>
+
+<div id="doc3" class="yui-t2">
+    <div id="bd">
+        <div id="yui-main">
+<!-- TMPL_IF name="op" -->
+    <div class="yui-b">
+        <div class="yui-g">
+            <div class="yui-u first">
+                <div class="dialog message">
+                <h1>Results of pulling the trigger</h1>
+                </div>
+	        <ul class="data">
+                    <li><!-- TMPL_VAR NAME="emails_sent" --> Emails are going to be sent.</li>
+                </ul>
+                <a id="doneupload" href="/cgi-bin/koha/tools/tools-home.pl">Return to Tools</a>
+            </div>
+<!-- TMPL_ELSE -->
+    <div class="yui-b">
+        <div class="yui-g">
+            <div class="yui-u first">
+                <h1>Trigger overdue or fine notices</h1>
+	        <form method="post" action="/cgi-bin/koha/tools/trigger-overdue-fine-notices.pl">
+	            <fieldset class="rows">
+	                <ol>
+                            <li><label for="branch">Branch: </label>
+                            <select name="branch">
+                            <!-- TMPL_LOOP NAME="branchLOOP" -->
+                            <!-- TMPL_IF NAME="selected" -->
+                                <option value="<!-- TMPL_VAR NAME="value" -->" selected="selected"><!-- TMPL_VAR NAME="label" --></option>
+                            <!-- TMPL_ELSE -->
+                                <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
+                            <!-- /TMPL_IF -->
+                            <!-- /TMPL_LOOP -->
+                            </select>
+                            </li>
+
+                            <li><label for="category">Patron category: </label>
+                            <select name="category">
+                                <option value="">Select a category</option>
+                            <!-- TMPL_LOOP NAME="category_loop" -->
+                            <!-- TMPL_IF NAME="selected" -->
+                                <option value="<!-- TMPL_VAR NAME="categorycode" -->" selected="selected"><!-- TMPL_VAR NAME="description" --></option>
+                            <!-- TMPL_ELSE -->
+                                <option value="<!-- TMPL_VAR NAME="categorycode" -->"><!-- TMPL_VAR NAME="description" --></option>
+                            <!-- /TMPL_IF -->
+                            <!-- /TMPL_LOOP -->
+                            </select>
+                            </li>
+
+                            <li>
+                            <label for="module">Module: </label>
+                            <select name="module" onchange="swap_selects(this.options[ this.selectedIndex ].value, {'accounts':'fine-code-select','circulation':'circ-code-select'} );">
+                                    <option value=""></option>
+                                    <option value="accounts">Accounts (fines)</option>
+                                    <option value="circulation">Circulation (overdues)</option>
+                            </select>
+			    </li>
+
+                            <li id="circ-code-select" style="display:none">
+                            <label for="circ-code">Circulation notice code: </label>
+                            <select name="circ-code">
+                                    <option value="">Select a circulation letter</option>
+                                    <!-- TMPL_LOOP NAME="circ_letter_loop" -->
+                                    <!-- TMPL_IF NAME="selected" -->
+                                    <option value="<!-- TMPL_VAR NAME="value" -->" selected="selected"><!-- TMPL_VAR NAME="label" --></option>
+                                    <!-- TMPL_ELSE -->
+                                    <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
+                                    <!-- /TMPL_IF -->
+                                    <!-- /TMPL_LOOP -->
+                            </select>
+			    </li>
+
+                            <li id="fine-code-select" style="display:none">
+                            <label for="fine-code">Accounts notice code: </label>
+                            <select name="fine-code">
+                                    <option value="">Select an account letter</option>
+                                    <!-- TMPL_LOOP NAME="fine_letter_loop" -->
+                                    <!-- TMPL_IF NAME="selected" -->
+                                    <option value="<!-- TMPL_VAR NAME="value" -->" selected="selected"><!-- TMPL_VAR NAME="label" --></option>
+                                    <!-- TMPL_ELSE -->
+                                    <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
+                                    <!-- /TMPL_IF -->
+                                    <!-- /TMPL_LOOP -->
+                            </select>
+			    </li>
+	                </ol>
+	            </fieldset>
+                    <fieldset class="action"><input type="submit" name="op" value="Trigger" class="submit" /> <a href="/cgi-bin/koha/tools/tools-home.pl" class="cancel">Cancel</a>
+                    </fieldset>
+                </form>
+
+            </div>
+<!-- /TMPL_IF -->
+        </div>
+    </div>
+</div>
+<div class="yui-b noprint">
+    <!-- TMPL_INCLUDE NAME="tools-menu.inc" -->
+</div>
+</div>
+<!-- TMPL_INCLUDE NAME="intranet-bottom.inc" -->

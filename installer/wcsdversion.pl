@@ -200,6 +200,37 @@ NULL, 'YesNo' )");
 	    $version_changed = 1;
 	}
 	$version_string .= "|$rev";
+
+	$rev = 'wcsd_aan';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO letter (module,code,name,title,content) VALUES ('accounts','FINE','Outstanding Patron Fines','Outstanding Library Fines','Dear <<borrowers.firstname>> <<borrowers.surname>>,
+According to our current records, your account with the library has an outstanding balance.  Please contact the library as soon as possible.
+<<branches.branchname>>
+<<branches.branchaddress1>> <<branches.branchaddress2>> <<branches.branchaddress3>>
+phone: <<branches.branchphone>>
+fax: <<branches.branchfax>>
+email: <<branches.branchemail>>
+
+If you have registered a password with the library, you may use it with your library card number to see what fines and/or credits you have on your account.  The following fines need to be payed:
+
+<<fines.content>>')");
+	    print "Adding a sample notice for the account module with the FINE code\n";
+
+            my $letters = $dbh->selectall_arrayref("SELECT * FROM letter WHERE module = 'reserves' AND code = 'PLACED'",{ Slice=>{}},);
+            unless ( @$letters ) {
+                $dbh->do("INSERT INTO letter (module,code,name,title,content) VALUES ('reserves','PLACED','Hold Placed','A hold has been placed','Dear Librarian,
+
+A hold has been placed as of <<reserves.reservedate>>:
+
+Patron: <<borrowers.firstname>> <<borrowers.surname>>
+Title: <<biblio.title>>
+Author: <<biblio.author>>')");
+                print "Adding a sample notice for the reserves module with the code PLACED while I'm at it, which is used by opac code to notify the librarian of holds placed.\n";
+            }
+
+	    $version_changed = 1;
+	}
+	$version_string .= "|$rev";
     }
 
     # New revisions go here.
@@ -217,7 +248,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_hwi';
+    our $REVISION = 'wcsd_aan';
     return $REVISION;
 }
 
