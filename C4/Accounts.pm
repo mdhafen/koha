@@ -662,7 +662,7 @@ sub deleteline {
     $debug && defined $dbh->err && warn "Database Error: ". $dbh->errstr;
     defined $dbh->err && $errors++;
 
-    return $errors;
+    return ($errors) ? 0 : 1;
 }
 
 sub getcredits {
