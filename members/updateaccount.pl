@@ -71,6 +71,9 @@ if ( $op ) {
         }
     } elsif ( $desc || $type || $amount || $outstanding ) {
         $result = updateline( $borrowernumber, $accountno, $desc, $amount, $outstanding, $type );
+	if ( $result ) {
+            print $input->redirect( "/cgi-bin/koha/members/boraccount.pl?borrowernumber=$borrowernumber" );
+	}
     }
 } else {
     my ( $charge ) = getcharges( $borrowernumber, undef, $accountno );
