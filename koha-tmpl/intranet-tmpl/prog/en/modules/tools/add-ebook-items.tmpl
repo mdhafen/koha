@@ -8,7 +8,10 @@
 <div id="breadcrumbs">
 	<a href="/cgi-bin/koha/mainpage.pl">Home</a>
 	&rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a>
-	&rsaquo; Add items to ebook MARC batch
+<!-- TMPL_IF NAME="RESULTS" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Results<!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="LIST" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Batch list<!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="DETAIL" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Batch details<!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="INIT" -->&rsaquo; Add items to ebook MARC batch<!-- /TMPL_IF -->
 </div>
 
 <div id="doc3" class="yui-t2">
@@ -29,7 +32,8 @@
 	<div id="addebookresult">
 		<h3>Results</h3>
 		<p><!-- TMPL_VAR NAME="num_bibs" --> biblio records processes</p>
-		<p><!-- TMPL_VAR NAME="num_items" --> item records created</p>
+		<!-- TMPL_IF NAME="num_items_added" --><p><!-- TMPL_VAR NAME="num_items_added" --> item records created</p><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="num_items_deleted" --><p><!-- TMPL_VAR NAME="num_items_deleted" --> item records removed</p><!-- /TMPL_IF -->
 	</div>
 <!-- TMPL_ELSE --><!-- TMPL_IF NAME="LIST" -->
 <script type="text/javascript" src="<!-- TMPL_VAR name="themelang" -->/lib/jquery/plugins/jquery.tablesorter.min.js"></script>
@@ -123,6 +127,7 @@
 		<fieldset class="action">
 			<input type="hidden" name="op" value="init"/>
 			<input type="hidden" name="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->"/>
+                        <input type="hidden" name="reverse" value="<!-- TMPL_VAR NAME="reverse" -->"/>
 			<input type="submit" value="Submit"/>
 			<a href="/cgi-bin/koha/tools/add-ebook-items.pl?op=select&batch_id=<!-- TMPL_VAR NAME="import_batch_id" -->&branchcode=<!-- TMPL_VAR NAME="branchcode" -->&handle_url=<!-- TMPL_VAR NAME="handle_url" -->&itype=<!-- TMPL_VAR NAME="itype" -->&entered_url=<!-- TMPL_VAR NAME="entered_url" -->" class="cancel">Back</a>
 		</fieldset>
@@ -143,17 +148,38 @@
 				</li>
 			</ol>
 		</fieldset>
+
+		<fieldset class="rows">
+			<ol>
+				<li><label for="reverse">Reverse an import: </label>
+					<input type="checkbox" name="reverse" id="reverse" <!-- TMPL_IF NAME="reverse" -->checked="checked"<!-- /TMPL_IF --> onchange='{
+  var c_value = this.checked;
+  var f_block = document.getElementById("import_actions");
+  var s_input = document.getElementById("submit_reverse");
+  if ( c_value ) {
+    f_block.style.display = "none";
+    s_input.value = "on";
+  } else {
+    f_block.style.display = "block";
+    s_input.value = "";
+  }
+}'>
+				</li>
+			</ol>
+		</fieldset>
+
 		<fieldset class="action">
 			<input type="hidden" name="op" value="select"/>
 			<input type="hidden" name="branchcode" value="<!-- TMPL_VAR NAME="branchcode" -->"/>
 			<input type="hidden" name="handle_url" value="<!-- TMPL_VAR NAME="handle_url" -->"/>
+                        <input type="hidden" name="reverse" value="<!-- TMPL_VAR NAME="reverse" -->"/>
 			<input type="submit" value="Select import batch"/>
 		</fieldset>
 		</form>
 
 	<!-- TMPL_IF NAME="batch_id" -->
 		<form action="/cgi-bin/koha/tools/add-ebook-items.pl" method="post">
-		<fieldset class="rows">
+		<fieldset class="rows" id="import_actions">
 			<ol>
 				<li><label for="handle_url">Copy URI from MARC: </label>
 				<select id="handle_url" name="handle_url" />
@@ -189,6 +215,7 @@
 		<fieldset class="action">
 			<input type="hidden" name="op" value="submit"/>
 			<input type="hidden" name="batch_id" value="<!-- TMPL_VAR NAME="batch_id" -->"/>
+                        <input type="hidden" name="reverse" id="submit_reverse" value="<!-- TMPL_VAR NAME="reverse" -->"/>
 			<!-- TMPL_IF NAME="biblios" --><!-- TMPL_LOOP NAME="biblios" -->
 			<input type="hidden" name="biblios" value="<!-- TMPL_VAR NAME="value" -->"/>
 			<!-- /TMPL_LOOP --><!-- /TMPL_IF -->

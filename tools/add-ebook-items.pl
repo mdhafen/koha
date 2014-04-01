@@ -34,7 +34,7 @@ use C4::Context;
 use C4::Auth;
 use C4::Output;
 use C4::Koha qw/GetItemTypes/;
-use C4::Items qw/AddItem/;
+use C4::Items qw/AddItem DelItem/;
 use C4::Biblio qw/GetMarcBiblio GetMarcUrls ModBiblio/;
 use C4::ImportBatch qw/GetImportBatchRangeDesc GetImportBibliosRange GetImportBatch GetImportRecordMatches/;
 use C4::Branch qw/GetBranchesLoop onlymine mybranch/;
@@ -42,6 +42,7 @@ use C4::Branch qw/GetBranchesLoop onlymine mybranch/;
 my $input = new CGI;
 
 my $op = $input->param('op') || '';
+my $reverse = $input->param('reverse') || '';
 my $batch_id = $input->param('batch_id') || 0;
 my $handle_url = $input->param('handle_url') || '';
 my $itype = $input->param('itype') || '';
@@ -70,8 +71,9 @@ my $branch = onlymine() ? mybranch() : $input->param('branchcode') || mybranch()
 if ($op eq 'submit') {
     my $num_bibs = 0;
     my $num_items_added = 0;
+    my $num_items_deleted = 0;
 
-    if ( $batch_id && $branch && $url_action ) {
+    if ( $batch_id && $branch && ( $url_action || $reverse ) ) {
         my %biblios_only;
         if ( @biblios ) {
             %biblios_only = map { $_ => 1 } @biblios;
@@ -97,7 +99,18 @@ if ($op eq 'submit') {
                 # Make sure there isn't already an item record
                 $sth->execute( $biblio->{matched_biblionumber}, $branch );
                 my $data = $sth->fetchrow_hashref || {};
-                next if ( %$data && $data->{itemnumber} );
+                if ( $reverse ) {
+                    do { 
+                        if ( $data->{'uri'} ) {
+                            DelItem( $dbh, $data->{'biblionumber'}, $data->{'itemnumber'} );
+                            $num_items_deleted++;
+                        }
+                    } while ( $data = $sth->fetchrow_hashref );
+                    next;
+                }
+                else {
+                    next if ( %$data && $data->{itemnumber} );
+                }
 
                 $num_items_added++;
 
@@ -158,7 +171,8 @@ if ($op eq 'submit') {
         $template->param(
             'RESULTS' => 1,  # process stage
             num_bibs => $num_bibs,
-            num_items => $num_items_added,
+            num_items_added => $num_items_added,
+            num_items_deleted => $num_items_deleted,
             );
     }
     else {
@@ -235,6 +249,7 @@ if ($op eq 'submit') {
 
 $template->param(
     batch_id => $batch_id,
+    reverse => $reverse,
     "handle_url_$url_action" => 1,
     branchcode => $branch,
     entered_url => $entered_url,
