@@ -364,9 +364,8 @@ sub manualinvoice {
 
     if ( $amount )
     {
-        my $amount2 = -$amount;
         $amountleft =
-          fixcredit( $borrowernumber, $amount2, $itemnum, $type, $accountno, $user );
+          fixcredit( $borrowernumber, $amount, $itemnum, $type, $accountno, $user );
     }
     if ( $type eq 'N' ) {
         $desc .= " New Card";
@@ -439,7 +438,7 @@ sub fixcredit {
     my $query_type_part = "";
     my $query_item_part = "";
     my $query = "SELECT * FROM accountlines WHERE ( borrowernumber = ?
-    AND amountoutstanding ". ( ( $data > 0 ) ? ">" : "<" ) ." 0 )";
+    AND amountoutstanding ". ( ( $data > 0 ) ? "<" : ">" ) ." 0 )";
 
     if ( $type eq 'CL' ) {
 	$query_type_part .= " AND ( accounttype = 'L' OR accounttype = 'Rep' )";
@@ -465,17 +464,17 @@ sub fixcredit {
         $sth->execute( @bind );
         while ( $accdata = $sth->fetchrow_hashref ) {
             my $nextaccntno = $offsetaccount || getnextacctno($borrowernumber);
-            if ( $data > 0 ) {  # dealing with positive integers
-                if ( $accdata->{'amountoutstanding'} < $amountleft ) {
+            if ( $data > 0 ) {  # dealing with Invoice
+                if ( $accdata->{'amountoutstanding'} > $amountleft * -1 ) {
                     $newamtos = 0;
-                    $amountleft -= $accdata->{'amountoutstanding'};
+                    $amountleft += $accdata->{'amountoutstanding'};
                 } else {
-                    $newamtos   = $accdata->{'amountoutstanding'} - $amountleft;
+                    $newamtos   = $accdata->{'amountoutstanding'} + $amountleft;
                     $amountleft = 0;
                 }
             }
             else {
-                if ( $accdata->{'amountoutstanding'} > $amountleft ) {
+                if ( $accdata->{'amountoutstanding'} < $amountleft * -1 ) {
                     $newamtos = 0;
                     $amountleft += $accdata->{'amountoutstanding'};
                 } else {
@@ -484,7 +483,7 @@ sub fixcredit {
                 }
             }
             my $thisacct = $accdata->{accountno};
-            my $offsetamount = ( $data > 0 ) ? $accdata->{'amountoutstanding'} - $newamtos : $accdata->{'amountoutstanding'} + $newamtos;
+            my $offsetamount = ( $data > 0 ) ? $accdata->{'amountoutstanding'} + $newamtos : $accdata->{'amountoutstanding'} - $newamtos;
             my $usth     = $dbh->prepare(
                 "UPDATE accountlines SET amountoutstanding= ?
                   WHERE (borrowernumber = ?) AND (accountno=?)"
@@ -510,7 +509,6 @@ sub fixcredit {
         }
     }
     UpdateStats( $user, $type, $data, $user, '', '', $borrowernumber );
-    $amountleft = -$amountleft;
     return $amountleft;
 }
 
