@@ -50,6 +50,7 @@
                    <table id="files">
                      <thead>
                      <tr>
+                       <th>Batch Number</th>
                        <th>File name</th>
                        <th>Comments</th>
                        <th>Staged on</th>
@@ -60,6 +61,7 @@
                      <tbody>
                      <!-- TMPL_LOOP name="batch_list" -->
                      <tr>
+                       <td><!-- TMPL_VAR name="import_batch_id" --></td>
                        <td><!-- TMPL_VAR name="file_name" --></td>
                        <td><!-- TMPL_VAR name="comments" --></td>
                        <td><!-- TMPL_VAR name="upload_timestamp" --></td>
