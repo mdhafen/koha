@@ -49,7 +49,7 @@ my ($template, $borrowernumber, $cookie)
 my $userenv = C4::Context->userenv;
 
 my $reportname = "borrowers_messages";
-my $reporttitle = "Patron Messages";
+my $reporttitle = "Borrower Messages";
 my @column_titles = ( "Patron", "Cardnumber", "Date", "From", "For", "Message", "Action" );
 
 my $where = '';
