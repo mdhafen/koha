@@ -91,7 +91,7 @@ if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {
 
 my @loopfilter = ();
 
-my $where;
+my $where = "barcode <> ''";
 my $order = "$columns[0]";
 my $page_breaks;
 
