@@ -47,7 +47,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 my $dbh = C4::Context->dbh;
-my $op       = $cgi->param( 'op' );
+my $op;
 my $branch   = $cgi->param( 'branch' ) || C4::Context->userenv->{'branch'};
 my $search   = $cgi->param( 'search' );
 my $itype    = $cgi->param( 'itype' );
@@ -66,7 +66,8 @@ unless ( $itemtypes->{$oldtype}{itemtype} ) {
 $template->param( NO_BRANCH => 1 ) unless ( $branch );
 $template->param( NO_ITYPE => 1 ) unless ( $op ne 'Set' || $itype );
 
-if ( $op eq 'Set' && $search && $itype ) {
+if ( $search && $itype ) {
+    $op = 'Set';
     my $query = "
 SELECT i.itemnumber, i.biblioitemnumber, i.biblionumber, i.itemcallnumber,
        bi.itemtype
@@ -119,7 +120,8 @@ WHERE homebranch = ". $dbh->quote( $branch );
 	BIBS_SET => $bibs_set,
 	);
 }
-elsif ( $op eq 'Backport' && $backport ) {
+elsif ( $backport ) {
+    $op = 'Backport';
     my $query = "
 SELECT i.homebranch, GROUP_CONCAT(i.itype) as itypes, bi.biblionumber, bi.itemtype
   FROM items AS i
