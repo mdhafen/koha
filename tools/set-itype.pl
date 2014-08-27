@@ -131,7 +131,7 @@ GROUP BY i.biblioitemnumber having homebranch = ". $dbh->quote( $branch );
     $sth->execute;
 
     while ( my @row = $sth->fetchrow_array ) {
-	my ( $itypes, $biblio, $itemtype ) = @row;
+	my ( $hbranches, $itypes, $biblio, $itemtype ) = @row;
 
         next if ( index($itypes,',') != -1 );
         next unless ( $itypes );
