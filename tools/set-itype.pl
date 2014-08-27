@@ -47,11 +47,12 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 my $dbh = C4::Context->dbh;
-my $op      = $cgi->param( 'op' );
-my $branch  = $cgi->param( 'branch' ) || C4::Context->userenv->{'branch'};
-my $search  = $cgi->param( 'search' );
-my $itype   = $cgi->param( 'itype' );
-my $oldtype = $cgi->param( 'oldtype' );
+my $op       = $cgi->param( 'op' );
+my $branch   = $cgi->param( 'branch' ) || C4::Context->userenv->{'branch'};
+my $search   = $cgi->param( 'search' );
+my $itype    = $cgi->param( 'itype' );
+my $oldtype  = $cgi->param( 'oldtype' );
+my $backport = $cgi->param( 'backport' );
 
 my $itemtypes = GetItemTypes;
 my ( $items_set, $bibs_set ) = ( 0, 0 );
@@ -63,7 +64,7 @@ unless ( $itemtypes->{$oldtype}{itemtype} ) {
 }
 
 $template->param( NO_BRANCH => 1 ) unless ( $branch );
-$template->param( NO_ITYPE => 1 ) unless ( $itype );
+$template->param( NO_ITYPE => 1 ) unless ( $op ne 'Set' || $itype );
 
 if ( $op eq 'Set' && $search && $itype ) {
     my $query = "
@@ -115,6 +116,47 @@ WHERE homebranch = ". $dbh->quote( $branch );
     $template->param(
 	OP => $op,
 	ITEMS_SET => $items_set,
+	BIBS_SET => $bibs_set,
+	);
+}
+elsif ( $op eq 'Backport' && $backport ) {
+    my $query = "
+SELECT i.homebranch, GROUP_CONCAT(i.itype) as itypes, bi.biblionumber, bi.itemtype
+  FROM items AS i
+ CROSS JOIN biblioitems AS bi USING ( biblioitemnumber )
+ WHERE ( bi.itemtype = '' OR bi.itemtype IS NULL )
+GROUP BY i.biblioitemnumber having homebranch = ". $dbh->quote( $branch );
+
+    my $sth = $dbh->prepare( $query );
+    $sth->execute;
+
+    while ( my @row = $sth->fetchrow_array ) {
+	my ( $itypes, $biblio, $itemtype ) = @row;
+
+        next if ( index($itypes,',') != -1 );
+        next unless ( $itypes );
+
+	unless ( $itemtype ) {
+	    my $framework = GetFrameworkCode( $biblio );
+	    $framework = '' unless ( $framework );
+	    my ( $itypetag, $itypefield ) = GetMarcFromKohaField( "biblioitems.itemtype", $framework );
+	    my $record = GetMarcBiblio( $biblio );
+
+	    if ( my $koha_field = $record->field( $itypetag ) ) {
+		$koha_field->update( $itypefield => $itypes );
+	    } else {
+		my $new_field = new MARC::Field( $itypetag, '0', '0',
+						 $itypefield => $itypes );
+		$record->add_fields( $new_field );
+	    }
+
+	    &ModBiblio( $record, $biblio, $framework );
+	    $bibs_set++;
+	}
+    }
+
+    $template->param(
+	OP => $op,
 	BIBS_SET => $bibs_set,
 	);
 }
