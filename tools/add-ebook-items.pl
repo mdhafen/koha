@@ -83,6 +83,9 @@ if ($op eq 'submit') {
         my $dbh = C4::Context->dbh;
         my $sth = $dbh->prepare("SELECT * FROM items WHERE biblionumber = ? AND homebranch = ? AND ( barcode = '' OR barcode IS NULL )") || die $dbh->errstr;
 
+        # check if we should backport the item type to the biblio
+        my $sth_itemtype = $dbh->prepare("SELECT itemtype,GROUP_CONCAT(DISTINCT itype) as itypes FROM items CROSS JOIN biblioitems USING (biblioitemnumber) WHERE items.biblionumber = ? AND (itemtype = '' OR itemtype IS NULL) GROUP BY biblioitemnumber")
+
         my $batch = GetImportBatch( $batch_id );
         @biblios = @{ GetImportBibliosRange( $batch_id ) };
 
@@ -114,6 +117,8 @@ if ($op eq 'submit') {
 
                 $num_items_added++;
 
+                my $bib = GetMarcBiblio($biblio->{matched_biblionumber});
+
                 my $item;
                 $item->{homebranch} = $branch;
                 $item->{holdingbranch} = $branch;
@@ -125,7 +130,6 @@ if ($op eq 'submit') {
                         $uri = $entered_url;
                     }
                     else {
-                        my $bib = GetMarcBiblio($biblio->{matched_biblionumber});
                         my $marc_urls = GetMarcUrls( $bib, C4::Context->preference("marcflavour") );
                         if ( scalar @$marc_urls == 1 ) {
                             $uri = $marc_urls->[0];
@@ -165,6 +169,24 @@ if ($op eq 'submit') {
 
 
                 AddItem( $item, $biblio->{matched_biblionumber} );
+
+                $sth_itemtype->execute( $biblio->{matched_biblionumber} );
+                my $data = $sth->fetchrow_hashref || {};
+                if( %$data && index( $data->{'itypes'}, ',' ) == -1 ) {
+                    # only 1 itype
+                    my $framework = GetFrameworkCode( $biblio->{matched_biblionumber} );
+                    $framework = '' unless ( $framework );
+                    my ( $itypetag, $itypefield ) = GetMarcFromKohaField( "biblioitems.itemtype", $framework );
+
+                    if ( my $koha_field = $bib->field( $itypetag ) ) {
+                        $koha_field->update( $itypefield => $itype );
+                    } else {
+                        my $new_field = new MARC::Field( $itypetag, '0', '0',
+                                                         $itypefield => $itype );
+                        $bib->add_fields( $new_field );
+                    }
+                    &ModBiblio( $bib, $biblio->{matched_biblionumber}, $framework );
+                }
             }
         }
 
