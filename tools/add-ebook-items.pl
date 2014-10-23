@@ -35,7 +35,7 @@ use C4::Auth;
 use C4::Output;
 use C4::Koha qw/GetItemTypes/;
 use C4::Items qw/AddItem DelItem/;
-use C4::Biblio qw/GetMarcBiblio GetMarcUrls ModBiblio/;
+use C4::Biblio qw/GetMarcBiblio GetMarcUrls ModBiblio GetMarcFromKohaField GetFrameworkCode/;
 use C4::ImportBatch qw/GetImportBatchRangeDesc GetImportBibliosRange GetImportBatch GetImportRecordMatches/;
 use C4::Branch qw/GetBranchesLoop onlymine mybranch/;
 
@@ -84,7 +84,7 @@ if ($op eq 'submit') {
         my $sth = $dbh->prepare("SELECT * FROM items WHERE biblionumber = ? AND homebranch = ? AND ( barcode = '' OR barcode IS NULL )") || die $dbh->errstr;
 
         # check if we should backport the item type to the biblio
-        my $sth_itemtype = $dbh->prepare("SELECT itemtype,GROUP_CONCAT(DISTINCT itype) as itypes FROM items CROSS JOIN biblioitems USING (biblioitemnumber) WHERE items.biblionumber = ? AND (itemtype = '' OR itemtype IS NULL) GROUP BY biblioitemnumber")
+        my $sth_itemtype = $dbh->prepare("SELECT itemtype,GROUP_CONCAT(DISTINCT itype) as itypes FROM items CROSS JOIN biblioitems USING (biblioitemnumber) WHERE items.biblionumber = ? AND (itemtype = '' OR itemtype IS NULL) GROUP BY biblioitemnumber");
 
         my $batch = GetImportBatch( $batch_id );
         @biblios = @{ GetImportBibliosRange( $batch_id ) };
