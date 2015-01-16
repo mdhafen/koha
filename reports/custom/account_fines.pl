@@ -80,6 +80,7 @@ if ( $input->param("Options2") ) {
 
 push @queryfilter, { crit => 'borrowers.sort1', op => '=', filter => $dbh->quote( $filters[0] ), title => 'sort1', value => $filters[0] } if ( $filters[0] );
 push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote( $filters[1] ), title => 'sort2', value => $filters[1] } if ( $filters[1] );
+push @queryfilter, { crit => 'items.itype', op => '=', filter => $dbh->quote( $filters[3] ), title => 'Item Type', value => $filters[3] } if ( $filters[3] );
 push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "=", filter => "0", title => 'Not flagged', value => 'Gone' } if ( $input->param( 'Options3' ) );
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
@@ -206,6 +207,22 @@ if ($do_it) {
 	push @parameters, {
 	    input_box => 1,
 	    label => "Fines greater than \$",
+	};
+
+	my $itemtypes = GetItemTypes();
+	my @itemtypeloop;
+	foreach my $thisitype ( sort keys %$itemtypes ) {
+	    my %row = (
+		value => $thisitype,
+		label => $$itemtypes{ $thisitype }{'description'},
+		);
+	    push @itemtypeloop, \%row;
+	}
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@itemtypeloop,
+	    label => "Item Type",
+	    first_blank => 1,
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {

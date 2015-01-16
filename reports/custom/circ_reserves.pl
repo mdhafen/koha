@@ -95,6 +95,7 @@ my $page_breaks;
 for ( $filters[0] ) {
     if ( /title/i ) { $order = "title" }
     if ( /borrower/i ) { $order = "borrower" }
+    if ( /date/i ) { $order = "reservedate DESC" }
 }
 
 # Rest of params
@@ -161,6 +162,7 @@ if ($do_it) {
 	my @order_loop;
 	push @order_loop, { value => 'title', label => 'Title' };
 	push @order_loop, { value => 'borrower', label => 'Patron' };
+	push @order_loop, { value => "date", label => 'Date Placed' };
 	push @parameters, {
 	    select_box => 1,
 	    select_loop => \@order_loop,
