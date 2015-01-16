@@ -85,7 +85,7 @@ push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "="
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
-    my $branch = $filters[3] || C4::Context->userenv->{branch};
+    my $branch = $filters[4] || C4::Context->userenv->{branch};
     if ( $local_only ) {
 	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch)." AND items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     } else {
@@ -221,7 +221,7 @@ if ($do_it) {
 	push @parameters, {
 	    select_box => 1,
 	    select_loop => \@itemtypeloop,
-	    label => "Item Type",
+	    label => "Only fines linked to a book with Item Type",
 	    first_blank => 1,
 	};
 
