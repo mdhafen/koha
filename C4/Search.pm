@@ -29,6 +29,7 @@ use C4::XSLT;
 use C4::Branch;
 use C4::Reserves;    # CheckReserves
 use C4::Debug;
+use C4::Circulation qw(GetBranchItemRule);
 use URI::Escape;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS $DEBUG);
@@ -1386,6 +1387,9 @@ sub searchResults {
     $sth->execute;
     my ($itemtag) = $sth->fetchrow;
 
+    # cache holds policy lookups
+    my %holds_policy;
+
     ## find column names of items related to MARC
     my $sth2 = $dbh->prepare("SHOW COLUMNS FROM items");
     $sth2->execute;
@@ -1508,7 +1512,7 @@ sub searchResults {
         my $itembinding_count     = 0;
         my $itemdamaged_count     = 0;
         my $item_in_transit_count = 0;
-        my $can_place_holds       = 0;
+        my $can_place_holds       = 1;
 	my $item_onhold_count     = 0;
         my $items_count           = scalar(@fields);
         my $maxitems =
@@ -1548,6 +1552,22 @@ sub searchResults {
                 next;
             }
 
+        # check holds policy on opac
+        if ( $search_context eq 'opac' ) {
+            if ( ! defined($holds_policy{ $item->{itype} }) ) {
+                my $rule = C4::Circulation::GetBranchItemRule( $item->{$hbranch}, $item->{itype} );
+                my $branch = C4::Branch::mybranch();
+                if ( $rule->{'holdallowed'} == 0 ||
+                     ( $branch && $rule->{'holdallowed'} == 1 && $branch ne $item->{$hbranch} ) ) {
+                    $holds_policy{ $item->{itype} } = 0;
+                }
+                else {
+                    $holds_policy{ $item->{itype} } = 1;
+                }
+            }
+            $can_place_holds = $holds_policy{ $item->{itype} };
+        }
+
 			my $prefix = $item->{$hbranch} . '--' . $item->{location} . $item->{itype} . $item->{itemcallnumber};
 # For each grouping of items (onloan, available, unavailable), we build a key to store relevant info about that item
             if ( $item->{onloan} ) {
@@ -1564,8 +1584,7 @@ sub searchResults {
                 if ( $item->{itemlost} ) {
                     $onloan_items->{$prefix}->{longoverdue}++;
                     $longoverdue_count++;
-                } else {	# can place holds as long as item isn't lost
-                    $can_place_holds = 1;
+                    $can_place_holds = 0;
                 }
             }
 
@@ -1633,10 +1652,10 @@ sub searchResults {
 					$other_items->{$key}->{location} = $shelflocations->{ $item->{location} };
 					$other_items->{$key}->{imageurl} = getitemtypeimagelocation( $search_context, $itemtypes{ $item->{itype} }->{imageurl} );
 					$other_items->{$key}->{barcode} = $item->{barcode};
+                    $can_place_holds = 0;
                 }
                 # item is available
                 else {
-                    $can_place_holds = 1;
                     $available_count++;
                     $itemdamaged_count++     if $item->{damaged};
 					$available_items->{$prefix}->{count}++ if $item->{$hbranch};

@@ -1209,7 +1209,13 @@ sub GetItemsInfo {
      LEFT JOIN biblioitems ON biblioitems.biblioitemnumber = items.biblioitemnumber
      LEFT JOIN itemtypes   ON   itemtypes.itemtype         = "
      . (C4::Context->preference('item-level_itypes') ? 'items.itype' : 'biblioitems.itemtype');
-    $query .= " WHERE items.biblionumber = ? ORDER BY branches.branchname,items.dateaccessioned desc" ;
+    $query .= " WHERE items.biblionumber = ?" ;
+    if ( C4::Branch::onlymine() ) {
+	my $hbranch = ( C4::Context->preference("HomeOrHoldingBranch") eq 'holdingbranch' ) ? 'holdingbranch' : 'homebranch';
+        if ( my $branch = C4::Branch::mybranch() ) {
+            $query .= " AND $hbranch = ". $dbh->quote( $branch );
+        }
+    $query .= " ORDER BY branches.branchname,items.dateaccessioned desc" ;
     my $sth = $dbh->prepare($query);
     $sth->execute($biblionumber);
     my $i = 0;
