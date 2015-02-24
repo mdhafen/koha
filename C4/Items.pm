@@ -1215,6 +1215,7 @@ sub GetItemsInfo {
         if ( my $branch = C4::Branch::mybranch() ) {
             $query .= " AND $hbranch = ". $dbh->quote( $branch );
         }
+    }
     $query .= " ORDER BY branches.branchname,items.dateaccessioned desc" ;
     my $sth = $dbh->prepare($query);
     $sth->execute($biblionumber);
