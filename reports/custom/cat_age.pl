@@ -74,6 +74,7 @@ my @tables = ( "items",
 
 #FIXME build queryfilter
 my @filters = $input->param("Filter");
+my @options = ( $input->param("Option1") );
 my @queryfilter = ();
 
 push @queryfilter, { crit => 'copyrightdate', op => "<", filter => $dbh->quote( $filters[0] ), title => "Copyright Date", value => $filters[0] } if ( $filters[0] );
@@ -88,7 +89,10 @@ my @loopfilter = ();
 
 my $where = "";
 my $order = "copyrightdate,title,barcode";
+my $group = "";
 my $page_breaks;
+
+$group = "items.biblioitemnumber" if ( $options[0] );
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -109,7 +113,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $group, $order, \@queryfilter, \@loopfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -158,6 +162,12 @@ if ($do_it) {
 	    value => $year,
 	};
 
+        push $parameters, {
+            check_box => 1,
+            label => "Show Only One Copy",
+            input_name => 'Option1',
+        };
+
 	unless ( C4::Context->preference("IndependantBranches") ) {
 	    my $branches = GetBranches();
 	    my @branchloop;
@@ -194,7 +204,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
+	my ($columns, $column_titles, $tables, $where, $group, $order, $qfilters, $lfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my @wheres;
@@ -267,6 +277,8 @@ sub calculate {
 	}
 	$query .= "AND " if ( $where && @wheres );
 	$query .= join "AND ", @wheres;
+
+        $query .= "GROUP BY $group " if ( $group );
 
 	$query .= "ORDER BY $order" if ( $order );
 
