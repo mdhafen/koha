@@ -233,6 +233,21 @@ Author: <<biblio.author>>')");
 	$version_string .= "|$rev";
     }
 
+    $WCSD_version = '1.00.00.004';
+    if ( $DB_version <= TransformToNum($WCSD_version) ) {
+	$version_string = '1.0000004';
+
+	$rev = 'wcsd_uaup';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("INSERT INTO permissions( module_bit, code, description ) VALUES
+   (10, 'make_invoice', 'Add Charges to a borrowers account'),
+   (10, 'make_credit', 'Add Payments to a borrowers account')");
+	    print "Add more granular user permissions for updating a borrowers account.\n";
+	    $version_changed = 1;
+	}
+	$version_string .= "|$rev";
+    }
+
     # New revisions go here.
 
     if ( $version_changed ) {
@@ -243,12 +258,12 @@ Author: <<biblio.author>>')");
 }
 
 sub wcsd_version {
-    our $VERSION = '1.00.00.003';
+    our $VERSION = '1.00.00.004';
     return $VERSION;
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_aan';
+    our $REVISION = 'wcsd_uaup';
     return $REVISION;
 }
 
