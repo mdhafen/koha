@@ -57,7 +57,9 @@ my $action = $input->param('action') || '';
 #get borrower details
 my $data=GetMember('borrowernumber' => $borrowernumber);
 
-if ( $action eq 'reverse' ) {
+my $accountlineseditable = C4::Context->preference('AccountLinesEditable') && haspermission(C4::Context->userenv->{'id'}, {updatecharges=>'edit_lines'} );
+
+if ( $action eq 'reverse' && $accountlineseditable ) {
   ReversePayment( $borrowernumber, $input->param('accountno') );
 }
 
@@ -98,7 +100,7 @@ foreach my $accountline ( @{$accts}) {
     $accountline->{amount} = sprintf '%.2f', $accountline->{amount};
     $accountline->{amountoutstanding} = sprintf '%.2f', $accountline->{amountoutstanding};
     my $offsetlines = getoffsetlines($accountline->{borrowernumber},$accountline->{accountno});
-    if ( @$offsetlines ) {
+    if ( @$offsetlines && $accountlineseditable ) {
         $accountline->{reverseable} = 1;
         $reverse_col = 1;
     }
@@ -114,7 +116,7 @@ $template->param( picture => 1 ) if $picture;
 
 $template->param(
     finesview           => 1,
-    accountlineseditable=> C4::Context->preference('AccountLinesEditable'),
+    accountlineseditable=> $accountlineseditable,
     firstname           => $data->{'firstname'},
     surname             => $data->{'surname'},
     borrowernumber      => $borrowernumber,

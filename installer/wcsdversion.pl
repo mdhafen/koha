@@ -240,6 +240,8 @@ Author: <<biblio.author>>')");
 	$rev = 'wcsd_uaup';
 	unless ( $revisions{ $rev } ) {
 	    $dbh->do("INSERT INTO permissions( module_bit, code, description ) VALUES
+   (10, 'edit_lines', 'Edit and Delete lines on a borrowers account'),
+   (10, 'enter_payment','Enter a Payment on a borrowers account'),
    (10, 'make_invoice', 'Add Charges to a borrowers account'),
    (10, 'make_credit', 'Add Payments to a borrowers account')");
 	    print "Add more granular user permissions for updating a borrowers account.\n";

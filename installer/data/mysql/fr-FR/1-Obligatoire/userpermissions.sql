@@ -6,6 +6,8 @@ INSERT INTO permissions (module_bit, code, description) VALUES
    ( 9, 'edit_catalogue', 'Ajouter et modifier les notices du catalogue'),
    ( 9, 'fast_cataloging', 'Catalogage rapide'),
    ( 9, 'edit_items', 'Modification des exemplaires'),
+   (10, 'edit_lines', 'Edit and Delete lines on a borrowers account'),
+   (10, 'enter_payment','Enter a Payment on a borrowers account'),
    (10, 'make_invoice', 'Add Charges to a borrowers account'),
    (10, 'make_credit', 'Add Payments to a borrowers account'),
    (13, 'edit_news', 'Ecrire des nouvelles pour l''OPAC et l''interface professionnelle'),

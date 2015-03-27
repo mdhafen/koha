@@ -27,6 +27,8 @@ INSERT INTO permissions (module_bit, code, description) VALUES
    ( 9, 'edit_catalogue', 'Endre katalogen (Endre bibliografiske poster og eksemplaropplysninger)'),
    ( 9, 'fast_cataloging', 'Hurtigkatalogisering'),
    ( 9, 'edit_items', 'Endre eksmeplarer'),
+   (10, 'edit_lines', 'Edit and Delete lines on a borrowers account'),
+   (10, 'enter_payment','Enter a Payment on a borrowers account'),
    (10, 'make_invoice', 'Add Charges to a borrowers account'),
    (10, 'make_credit', 'Add Payments to a borrowers account'),
    (11, 'vendors_manage', 'Administrere leverandører'),

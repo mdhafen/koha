@@ -34,7 +34,7 @@ my ($template, $loggedinuser, $cookie)
                              query => $input,
                              type => "intranet",
                              authnotrequired => 0,
-                             flagsrequired => { updatecharges => 1 },
+                             flagsrequired => { updatecharges => 'edit_lines' },
                              debug => 1,
                             });
 

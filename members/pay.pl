@@ -47,7 +47,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
         query           => $input,
         type            => "intranet",
         authnotrequired => 0,
-        flagsrequired   => { borrowers => 1, updatecharges => 'make_credit' },
+        flagsrequired   => { borrowers => 1, updatecharges => 'enter_payment' },
         debug           => 1,
     }
 );
