@@ -95,9 +95,6 @@ my $session = C4::Auth::get_session($sessionID);
 if ( $session->param( 'borrowernumber' ) && !$cardnumber ) {
     my $patron = GetMemberDetails( $session->param('borrowernumber') );
     $cardnumber = $patron->{cardnumber};
-} elsif ( $cardnumber ) {
-    $session->clear( 'borrowernumber' );
-    $session->clear( 'soundederrors' );
 }
 
 my $date = C4::Dates->today('iso');
@@ -146,6 +143,11 @@ if ($cardnumber) {
     my @getreservloop;
     my $count_reserv = 0;
     my $maxreserves;
+
+    if ( $borrowerinfo->{'borrowernumber'} != $session->param( 'borrowernumber' ) ) {
+        $session->param( 'borrowernumber', $borrowerinfo->{'borrowernumber'} );
+        $session->clear( 'soundederrors' );
+    }
 
 #   we check the reserves of the borrower, and if he can reserv a document
 # FIXME At this time we have a simple count of reservs, but, later, we could improve the infos "title" ...

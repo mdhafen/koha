@@ -241,6 +241,18 @@ function checkMultiHold() {
   
   <fieldset class="rows left">
     <legend>Hold details</legend>
+       <ol> <li><span class="label">Patron:</span>
+            <form action="request.pl?biblionumber=<!-- TMPL_VAR NAME="biblionumber" -->" method="post">
+                <input type="text" size="20" id="patron" class="focus" name="findborrower" value="<!-- TMPL_VAR NAME="borrowerfirstname" --> <!-- TMPL_VAR NAME="borrowersurname" -->" />
+                <input type="hidden" name="biblionumber" value="<!-- TMPL_VAR NAME="biblionumber"-->" />
+                <!-- TMPL_IF NAME="multi_hold" -->
+                    <input type="hidden" name="multi_hold" value="<!-- TMPL_VAR NAME="multi_hold" -->"/>
+                    <input type="hidden" name="biblionumbers" value="<!-- TMPL_VAR NAME="biblionumbers" -->"/>
+                <!-- /TMPL_IF -->
+                <input type="submit" value="Search" />
+            </form>
+        </li>
+        </ol>
         <!-- TMPL_UNLESS NAME="multi_hold" -->
             <form action="placerequest.pl" method="post" onsubmit="return check();" name="form">
         <!-- TMPL_ELSE -->
@@ -265,13 +277,8 @@ function checkMultiHold() {
             <input type="hidden" name="rank-request" value="<!-- TMPL_VAR NAME="fixedRank" -->" />
         <!-- /TMPL_IF -->
 
-       <ol> <li><span class="label">Patron:</span>
-            <!-- TMPL_IF NAME="cardnumber"-->
-                <a href="/cgi-bin/koha/members/moremember.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->"><!-- TMPL_VAR NAME="borrowerfirstname" --> <!-- TMPL_VAR NAME="borrowersurname" --> (<!--  TMPL_VAR NAME="cardnumber" -->)</a>
-            <!-- TMPL_ELSE -->
-                Not defined yet
-            <!-- /TMPL_IF -->
-        </li>
+
+        <ol>
         <!-- TMPL_UNLESS NAME="multi_hold" -->
           <li>
               <span class="label">Priority:</span>
