@@ -452,7 +452,11 @@ if ($borrowernumber) {
 
 #         if we have a reserve waiting, initiate waitingreserveloop
         if ($getreserv{waiting} == 1) {
-        push (@WaitingReserveLoop, \%getWaitingReserveInfo)
+            push (@WaitingReserveLoop, \%getWaitingReserveInfo);
+            unless ( $soundederrors{ WAITING } ) {
+                $soundederrors{ WAITING } = 1;
+                $sounderror_borr = 1;
+            }
         }
       
     }
