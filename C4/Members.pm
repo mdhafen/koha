@@ -87,6 +87,7 @@ BEGIN {
 
 		&AddMessage
 		&DeleteMessage
+		&ModifyMessage
 		&GetMessages
 		&GetMessagesCount
 	);
@@ -2270,6 +2271,34 @@ sub GetMessagesCount {
     return $count;
 }
 
+
+=head2 ModifyMessage
+
+  ModifyMessage( $messageid, $message_type, $message );
+
+Modify a message in the messages table for the given message id.
+
+Returns:
+  True on success
+  False on failure
+
+=cut
+
+sub ModifyMessage {
+    my ( $messageid, $message_type, $message ) = @_;
+
+    my $dbh  = C4::Context->dbh;
+
+    if ( ! ( $messageid && $message_type && $message ) ) {
+      return;
+    }
+
+    my $query = "UPDATE messages SET message_type = ?, message = ? WHERE message_id = ?";
+    my $sth = $dbh->prepare($query);
+    $sth->execute( $message_type, $message, $messageid );
+
+    return 1;
+}
 
 
 =head2 DeleteMessage

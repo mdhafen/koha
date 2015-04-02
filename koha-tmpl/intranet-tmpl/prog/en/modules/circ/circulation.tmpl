@@ -104,6 +104,24 @@ var allcheckboxes = $(".checkboxed");
 		$("#add_message_form").show();
 	 });
 
+	$("#mod_borrower_messages .cancel").click(function(){
+		$("#mod_borrower_message").empty();
+		$("#mod_message_type option").attr('selected','');
+		$("#mod_message_id").val('');
+		$("#mod_message_form").hide();
+	});
+	$("#messages a.mod_link").click(function() {
+		var m_id = $(this).attr('data-id');
+		var type = $(this).attr('data-type');
+		var message = $(this).attr('data-message');
+		$("#mod_borrower_message").append(message);
+		$("#mod_message_type option").attr('selected','');
+		$("#mod_message_type option[value='"+ type +"']").attr('selected','selected');
+		$("#mod_message_id").val(m_id);
+		$("#mod_message_form").show();
+	});
+	$("#messages a.mod_link").attr("href", "#");
+
      $("input.radio").click(function(){
         radioCheckBox($(this));
      });
@@ -186,6 +204,31 @@ function refocus(calendar) {
 
         <input type="hidden" name="borrowernumber" value="<!-- TMPL_VAR NAME="borrowernumber" -->" />
         <input type="hidden" name="branchcode" value="<!-- TMPL_VAR NAME="branch" -->" />
+</fieldset>
+</form>
+</div>
+
+<div style="display: none;" id="mod_message_form">
+<form method="post" action="/cgi-bin/koha/circ/mod_message.pl" id="modify_message_form" name="mod_message_f">
+<fieldset id="mod_borrower_messages" class="brief">
+<legend>Modify a message</legend>
+	<ol>
+    <li>
+            <label for="message_type">Add a message for:</label>
+          <select name="message_type" id="mod_message_type">
+            <option value="L">Other Librarians</option>
+            <option value="B"><!-- TMPL_VAR name="firstname" --></option>
+        </select>
+    </li>
+    <li>
+        <textarea rows="3" cols="60" name="borrower_message" id="mod_borrower_message" ></textarea>
+    </li>
+	</ol>
+    <fieldset class="action">
+        <input type="submit" value="Save" /> <a href="#" class="cancel">Cancel</a>
+    </fieldset>
+
+        <input type="hidden" id="mod_message_id" name="message_id" value="" />
 </fieldset>
 </form>
 </div>
@@ -666,22 +709,30 @@ No patron matched <span class="ex"><!-- TMPL_VAR name="message" --></span>
 		<ul>
 			<!--TMPL_LOOP NAME="lib_messages_loop" -->
 				<li>
-					<span class="circ-hlt">
+					<span class="circ-hlt" id="message_<!-- TMPL_VAR NAME="message_id" -->">
 						<!--TMPL_VAR NAME="message_date_formatted"-->
 						<!--TMPL_VAR NAME="branchcode"-->
 						<i>"<!--TMPL_VAR NAME="message"-->"</i>
 					</span>
 					<!-- TMPL_IF NAME="can_delete" -->
-						<a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a>
+						<a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a> &nbsp;
+						<a href="/cgi-bin/koha/circ/mod_message.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;message_id=<!--TMPL_VAR NAME="message_id" -->" class="mod_link" data-id="<!-- TMPL_VAR NAME="message_id" -->" data-type="<!-- TMPL_VAR NAME="message_type" -->" data-message="<!-- TMPL_VAR NAME="message" -->">[Modify]</a>
 					<!-- TMPL_ELSE -->
 						<!-- TMPL_IF NAME="all_messages_del" -->
-							<a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a>
+							<a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a> &nbsp;
+						<a href="/cgi-bin/koha/circ/mod_message.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;message_id=<!--TMPL_VAR NAME="message_id" -->" class="mod_link" data-id="<!-- TMPL_VAR NAME="message_id" -->" data-type="<!-- TMPL_VAR NAME="message_type" -->" data-message="<!-- TMPL_VAR NAME="message" -->">[Modify]</a>
 						<!-- /TMPL_IF -->
 					<!-- /TMPL_IF -->
 				</li>
 			<!-- /TMPL_LOOP -->
 			<!--TMPL_LOOP NAME="bor_messages_loop" -->
-				<li><span class=""><!--TMPL_VAR NAME="message_date_formatted"--> <!--TMPL_VAR NAME="branchcode"--> <i>"<!--TMPL_VAR NAME="message"-->"</i></span> <!-- TMPL_IF NAME="can_delete" --><a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a><!-- /TMPL_IF --></li>
+				<li><span id="message_<!-- TMPL_VAR NAME="message_id" -->" class=""><!--TMPL_VAR NAME="message_date_formatted"--> <!--TMPL_VAR NAME="branchcode"--> <i>"<!--TMPL_VAR NAME="message"-->"</i></span>
+                                <!-- TMPL_IF NAME="can_delete" -->
+                                <a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a> &nbsp; <a href="/cgi-bin/koha/circ/mod_message.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;message_id=<!--TMPL_VAR NAME="message_id" -->" class="mod_link" data-id="<!-- TMPL_VAR NAME="message_id" -->" data-type="<!-- TMPL_VAR NAME="message_type" -->" data-message="<!-- TMPL_VAR NAME="message" -->">[Modify]</a>
+                                <!-- TMPL_ELSE --><!-- TMPL_IF NAME="all_messages_del" -->
+                                <a href="/cgi-bin/koha/circ/del_message.pl?message_id=<!--TMPL_VAR NAME="message_id" -->&amp;borrowernumber=<!--TMPL_VAR NAME="borrowernumber" -->">[Delete]</a> &nbsp; <a href="/cgi-bin/koha/circ/mod_message.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->&amp;message_id=<!--TMPL_VAR NAME="message_id" -->" class="mod_link" data-id="<!-- TMPL_VAR NAME="message_id" -->" data-type="<!-- TMPL_VAR NAME="message_type" -->" data-message="<!-- TMPL_VAR NAME="message" -->">[Modify]</a>
+                                <!-- /TMPL_IF -->
+                                <!-- /TMPL_IF --></li>
 			<!-- /TMPL_LOOP -->
 
 		</ul>
