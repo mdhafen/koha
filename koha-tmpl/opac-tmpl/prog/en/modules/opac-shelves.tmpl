@@ -207,7 +207,7 @@ $(function() {
 
                       <a href="/cgi-bin/koha/opac-downloadshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->" class="download tag_hides" onclick="open(CGIBIN+'opac-downloadshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->','win_form','dependant=yes,scrollbars=no,resizable=no,height=300,width=450,top=50,left=100'); return false;">Download List</a>
 
-<span class="sendlist"><a href="/cgi-bin/koha/opac-sendshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->" class="send tag_hides" onclick="open(CGIBIN+'opac-sendshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->','win_form','dependant=yes,scrollbars=no,resizable=no,height=300,width=450,top=50,left=100'); return false; ">Send List</a></span>
+<!-- TMPL_IF NAME="loggedinusername" --><span class="sendlist"><a href="/cgi-bin/koha/opac-sendshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->" class="send tag_hides" onclick="open(CGIBIN+'opac-sendshelf.pl?shelfid=<!-- TMPL_VAR NAME="shelfnumber" -->','win_form','dependant=yes,scrollbars=no,resizable=no,height=300,width=450,top=50,left=100'); return false; ">Send List</a></span><!-- /TMPL_IF -->
 
 <a class="print tag_hides" href="opac-shelves.pl" onclick="print(); return false;">Print List</a>
 
