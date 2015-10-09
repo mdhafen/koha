@@ -54,9 +54,9 @@ my ($template, $borrowernumber, $cookie)
 				});
 
 my $reportname = "circ_reserves";
-my $reporttitle = "Reserved Copies";
-my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "reservedate", "priority" );
-my @column_titles = ( "Patron", "Title", "Date Placed", "Priority" );
+my $reporttitle = "Titles on Hold";
+my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "reservedate", "priority", "COUNT(barcode)", "reserves.biblionumber" );
+my @column_titles = ( "Patron", "Title", "Date Placed", "Priority", "Copies Available" );
 my @tables = ( "reserves",
 	       [ # Cross Joined Tables
 	         {
@@ -73,6 +73,10 @@ my @tables = ( "reserves",
 		 },
 	       ],
 	       [ # Left Joined Tables
+                 {
+                     table => 'items',
+                     on => 'reserves.biblionumber = items.biblionumber AND items.onloan IS NULL',
+                 },
 	       ],
 	       );
 
@@ -84,11 +88,13 @@ if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {
     my $hbranch = 'reserves.branchcode';
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[0];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    $tables[2][0]{'on'} .= ' AND homebranch = '. $dbh->quote( $branch );
 }
 
 my @loopfilter = ();
 
 my $where = "( found <> 'F' OR found IS NULL )";
+my $group = "reserves.biblionumber";
 my $order = "$columns[1]";
 my $page_breaks;
 
@@ -117,7 +123,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $group, $order, \@queryfilter, \@loopfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -205,7 +211,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
+	my ($columns, $column_titles, $tables, $where, $group, $order, $qfilters, $lfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my @wheres;
@@ -231,6 +237,8 @@ sub calculate {
 			$query .= "USING ($$cross_table{using}) ";
 		    } elsif ($$cross_table{on_l} and $$cross_table{on_r}) {
 			$query .= "ON $$cross_table{on_l} = $$cross_table{on_r} ";
+		    } elsif ( $$cross_table{on} ) {
+			$query .= "ON $$cross_table{on} ";
 		    } else {
 			warn "$reportname : don't know how to join table $$cross_table{table}";
 		    }
@@ -243,6 +251,8 @@ sub calculate {
 			$query .= "USING ($$left_table{using}) ";
 		    } elsif ($$left_table{on_l} and $$left_table{on_r}) {
 			$query .= "ON $$left_table{on_l} = $$left_table{on_r} ";
+		    } elsif ( $$left_table{on} ) {
+			$query .= "ON $$left_table{on} ";
 		    } else {
 			warn "$reportname : don't know how to join table $$left_table{table}";
 		    }
@@ -278,7 +288,9 @@ sub calculate {
 	}
 	$query .= join "AND ", @wheres;
 
-	$query .= "ORDER BY $order" if ( $order );
+        $query .= " GROUP BY $group" if ( $group );
+
+	$query .= " ORDER BY $order" if ( $order );
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
@@ -359,6 +371,7 @@ CALC_MAIN_LOOP:
 		push @mapped_values, { value => $_ };
 	    }
 	    $mapped_values[2]{value} = C4::Dates->new( $values[2], 'iso' )->output();
+            $mapped_values[1]{link} = "/cgi-bin/koha/reserve/request.pl?biblionumber=". $values[5];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
