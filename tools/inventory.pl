@@ -105,6 +105,7 @@ for my $statfield (qw/items.notforloan items.itemlost items.wthdrawn items.damag
         my %selected_itypes;
         @selected_itypes{ @itemtypes } = (1) x scalar(@itemtypes);
         foreach my $it ( values %$itypes ) {
+            $it->{id} = $it->{itemtype};
             if ( $selected_itypes{ $it->{itemtype} } ) {
                 $it->{selected} = 1;
             }
