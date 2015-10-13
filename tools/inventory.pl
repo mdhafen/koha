@@ -40,7 +40,7 @@ my $minlocation=$input->param('minlocation') || '';
 my $maxlocation=$input->param('maxlocation');
 $maxlocation=$minlocation.'Z' unless ( $maxlocation || ! $minlocation );
 my $location=$input->param('location') || '';
-my $itemtype=$input->param('itemtype'); # FIXME note, template does not currently supply this
+my @itemtypes=$input->param('itemtypes');
 my $ignoreissued=$input->param('ignoreissued');
 my $datelastseen = $input->param('datelastseen');
 my $offset = $input->param('offset');
@@ -95,11 +95,27 @@ for my $fwk (keys %$frameworks){
 }
 
 my $statuses = [];
-for my $statfield (qw/items.notforloan items.itemlost items.wthdrawn items.damaged/){
+for my $statfield (qw/items.notforloan items.itemlost items.wthdrawn items.damaged items.itype/){
     my $hash = {};
     $hash->{fieldname} = $statfield;
     $hash->{authcode} = GetAuthValCode($statfield);
-    if ($hash->{authcode}){
+    if ( $statfield eq 'items.itype' ) {
+        my $arr = [];
+        my $itypes = GetItemTypes();
+        my %selected_itypes;
+        @selected_itypes{ @itemtypes } = (1) x scalar(@itemtypes);
+        foreach my $it ( values %$itypes ) {
+            if ( $selected_itypes{ $it->{itemtype} } ) {
+                $it->{selected} = 1;
+            }
+            push @$arr, $it;
+        }
+        @$arr = sort {$a->{description} cmp $b->{description}} @$arr;
+        $hash->{values} = $arr;
+        $hash->{IS_ITYPES} = 1;
+        push @$statuses, $hash;
+    }
+    elsif ($hash->{authcode}){
         my $arr = GetAuthorisedValues($hash->{authcode});
         $hash->{values} = $arr;
         push @$statuses, $hash;
@@ -138,7 +154,7 @@ $template->param(branchloop => \@branch_loop,
                 offset => $offset,
                 pagesize => $pagesize,
                 datelastseen => $datelastseen,
-		itemtype => $itemtype
+		itemtypes => [ map { {value => $_} } @itemtypes ],
                 );
 my @brcditems;
 if ($uploadbarcodes && length($uploadbarcodes)>0){
@@ -203,7 +219,7 @@ if ( ! ($uploadbarcodes && length($uploadbarcodes)>0 ) || ( $input->param('compa
         }
     }
     if ($markseen or $op) {
-        $res = GetItemsForInventory( $minlocation, $maxlocation, $location, $itemtype, $ignoreissued, $datelastseen, $branchcode, $branch, $offset-$seen, $pagesize, $staton );
+        $res = GetItemsForInventory( $minlocation, $maxlocation, $location, \@itemtypes, $ignoreissued, $datelastseen, $branchcode, $branch, $offset-$seen, $pagesize, $staton );
         $template->param(loop =>$res,
                         nextoffset => ($offset-$seen+$pagesize),
                         prevoffset => (($offset-$pagesize>0)?$offset-$pagesize:0),

@@ -971,7 +971,7 @@ sub GetItemsForInventory {
     my ( @bind_params, @where_strings );
 
     my $query = <<'END_SQL';
-SELECT items.itemnumber, barcode, itemcallnumber, title, author, biblio.biblionumber, datelastseen
+SELECT items.itemnumber, barcode, items.itype, itemcallnumber, title, author, biblio.biblionumber, datelastseen
 FROM items
   LEFT JOIN biblio ON items.biblionumber = biblio.biblionumber
   LEFT JOIN biblioitems on items.biblionumber = biblioitems.biblionumber
@@ -1016,8 +1016,7 @@ END_SQL
     }
     
     if ( $itemtype ) {
-        push @where_strings, 'biblioitems.itemtype = ?';
-        push @bind_params, $itemtype;
+        push @where_strings, 'items.itype IN ('. join( ',', map {$dbh->quote($_)} @$itemtype ) .')';
     }
 
     if ( $ignoreissued) {
