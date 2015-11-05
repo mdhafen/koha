@@ -55,8 +55,8 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "circ_reserves";
 my $reporttitle = "Titles on Hold";
-my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "reservedate", "priority", "COUNT(barcode)", "reserves.biblionumber" );
-my @column_titles = ( "Patron", "Title", "Date Placed", "Priority", "Copies Available" );
+my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "GROUP_CONCAT( DISTINCT itemcallnumber SEPERATOR ',' ) AS callnumbers", "reservedate", "priority", "( SELECT COUNT(*) FROM items WHERE biblionumber = reserves.biblionumber AND items.onloan IS NULL ) AS available", "reserves.biblionumber" );
+my @column_titles = ( "Patron", "Title", "Call Number(s)", "Date Placed", "Priority", "Copies Available" );
 my @tables = ( "reserves",
 	       [ # Cross Joined Tables
 	         {
@@ -75,7 +75,7 @@ my @tables = ( "reserves",
 	       [ # Left Joined Tables
                  {
                      table => 'items',
-                     on => 'reserves.biblionumber = items.biblionumber AND items.onloan IS NULL',
+                     on => 'reserves.biblionumber = items.biblionumber',
                  },
 	       ],
 	       );
@@ -89,6 +89,7 @@ if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {
     my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[0];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     $tables[2][0]{'on'} .= ' AND homebranch = '. $dbh->quote( $branch );
+    substr $columns[5], -14, 0, ' AND homebranch = '. $dbh->quote( $branch );
 }
 
 my @loopfilter = ();
@@ -370,8 +371,8 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
-	    $mapped_values[2]{value} = C4::Dates->new( $values[2], 'iso' )->output();
-            $mapped_values[1]{link} = "/cgi-bin/koha/reserve/request.pl?biblionumber=". $values[5];
+	    $mapped_values[3]{value} = C4::Dates->new( $values[3], 'iso' )->output();
+            $mapped_values[1]{link} = "/cgi-bin/koha/reserve/request.pl?biblionumber=". $values[6];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
