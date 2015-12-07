@@ -2496,6 +2496,12 @@ sub AnonymiseIssueHistory {
     my $date           = shift;
     my $borrowernumber = shift;
     my $dbh            = C4::Context->dbh;
+    my $filterbranch = ((C4::Context->preference('IndependantBranches')
+                         && C4::Context->userenv
+                         && C4::Context->userenv->{flags} % 2 !=1
+                         && C4::Context->userenv->{branch})
+                        ? C4::Context->userenv->{branch}
+                        : "");
     my $query          = "
         UPDATE old_issues
         SET    borrowernumber = NULL
@@ -2503,6 +2509,7 @@ sub AnonymiseIssueHistory {
           AND borrowernumber IS NOT NULL
     ";
     $query .= " AND borrowernumber = '".$borrowernumber."'" if defined $borrowernumber;
+    $query .= " AND branchcode = '". $filterbranch ."'" if ( $filterbranch );
     my $rows_affected = $dbh->do($query);
     return $rows_affected;
 }
