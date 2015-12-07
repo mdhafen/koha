@@ -153,10 +153,11 @@ if ( $op eq 'Trigger' ) {
         $query = "
      SELECT issues.*
        FROM issues
- CROSS JOIN borrowers USING (borrowernumber)";
+ CROSS JOIN borrowers USING (borrowernumber)
+      WHERE TO_DAYS(NOW())-TO_DAYS(date_due) > 0";
         if ( $branch || $category ) {
             $query .= "
-      WHERE ";
+        AND ";
             if ( $branch ) {
                 $query .= "issues.branchcode = ?";
                 push @bind, $branch;
@@ -170,8 +171,7 @@ if ( $op eq 'Trigger' ) {
             }
         }
         $query .= "
-   GROUP BY borrowernumber
-     HAVING TO_DAYS(NOW())-TO_DAYS(date_due) > 0";
+   GROUP BY borrowernumber";
 
         my $sth = $dbh->prepare( $query );
         $sth->execute( @bind );
