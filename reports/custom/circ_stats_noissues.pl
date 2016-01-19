@@ -60,8 +60,8 @@ my $itype = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'bibl
 
 my $reportname = "circ_stats_noissues";  # ie "collection_itemnums"
 my $reporttitle = "Copies With No Check Outs";  # ie "Item Number by Branch"
-my @columns = ( "itemcallnumber", "barcode", "title", $hbranch, "items.biblionumber" );
-my @column_titles = ( "Call Number", "Barcode", "Title", "Branch" );
+my @columns = ( "itemcallnumber", "barcode", "copyrightdate", "title", $hbranch, "items.biblionumber" );
+my @column_titles = ( "Call Number", "Barcode", "Copyright Date", "Title", "Branch" );
 my @tables = ( "items",
 	       [ # Joined Tables
 	         {
@@ -440,7 +440,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
-            $mapped_values[2]{link} = '/cgi-bin/koha/catalogue/detail.pl?biblionumber='. @values[4];
+            $mapped_values[3]{link} = '/cgi-bin/koha/catalogue/detail.pl?biblionumber='. @values[5];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
