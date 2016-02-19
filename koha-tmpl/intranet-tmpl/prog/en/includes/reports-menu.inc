@@ -22,7 +22,7 @@
 	<ul>
 		<li><a href="/cgi-bin/koha/reports/custom/account_fines.pl">Fines</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/borrowers_messages.pl">Borrower Messages</a></li>
-		<li><a href="/cgi-bin/koha/reports/custom/borrowers_list.pl">List Borrowers</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/borrowers_by_status.pl">List Borrowers by Status</a></li>
 	</ul>
 <h5>Guided Reports</h5>
 	<ul>

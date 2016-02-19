@@ -71,6 +71,7 @@ if ( $op eq 'Sync' and @categories ) {
     my @report;
 
     my $branch_update = $dbh->prepare( "UPDATE borrowers SET branchcode = ? WHERE cardnumber = ?" );
+    my $gone_update = $dbh->prepare( "UPDATE borrowers SET gonenoaddress = 1 WHERE cardnumber = ?" );
 
     # Check for differences borrowers
     #  Check for patrons not in external, and in category
@@ -104,6 +105,7 @@ if ( $op eq 'Sync' and @categories ) {
 	    # this prevents a delete when a patron has copies checked out
 	    if ( $issues ) {
 		$allow_delete = 0;
+		$gone_update->execute( $cardnumber );
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
 		    cardnumber => $cardnumber,
@@ -115,6 +117,7 @@ if ( $op eq 'Sync' and @categories ) {
 	    $fines += 0;  #  Force to number
 	    if ( $fines != 0 ) {
 		$allow_delete = 0;
+		$gone_update->execute( $cardnumber );
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
 		    cardnumber => $cardnumber,
@@ -125,6 +128,7 @@ if ( $op eq 'Sync' and @categories ) {
 	    # this prevents a delete when a patron has reserves outstanding
 	    if ( @reserves ) {
 		$allow_delete = 0;
+		$gone_update->execute( $cardnumber );
 		push @report, {
 		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
 		    cardnumber => $cardnumber,
