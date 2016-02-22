@@ -100,7 +100,7 @@ if ( $op eq 'Sync' and @categories ) {
 
 	    if ( $bordata && $$bordata{'branchcode'} && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
-		if ( $confirmed ) $branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
+		if ( $confirmed ) { $branch_update->execute( $$bordata{'branchcode'}, $cardnumber ) };
 		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
 		$this_report{moved} = 1;
 	    }
