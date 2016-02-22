@@ -100,38 +100,33 @@ if ( $op eq 'Sync' and @categories ) {
 
 	    if ( $bordata && $$bordata{'branchcode'} && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
-		$branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
+		if ( $confirmed ) $branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
 		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
-		push @report, {
-		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $$bordata{'cardnumber'},
-		    moved => 1,
-		};
+		$this_report{moved} = 1;
 	    }
 
 	    # this prevents a delete when a patron has copies checked out
 	    if ( $issues ) {
-		$gone_update->execute( $cardnumber ) if ($allow_delete);
+		 if ($allow_delete && $confirmed) { $gone_update->execute( $cardnumber ) };
 		$allow_delete = 0;
 		$this_report{issues} = 1;
 	    }
 
 	    # this prevents a delete when a patron has fines
 	    if ( $fines != 0 ) {
-		$gone_update->execute( $cardnumber ) if ($allow_delete);
+		 if ($allow_delete && $confirmed) { $gone_update->execute( $cardnumber ) };
 		$allow_delete = 0;
 		$this_report{fines} = 1;
 	    }
 
 	    # this prevents a delete when a patron has reserves outstanding
 	    if ( @reserves ) {
-		$gone_update->execute( $cardnumber ) if ($allow_delete);
+		 if ($allow_delete && $confirmed) { $gone_update->execute( $cardnumber ) };
 		$allow_delete = 0;
 		$this_report{reserves} = 1;
 	    }
 
 	    if ( $allow_delete ) { # || $historical_branch ) {
-		push @report, \%this_report;
 		$deleted{ $cardnumber } = 1;
 	    }
 	}
