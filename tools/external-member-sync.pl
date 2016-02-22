@@ -86,11 +86,18 @@ if ( $op eq 'Sync' and @categories ) {
 	    my $borrnum = $$dbhash{$cardnumber}{borrowernumber};
 	    my ( undef, $issues, $fines ) = GetMemberIssuesAndFines( $borrnum );
 	    my ( @reserves ) = GetReservesFromBorrowernumber( $borrnum );
+	    $fines += 0;  #  Force to number
 
 	    # this prevents a delete when a patron has changed branches
 	    my $bordata = GetMemberDetails_External( $cardnumber );
 	    $$bordata{'surname'} ||= '';
 	    $$bordata{'firstname'} ||= '';
+
+	    my %this_report = (
+		name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
+		cardnumber => $$bordata{'cardnumber'},
+	    );
+
 	    if ( $bordata && $$bordata{'branchcode'} && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
 		$branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
@@ -104,39 +111,27 @@ if ( $op eq 'Sync' and @categories ) {
 
 	    # this prevents a delete when a patron has copies checked out
 	    if ( $issues ) {
+		$gone_update->execute( $cardnumber ) if ($allow_delete);
 		$allow_delete = 0;
-		$gone_update->execute( $cardnumber );
-		push @report, {
-		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $cardnumber,
-		    issues => 1,
-		};
+		$this_report{issues} = 1;
 	    }
 
 	    # this prevents a delete when a patron has fines
-	    $fines += 0;  #  Force to number
 	    if ( $fines != 0 ) {
+		$gone_update->execute( $cardnumber ) if ($allow_delete);
 		$allow_delete = 0;
-		$gone_update->execute( $cardnumber );
-		push @report, {
-		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $cardnumber,
-		    fines => 1,
-		};
+		$this_report{fines} = 1;
 	    }
 
 	    # this prevents a delete when a patron has reserves outstanding
 	    if ( @reserves ) {
+		$gone_update->execute( $cardnumber ) if ($allow_delete);
 		$allow_delete = 0;
-		$gone_update->execute( $cardnumber );
-		push @report, {
-		    name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
-		    cardnumber => $cardnumber,
-		    reserves => 1,
-		}
+		$this_report{reserves} = 1;
 	    }
 
 	    if ( $allow_delete ) { # || $historical_branch ) {
+		push @report, \%this_report;
 		$deleted{ $cardnumber } = 1;
 	    }
 	}

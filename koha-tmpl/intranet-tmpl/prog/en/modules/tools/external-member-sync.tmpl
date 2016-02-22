@@ -49,14 +49,14 @@
 		<td><!-- TMPL_VAR NAME="cardnumber" --></td>
 		<td><!-- TMPL_VAR NAME="name" --></td>
 		<td>
-		<!-- TMPL_IF NAME="moved" -->Patron not deleted: has moved<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="issues" -->Patron not deleted: has items checked out<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="fines" -->Patron not deleted: has fines<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="reserves" -->Patron not deleted: has holds<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="deleted" -->Patron Deleted<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="historical" -->Patron moved to historical branch<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="added" -->Patron Added<!-- /TMPL_IF -->
-		<!-- TMPL_IF NAME="changed" -->Patron Changed<!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="moved" -->Patron has moved<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="issues" -->Patron has items checked out<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="fines" -->Patron has fines<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="reserves" -->Patron has holds<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="deleted" -->Patron Deleted<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="historical" -->Patron moved to historical branch<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="added" -->Patron Added<br><!-- /TMPL_IF -->
+		<!-- TMPL_IF NAME="changed" -->Patron Changed<br><!-- /TMPL_IF -->
 		</td>
 		</tr>
                 <!-- /TMPL_LOOP -->
