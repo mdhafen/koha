@@ -116,7 +116,7 @@ push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "="
 if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     my $branch = $filters[3] || C4::Context->userenv->{branch};
     if ( $local_only ) {
-	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch)." AND items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+	push @queryfilter, { crit => "( ( items.homebranch = ". $dbh->quote( $branch)." OR items.homebranch IS NULL ) AND borrowers.branchcode", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     } else {
 	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch )." OR items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     }
