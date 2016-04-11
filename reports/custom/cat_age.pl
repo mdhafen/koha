@@ -162,7 +162,7 @@ if ($do_it) {
 	    value => $year,
 	};
 
-        push $parameters, {
+        push @parameters, {
             check_box => 1,
             label => "Show Only One Copy",
             input_name => 'Option1',
