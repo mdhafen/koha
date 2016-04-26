@@ -255,7 +255,7 @@ my $csvfilename;
 my $htmlfilename;
 my $triggered = 0;
 my $listall = 0;
-my $itemscontent = join( ',', qw( date_due title barcode author itemnumber ) );
+my $itemscontent = join( ',', qw( date_due title barcode author ) );
 my @myborcat;
 my @myborcatout;
 
@@ -478,7 +478,7 @@ END_SQL
                 $verbose and warn "STH2 PARAMS: borrowernumber = $borrowernumber, mindays = $mindays, maxdays = $maxdays";
                 $sth2->execute(@params);
                 my $itemcount = 0;
-                my $titles = "";
+                my $titles = join("\t", @item_content_fields) ."\n";
                 my @items = ();
                 
                 my $i = 0;

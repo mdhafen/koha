@@ -179,7 +179,7 @@ if ( $op eq 'Trigger' ) {
         while ( my $row = $sth->fetchrow_hashref ) {
             my $this_letter = {};
             %$this_letter = %$letter;
-            my $items_content = '';
+            my $items_content = join("\t", @issue_columns) ."\n";
             my $admin_email_address;
             $branch ||= $row->{'branchcode'};
             my $branch_details = $branches->{$branch};
