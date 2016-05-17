@@ -93,13 +93,13 @@ my @filters = $input->param("Filter");
 my @queryfilter = ();
 
 if ( $filters[0] ) {
-    push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued After", value => $filters[0] };
+    push @queryfilter, { op => ">", title => "Not issued After", value => $filters[0] };
     $tables[1][2]{'on'} .= " AND issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
     $tables[1][3]{'on'} .= " AND old_issues.returndate > ". $dbh->quote( format_date_in_iso( $filters[0] ) );
 }
 
 if ( $filters[1] ) {
-    push @queryfilter, { crit => "1", op => "=", filter => "1", title => "Not issued Before", value => $filters[1] };
+    push @queryfilter, { crit => "items.dateaccessioned", op => "<", filter => $dbh->quote( format_date_in_iso( $filters[1] ) ), title => "Not issued Before", value => $filters[1] };
     $tables[1][2]{'on'} .= " AND issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
     $tables[1][3]{'on'} .= " AND old_issues.issuedate < ". $dbh->quote( format_date_in_iso( $filters[1] ) );
 }
@@ -310,8 +310,9 @@ sub calculate {
 
 	if ( @$qfilters ) {
 	    foreach ( @$qfilters ) {
-		if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-		    my %okfields = (
+                if ( $$_{crit} ) {
+                    if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
+                        my %okfields = (
 				    borrowernumber => 1,
 				    cardnumber => 1,
 				    surname => 1,
@@ -319,16 +320,17 @@ sub calculate {
 				    othernames => 1,
 				    branchcode => 1,
 				    );
-		    #  External fields will have to be handled down in the loop
-		    unless ( $okfields{ $1 } ) {
-			#  leading and trailing ' will muddle MembersExternal
-			$$_{filter} =~ s/^\'(.*)\'$/$1/;
-			push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
-		    } else {
-			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		    }
-		} else {
-		    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
+                        #  External fields will have to be handled down in the loop
+                        unless ( $okfields{ $1 } ) {
+                            #  leading and trailing ' will muddle MembersExternal
+                            $$_{filter} =~ s/^\'(.*)\'$/$1/;
+                            push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
+                        } else {
+                            push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
+                        }
+                    } else {
+                        push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
+                    }
 		}
 	    }
 	}
