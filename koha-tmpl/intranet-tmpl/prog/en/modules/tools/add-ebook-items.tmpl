@@ -11,7 +11,7 @@
 <!-- TMPL_IF NAME="RESULTS" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Results<!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="LIST" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Batch list<!-- /TMPL_IF -->
 <!-- TMPL_IF NAME="DETAIL" -->&rsaquo; <a href="/cgi-bin/koha/tools/add-ebook-items.pl">Add items to ebook MARC batch</a> &rsaquo; Batch details<!-- /TMPL_IF -->
-<!-- TMPL_IF NAME="INIT" -->&rsaquo; Add items to ebook MARC batch<!-- /TMPL_IF -->
+<!-- TMPL_IF NAME="INIT" -->&rsaquo; Add item records for ebooks<!-- /TMPL_IF -->
 </div>
 
 <div id="doc3" class="yui-t2">
@@ -135,7 +135,7 @@
 	</div>
 <!-- TMPL_ELSE --><!-- TMPL_IF NAME="INIT"-->
 	<div id="addebookinit">
-		<h3>Add items to ebook MARC batch</h3>
+		<h3>Add item records for ebooks</h3>
 
 		<form action="/cgi-bin/koha/tools/add-ebook-items.pl" method="post">
 		<fieldset class="rows">
