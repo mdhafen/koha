@@ -84,7 +84,7 @@ push @queryfilter, { crit => 'items.itype', op => '=', filter => $dbh->quote( $f
 push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "=", filter => "0", title => 'Not flagged', value => 'Gone' } if ( $input->param( 'Options3' ) );
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[4] ) {
     my $branch = $filters[4] || C4::Context->userenv->{branch};
     if ( $local_only ) {
 	push @queryfilter, { crit => "( borrowers.branchcode = ". $dbh->quote( $branch)." AND items.homebranch", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
@@ -96,9 +96,14 @@ if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
 my @loopfilter = ();
 
 my $where = "accountlines.amountoutstanding <> 0";
-my $order = "$columns[0], Patron";
+my $order = "sort2, patron";
 my $group = "";
 my $page_breaks;
+
+for ( $input->param("Order") ) {
+    if    ( $_ eq 'lastname' )      {$order = "patron"}
+    elsif ( $_ eq 'cardnumber' ) {$order = "cardnumber"}
+}
 
 if ( $filters[2] ) {
     $columns[5] = 'SUM(accountlines.amountoutstanding)';
@@ -266,6 +271,17 @@ if ($do_it) {
             checked => 1,
 	    input_name => "Options3",
 	    label => "Exclude students flagged as Gone",
+	};
+
+	my @order_loop;
+	push @order_loop, { value => 'sort2', label => 'Homeroom' };
+	push @order_loop, { value => 'lastname', label => 'Last Name' };
+	push @order_loop, { value => 'cardnumber', label => 'Card Number' };
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@order_loop,
+	    label => 'Sort By',
+	    input_name => "Order",
 	};
 
 	my @dels = ( ";", "tabulation", "\\", "\/", ",", "\#" );
