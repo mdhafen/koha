@@ -2164,7 +2164,11 @@ more.
 sub CountItemsIssued {
     my ($biblionumber) = @_;
     my $dbh            = C4::Context->dbh;
-    my $sth            = $dbh->prepare('SELECT COUNT(*) as issuedCount FROM items, issues WHERE items.itemnumber = issues.itemnumber AND items.biblionumber = ?');
+    my $query          = 'SELECT COUNT(*) as issuedCount FROM items, issues WHERE items.itemnumber = issues.itemnumber AND items.biblionumber = ?';
+    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv->{branch} ) {
+        $query .= " AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+    }
+    my $sth            = $dbh->prepare($query);
     $sth->execute($biblionumber);
     my $row = $sth->fetchrow_hashref();
     return $row->{'issuedCount'};

@@ -1413,11 +1413,16 @@ sub GetItemsLocationInfo {
 
 	my $dbh = C4::Context->dbh;
 	my $query = "SELECT a.branchname as homebranch, b.branchname as holdingbranch, 
-			    location, itemcallnumber, cn_sort
-		     FROM items, branches as a, branches as b
-		     WHERE homebranch = a.branchcode AND holdingbranch = b.branchcode 
-		     AND biblionumber = ?
-		     ORDER BY cn_sort ASC";
+                location, itemcallnumber, cn_sort
+              FROM items, branches as a, branches as b
+             WHERE homebranch = a.branchcode AND holdingbranch = b.branchcode ";
+    if ( C4::Context->preference('IndependantBranches') && C4::Context->userenv->{branch} ) {
+        $query .= "
+               AND homebranch = ". $dbh->quote( C4::Context->userenv->{branch} );
+                    }
+    $query .= "
+               AND biblionumber = ?
+             ORDER BY cn_sort ASC";
 	my $sth = $dbh->prepare($query);
         $sth->execute($biblionumber);
 
