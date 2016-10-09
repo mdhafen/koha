@@ -28,7 +28,6 @@ use C4::Context;
 use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
-use C4::Members;  # GetMemberSortValues
 use C4::Koha;
 use C4::Circulation;
 
@@ -49,65 +48,47 @@ my ($template, $borrowernumber, $cookie)
 
 my $userenv = C4::Context->userenv;
 
-my $reportname = "borrowers_by_status";
-my $reporttitle = "List Borrowers by Status";
-my @column_titles = ( "Patron", "Cardnumber", "Category", "Graduation Date", "Homeroom Teacher", "Gone", "Lost", "Debarred" );
-my @queryfilter = ();
+my $reportname = "account_payments";
+my $reporttitle = "Borrower Payments";
+my @column_titles = ( "Date", "Patron", "Title", "Barcode", "Amount", "Credit Type", "Credit Description", "Fine Type", "Fine Description" );
 
-my @where = ();
+my @wheres;
 
 # Handle parameters
 $CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 
-if ( $filters[0] ) {
-    push @queryfilter, { title => "Graduation Date", op => "=", value => $filters[0] };
-    push @where, " borrowers.sort1 = ". $dbh->quote( $filters[0] );
+push @wheres, "al1.date > ". $dbh->quote($filters[0]) if ( $filters[0] );
+
+if ( my @types = $input->param("FineTypes") ) {
+    my @t_wheres;
+    for ( @types ) {
+        ($_ eq 'F') && (push @t_wheres,("al2.accounttype = 'F'","al2.accounttype = 'FU'"));
+        ($_ eq 'N') && (push @t_wheres,"al2.accounttype = 'N'");
+        ($_ eq 'A') && (push @t_wheres,"al2.accounttype = 'A'");
+        ($_ eq 'M') && (push @t_wheres,"al2.accounttype = 'M'");
+        ($_ eq 'L') && (push @t_wheres,"al2.accounttype = 'L'");
+        ($_ eq 'P') && (push @t_wheres,"al2.accounttype = 'Pay'");
+        ($_ eq 'C') && (push @t_wheres,"al1.accounttype = 'C'");
+        ($_ eq 'W') && (push @t_wheres,"al1.accounttype = 'W'");
+        ($_ eq 'R') && (push @t_wheres,"al1.accounttype = 'REF'");
+        ($_ eq 'O') && (push @t_wheres,"al1.accounttype = 'FOR'");
+    }
+    push @wheres, '('. (join ' OR ', @t_wheres) .')';
 }
 
-if ( $filters[1] ) {
-    push @queryfilter, { title => "Homeroom Teacher", op => "=", value => $filters[1] };
-    push @where, " borrowers.sort2 = ". $dbh->quote( $filters[1] );
+if ( C4::Context->preference("IndependantBranches") || $filters[1] ) {
+    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[1];
+    my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
+    push @wheres, "$hbranch = ". $dbh->quote( $branch );
+    push @wheres, "branchcode = ". $dbh->quote( $branch );
 }
 
-if ( $input->param('Status1') ) {
-    push @queryfilter, { title => "Gone", op => "=", value => "No Address" };
-    push @where, " borrowers.gonenoaddress = 1";
+my $query = "SELECT al1.date, CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron, CONCAT_WS(' ',biblio.title,biblio.seriestitle) AS title, items.barcode, al1.amount,al1.accounttype AS CreditType, al1.description AS CreditDescription, al2.accounttype AS FineType, al2.description AS FineDescription, al1.borrowernumber FROM accountlines AS al1 LEFT JOIN borrowers USING (borrowernumber) LEFT JOIN items USING (itemnumber) LEFT JOIN biblio USING (biblionumber) LEFT JOIN accountoffsets AS ao ON al1.borrowernumber = ao.borrowernumber AND al1.accountno = ao.offsetaccount LEFT JOIN accountlines AS al2 ON ao.borrowernumber = al2.borrowernumber AND ao.accountno = al2.accountno WHERE al1.amount < 0 ";
+if ( @wheres ) {
+    $query .= ' AND '. (join ' AND ', @wheres);
 }
-
-if ( $input->param('Status2') ) {
-    push @queryfilter, { title => "Card", op => "=", value => "Lost" };
-    push @where, " borrowers.lost = 1";
-}
-
-if ( $input->param('Status3') ) {
-    push @queryfilter, { title => "Debarred", op => "=", value => "Yes" };
-    push @where, " borrowers.debarred = 1";
-}
-
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
-    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[2];
-    push @queryfilter, { title => "Library", op => "=", value => $branch };
-    push @where, " borrowers.branchcode = ".$dbh->quote( $branch );
-}
-
-my $query = 
-   "SELECT CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron,
-           cardnumber, description, sort1, sort2, gonenoaddress, lost, debarred,
-           borrowernumber
-      FROM borrowers
-CROSS JOIN categories using (categorycode) ";
-if ( @where ) {
-    $query .= "WHERE ". join ' AND ', @where;
-}
-
-my $order = $input->param("Order") || '';
-$query .= " ORDER BY ";
-for ( $order ) {
-    if    ( /bhn/ ) { $query .= "branchcode,sort2,patron"; }
-    elsif ( /bn/ )  { $query .= "branchcode,patron"; }
-    else            { $query .= "patron"; }
-}
+$query .= " ORDER BY patron";
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -126,8 +107,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( $query, \@column_titles, $output );
-	$results->[0]{loopfilter} = \@queryfilter if ( @queryfilter );
+	my $results = calculate( $query, \@column_titles );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -164,61 +144,35 @@ if ($do_it) {
 		}
 	}
 } else {
-	# FIXME  Fill in other dropdowns
-
 	my @parameters;
 
-	my ( $sort1_values, $sort2_values ) = GetMemberSortValues();
-	my ( @sort1_loop, @sort2_loop );
-	foreach ( sort @$sort1_values ) {
-	    push @sort1_loop, { value => $_, label => $_ } if ( $_ );
-	}
-	foreach ( sort @$sort2_values ) {
-	    push @sort2_loop, { value => $_, label => $_ } if ( $_ );
-	}
+	my $today = C4::Dates->today();
 	push @parameters, {
-	    select_box => 1,
-	    select_loop => \@sort1_loop,
-	    label => "sort1",
-	    first_blank => 1,
-	};
-	push @parameters, {
-	    select_box => 1,
-	    select_loop => \@sort2_loop,
-	    label => "sort2",
-	    first_blank => 1,
+	    calendar => 1,
+	    label => "Credits Added Since",
+	    id => "creditdate",
+	    value => $today,
 	};
 
-        push @parameters, {
-            check_box => 1,
-            count => 1,
-            input_name => "Status1",
-            label => "Gone (No Address)",
-        };
-
-        push @parameters, {
-            check_box => 1,
-            count => 2,
-            input_name => "Status2",
-            label => "Lost Card",
-        };
-
-        push @parameters, {
-            check_box => 1,
-            count => 3,
-            input_name => "Status3",
-            label => "Debarred",
-        };
-
-	my @order_loop;
-	push @order_loop, { value => 'bn', label => 'Name' };
-	push @order_loop, { value => 'bc', label => 'Cardnumber' };
-	push @order_loop, { value => 'bhn', label => 'Homeroom Teacher' };
+    my @fine_types_loop = (
+        { value => 'F', label => 'Late Fine' },
+        { value => 'N', label => 'New Card Fee' },
+        { value => 'A', label => 'Account Management Fee' },
+        { value => 'M', label => 'Sundry' },
+        { value => 'L', label => 'Lost Item' },
+        { value => 'P', label => 'Payment' },
+        { value => 'C', label => 'Credit' },
+        { value => 'W', label => 'Write-off' },
+        { value => 'R', label => 'Refund' },
+        { value => 'O', label => 'Forgiven' },
+    );
 	push @parameters, {
 	    select_box => 1,
-	    input_name => 'Order',
-	    select_loop => \@order_loop,
-	    label => 'Sort By',
+	    select_loop => \@fine_types_loop,
+	    label => "Fine/Credit Types",
+	    input_name => 'FineTypes',
+	    size => 5,
+	    multiple => 1,
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {
@@ -249,6 +203,7 @@ if ($do_it) {
 	}
 
 	$template->param(
+	    DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
 	    parameter_loop => \@parameters,
 	    sep_loop => \@dels,
 	    );
@@ -257,7 +212,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($query, $column_titles, $output) = @_;
+	my ($query, $column_titles) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my $itemtypes = GetItemTypes();
@@ -265,40 +220,44 @@ sub calculate {
 	my @looprow;
 	my %globalline;
 	my @mainloop;
-	my @big_loop;
-
-        if ( $output ne 'screen' ) {
-            pop @$column_titles;  # discard 'Action' header
-        }
+	my %big_hash;
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
 
-CALC_MAIN_LOOP:
 	while ( my ( @values ) = $sth_col->fetchrow ) {
-            push @big_loop, \@values;
-	}
+		my %row;
+		my @mapped_values;
 
-	foreach my $data ( @big_loop ) {
-            my %row;
-            my @mapped_values;
-
-            push @mapped_values,
-            { 
-                value => $data->[0],
-                link => "/cgi-bin/koha/members/moremember.pl?borrowernumber=".$data->[8],
-            },
-            { value => $data->[1] },
-            { value => $data->[2] },
-            { value => $data->[3] },
-            { value => $data->[4] },
-            { value => $data->[5] ? "Gone" : " " },
-            { value => $data->[6] ? "Card Lost" : " " },
-            { value => $data->[7] ? "Debarred" : " " };
-
-            $row{ 'values' } = \@mapped_values;
-            push @looprow, \%row;
+        for ( $values[5],$values[7] ) {
+            ($_ eq 'F') && ($_ = "Late Fine");
+            ($_ eq 'FU') && ($_ = "Late Fine");
+            ($_ eq 'N') && ($_ = "New Card Fee");
+            ($_ eq 'A') && ($_ = "Account Management Fee");
+            ($_ eq 'M') && ($_ = "Sundry");
+            ($_ eq 'L') && ($_ = "Lost Item");
+            ($_ eq 'Pay') && ($_ = "Payment");
+            ($_ eq 'C') && ($_ = "Credit");
+            ($_ eq 'W') && ($_ = "Write-off");
+            ($_ eq 'REF') && ($_ = "Refund");
+            ($_ eq 'FOR') && ($_ = "Forgiven");
         }
+
+		push @mapped_values, (
+		    { value => $values[0] }, # Date format?
+		    { value => $values[1], link => "/cgi-bin/koha/members/boraccount.pl?borrowernumber=".$values[9] },
+		    { value => $values[2] },
+		    { value => $values[3] },
+		    { value => sprintf("%.2f",$values[4]) },
+		    { value => $values[5] },
+		    { value => $values[6] },
+		    { value => $values[7] },
+		    { value => $values[8] },
+        );
+
+		$row{ 'values' } = \@mapped_values;
+		push @looprow, \%row;
+	}
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };

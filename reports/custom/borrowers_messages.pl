@@ -55,6 +55,7 @@ my @column_titles = ( "Patron", "Cardnumber", "Date", "From", "For", "Message", 
 my $where = '';
 
 # Handle parameters
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 
 if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {

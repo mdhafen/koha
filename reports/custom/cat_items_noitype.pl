@@ -83,6 +83,7 @@ my @tables = ( "items",
 	       );
 
 #FIXME build queryfilter
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 

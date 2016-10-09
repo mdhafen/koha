@@ -55,6 +55,7 @@ my @column_titles = ( "School Year", "Item Type", "Circulations" );
 my $where = 'issuedate IS NOT NULL';
 
 # Handle parameters
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 
 if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {

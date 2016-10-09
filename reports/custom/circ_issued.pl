@@ -88,6 +88,7 @@ my @tables = ( "issues",
 	       );
 
 #FIXME build queryfilter
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
@@ -125,7 +126,7 @@ my @loopfilter = ();
 my $where;
 my $order = "$columns[0]";
 
-$where = "date_due < NOW()" if ( $input->param("Option2") );  # just overdues
+$where = "date_due < NOW()" if ( $input->param("Option2") );  # overdues
 
 for ( $filters[3] ) {
     if ( /duedate/i ) { $order .= ",date_due ASC" }

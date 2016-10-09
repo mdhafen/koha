@@ -26,6 +26,7 @@ use CGI;
 use C4::Auth;
 use C4::Context;
 use C4::Output;
+use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
 use C4::Members;  # GetMemberSortValues
 use C4::Koha;
@@ -83,12 +84,17 @@ my @tables = ( "items",
 	       );
 
 #FIXME build queryfilter
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+if ( $filters[0] ) {
+    push @queryfilter, { crit => 'datelastseen', op => '<', filter => $dbh->quote( format_date_in_iso($filters[0]) ), title => "Not Seen Since", value => $filters[0] };
+}
+
+if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
-    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[2];
+    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[3];
     push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
@@ -98,7 +104,7 @@ my $where = "";
 my $order = "$columns[0]";
 my $page_breaks;
 
-for ( $filters[0] ) {
+for ( $filters[1] ) {
     if ( /lost/ ) { $where = "items.itemlost <> 0" }
     elsif ( /withdrawn/ ) { $where = "items.wthdrawn <> 0" }
     elsif ( /damaged/ ) { $where = "items.damaged <> 0" }
@@ -115,7 +121,7 @@ if ( $input->param( "ItemTypes" ) ) {
     push @queryfilter, { crit => $itype_field, op => "IN", filter => $types, title => "Item Category", value => $types };
 }
 
-for ( $filters[1] ) {
+for ( $filters[2] ) {
     if ( /title/i ) { $order = "title" }
     elsif ( /callnumber/ ) { $order = "itemcallnumber,Title" }
     elsif ( /datelastseen/ ) { $order = "items.datelastseen" }
@@ -180,6 +186,14 @@ if ($do_it) {
 	# FIXME  Fill in other dropdowns
 
 	my @parameters;
+
+	my $today = C4::Dates->today();
+	push @parameters, {
+	    calendar => 1,
+	    label => "Not Seen Since",
+	    id => "lastseen",
+	    value => $today,
+	};
 
 	my @where_loop;
 	push @where_loop, { value => '', label => 'Lost, Withdrawn, or Damaged' };
@@ -249,6 +263,7 @@ if ($do_it) {
 	}
 
 	$template->param(
+	    DHTMLcalendar_dateformat => C4::Dates->DHTMLcalendar(),
 	    parameter_loop => \@parameters,
 	    sep_loop => \@dels,
 	    );

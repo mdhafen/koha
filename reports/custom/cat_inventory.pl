@@ -29,6 +29,7 @@ use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
 use C4::Members;  # GetMemberSortValues
+use C4::Items qw/ModItem/;
 use C4::Koha;
 use C4::Circulation;
 
@@ -57,7 +58,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_inventory";  # ie "collection_itemnums"
 my $reporttitle = "Catalog Inventory";  # ie "Item Number by Branch"
-my @columns = ( "items.datelastseen", "items.itemcallnumber", "items.barcode", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle, biblio.seriestitle) AS fulltitle", "$hbranch", "items.itemnumber" );
+my @columns = ( "items.datelastseen", "items.itemcallnumber", "items.barcode", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle, biblio.seriestitle) AS fulltitle", "$hbranch", "items.biblionumber", "items.itemnumber" );
 my @column_titles = ( "Last Seen", "Call Number", "Barcode", "Title", "Library" );
 my @tables = ( "items",  # ie "items"
 	       [ # Cross Joined Tables
@@ -85,8 +86,9 @@ my @tables = ( "items",  # ie "items"
 	       );
 
 #FIXME build queryfilter
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
-my @options = ( $input->param("Check1") ."", $input->param("Check2") ."" );
+my @options = ( scalar $input->param("Check1") ."", scalar $input->param("Check2") ."", scalar $input->param("Input1") ."" );
 my @queryfilter = ();
 my @loopfilter = ();
 
@@ -94,9 +96,10 @@ my $where = "itemlost = 0 AND wthdrawn = 0";
 my $order = "$columns[0]";
 my $page_breaks;
 my $set_lost;
+my $lost_message;
 
 if ( $filters[0] ) {
-    push @queryfilter, { crit => 'datelastseen', op => '<', filter => $dbh->quote( format_date_in_iso($filters[0]) ), title => "Last Seen", value => $filters[0] };
+    push @queryfilter, { crit => 'datelastseen', op => '<', filter => $dbh->quote( format_date_in_iso($filters[0]) ), title => "Not Seen Since", value => $filters[0] };
 }
 
 if ( $input->param( "ItemTypes" ) ) {
@@ -123,6 +126,7 @@ if ( $options[0] ) {
 
 if ( $options[1] ) {
     $set_lost = 4;  # Missing
+    $lost_message = $options[2];
 }
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
@@ -151,7 +155,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter, $set_lost );
+	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter, $set_lost, $lost_message );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -195,7 +199,7 @@ if ($do_it) {
 	my $today = C4::Dates->today();
 	push @parameters, {
 	    calendar => 1,
-	    label => "Last Seen",
+	    label => "Not Seen Since",
 	    id => "lastseen",
 	    value => $today,
 	};
@@ -244,6 +248,12 @@ if ($do_it) {
 	    label => "Set Copies As Missing",
 	};
 
+    push @parameters, {
+	    input_box => 1,
+	    input_name => 'Input1',
+	    label => "With Note",
+	};
+
 	unless ( C4::Context->preference("IndependantBranches") ) {
 	    my $branches = GetBranches();
 	    my @branchloop;
@@ -281,7 +291,7 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters, $set_lost) = @_;
+	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters, $set_lost, $lost_message) = @_;
 
 	my $dbh = C4::Context->dbh;
 	my @wheres;
@@ -294,7 +304,8 @@ sub calculate {
 	my $break;
 	my $break_index;
 
-	my $sth_setlost = $dbh->prepare( "UPDATE items SET itemlost = $set_lost WHERE itemnumber = ?" );
+    my %setlost_update = ( itemlost => $set_lost );
+	my $sth_get_notes = $dbh->prepare( "SELECT itemnotes FROM items WHERE itemnumber = ?" );
 
 	my $table = shift @$tables;
 	my $column = join ',', @$columns;
@@ -429,7 +440,13 @@ CALC_MAIN_LOOP:
 	    my @values = @$data;
 
 	    if ( $set_lost ) {
-		$sth_setlost->execute( $values[ $#values ] );
+            my %this_lost_update = %setlost_update;
+            if ( $lost_message ) {
+                $sth_get_notes->execute( $values[ $#values ] );
+                my ( $notes ) = $sth_get_notes->fetchrow;
+                $this_lost_update{ itemnotes } = $notes ."\n$lost_message";
+            }
+            ModItem( \%this_lost_update, $values[ $#values - 1 ], $values[ $#values ] );
 	    }
 
 	    if ( $break && $break ne $values[ $break_index ] ) {

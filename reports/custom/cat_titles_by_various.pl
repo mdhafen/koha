@@ -83,8 +83,9 @@ my @tables = ( "items",
 	       );
 
 #FIXME build queryfilter
+$CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
-my @options = ( $input->param( "Option1" ) );
+my @options = ( scalar $input->param( "Option1" ) );
 my @queryfilter = ();
 
 my $where = "";
