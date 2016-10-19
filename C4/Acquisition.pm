@@ -743,7 +743,7 @@ sub GetPendingOrders {
         $strsth .= " AND aqbasket.basketno=? ";
         push @query_params, $basketno;
     }
-    $strsth .= " group by aqbasket.basketno" if $grouped;
+    $strsth .= " group by aqbasket.basketno,aqorders.ordernumber,biblioitems.isbn" if $grouped;
     $strsth .= " order by aqbasket.basketno";
 
     my $sth = $dbh->prepare($strsth);
@@ -1347,7 +1347,7 @@ sub GetParcels {
     my @query_params = ();
     my $strsth ="
         SELECT  aqorders.booksellerinvoicenumber,
-                datereceived,purchaseordernumber,
+                datereceived,GROUP_CONCAT(',',purchaseordernumber) AS purchaseordernumber,
                 count(DISTINCT biblionumber) AS biblio,
                 sum(quantity) AS itemsexpected,
                 sum(quantityreceived) AS itemsreceived

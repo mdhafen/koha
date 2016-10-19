@@ -1464,12 +1464,12 @@ sub  GetLastAcquisitions {
 	   , ')'
 	 ;
 
-	my $query = "SELECT biblio.biblionumber as biblionumber, title, dateaccessioned
+	my $query = "SELECT biblio.biblionumber as biblionumber, title, MAX(dateaccessioned)
 				 FROM items RIGHT JOIN biblio ON (items.biblionumber=biblio.biblionumber) 
 			            RIGHT JOIN biblioitems ON (items.biblioitemnumber=biblioitems.biblioitemnumber)
 			            @where
 			            GROUP BY biblio.biblionumber 
-			            ORDER BY dateaccessioned DESC LIMIT $max";
+			            ORDER BY MAX(dateaccessioned) DESC LIMIT $max";
 
 	my $dbh = C4::Context->dbh;
 	my $sth = $dbh->prepare($query);
