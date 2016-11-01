@@ -189,10 +189,9 @@ if ($do_it) {
 	my ( $year, $month, $day ) = ( ( 1900 + $datearr[5] ), ( $datearr[4] + 1 ), $datearr[3] );
 	$dateto = format_date( $year.'-'.sprintf("%0.2d", $month).'-'.sprintf("%0.2d", $day) );
 
-	$month--;
-	if ( $month == 0 ) {
-	    $month = 12;
-	    $year--;
+	$year--;
+	if ( $month == 2 && $day == 29 ) {
+	    $day--;
 	}
 	$datefrom = format_date( $year.'-'.sprintf("%0.2d", $month).'-'.sprintf("%0.2d", $day) );
 
