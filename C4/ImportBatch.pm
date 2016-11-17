@@ -817,7 +817,7 @@ sub GetImportBatchRangeDesc {
 
     my $dbh = C4::Context->dbh;
     my $query = "SELECT * FROM import_batches
-                                    WHERE batch_type = 'batch' AND import_status <> 'cleaned'
+                                    WHERE batch_type = 'batch'
                                     ORDER BY import_batch_id DESC";
     my @params;
     if ($results_per_group){
