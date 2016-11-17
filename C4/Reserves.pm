@@ -177,16 +177,18 @@ sub AddReserve {
     my $query = qq/
         INSERT INTO reserves
             (borrowernumber,biblionumber,reservedate,branchcode,constrainttype,
-            priority,reservenotes,itemnumber,found,waitingdate,expirationdate)
+            priority,reservenotes,itemnumber,found,waitingdate,expirationdate,
+            lowestPriority)
         VALUES
              (?,?,?,?,?,
-             ?,?,?,?,?,?)
+             ?,?,?,?,?,?,
+             ?)
     /;
     my $sth = $dbh->prepare($query);
     $sth->execute(
         $borrowernumber, $biblionumber, $resdate, $branch,
         $const,          $priority,     $notes,   $checkitem,
-        $found,          $waitingdate,	$expdate
+        $found,          $waitingdate,	$expdate, 0
     );
 
     # Send e-mail to librarian if syspref is active

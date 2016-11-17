@@ -253,6 +253,7 @@ sub AddBiblio {
     my $olddata = TransformMarcToKoha( $dbh, $record, $frameworkcode );
     ( $biblionumber, $error ) = _koha_add_biblio( $dbh, $olddata, $frameworkcode );
     $olddata->{'biblionumber'} = $biblionumber;
+    $olddata->{'marcxml'} ||= '';
     ( $biblioitemnumber, $error ) = _koha_add_biblioitem( $dbh, $olddata );
 
     _koha_marc_update_bib_ids( $record, $frameworkcode, $biblionumber, $biblioitemnumber );
@@ -3206,6 +3207,7 @@ sub _koha_add_biblioitem {
         place           = ?,
         lccn            = ?,
         marc            = ?,
+        marcxml         = ?,
         url             = ?,
         cn_source       = ?,
         cn_class        = ?,
@@ -3221,7 +3223,7 @@ sub _koha_add_biblioitem {
         $biblioitem->{'volumedate'},       $biblioitem->{'volumedesc'},       $biblioitem->{'collectiontitle'},       $biblioitem->{'collectionissn'},
         $biblioitem->{'collectionvolume'}, $biblioitem->{'editionstatement'}, $biblioitem->{'editionresponsibility'}, $biblioitem->{'illus'},
         $biblioitem->{'pages'},            $biblioitem->{'bnotes'},           $biblioitem->{'size'},                  $biblioitem->{'place'},
-        $biblioitem->{'lccn'},             $biblioitem->{'marc'},             $biblioitem->{'url'},                   $biblioitem->{'biblioitems.cn_source'},
+        $biblioitem->{'lccn'},             $biblioitem->{'marc'},             $biblioitem->{'marcxml'},             $biblioitem->{'url'},                   $biblioitem->{'biblioitems.cn_source'},
         $biblioitem->{'cn_class'},         $biblioitem->{'cn_item'},          $biblioitem->{'cn_suffix'},             $cn_sort,
         $biblioitem->{'totalissues'}
     );
