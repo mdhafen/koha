@@ -2113,6 +2113,13 @@ sub TransformMarcToKoha {
         }
     }
 
+    if ( exists $result->{'isbn'} && length $result->{'isbn'} > 30 ) {
+        $result->{'isbn'} =~ /^([^\|]+)/; # get the first isbn
+        my $str = $1;
+        $str = substr $str, 0, 30;
+        $result->{'isbn'} = $str;
+    }
+
     return $result;
 }
 

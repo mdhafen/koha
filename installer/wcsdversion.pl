@@ -248,6 +248,17 @@ Author: <<biblio.author>>')");
 	    $version_changed = 1;
 	}
 	$version_string .= "|$rev";
+
+	$rev = 'wcsd_mfd';
+	unless ( $revisions{ $rev } ) {
+	    $dbh->do("ALTER TABLE reserves MODIFY COLUMN lowestPriority tinyint(1) NOT NULL DEFAULT 0");
+	    print "Adding default to reserves.lowestPriority\n";
+	    $dbh->do("ALTER TABLE import_records MODIFY COLUMN marcxml_old LONGTEXT");
+	    print "Allow import_records.marcxml_old to be NULL\n";
+
+	    $version_changed = 1;
+	}
+	$version_string .= "|$rev";
     }
 
     # New revisions go here.
@@ -265,7 +276,7 @@ sub wcsd_version {
 }
 
 sub wcsd_revision {
-    our $REVISION = 'wcsd_uaup';
+    our $REVISION = 'wcsd_mfd';
     return $REVISION;
 }
 

@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "circ_reserves";
 my $reporttitle = "Titles on Hold";
-my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "GROUP_CONCAT( DISTINCT itemcallnumber SEPARATOR ',' ) AS callnumbers", "reservedate", "priority", "( SELECT COUNT(*) FROM items WHERE biblionumber = reserves.biblionumber AND items.onloan IS NULL ) AS available", "reserves.biblionumber" );
+my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "GROUP_CONCAT( DISTINCT itemcallnumber SEPARATOR ',' ) AS callnumbers", "MIN(reservedate) AS reservedate", "MIN(priority) AS priority", "( SELECT COUNT(*) FROM items WHERE biblionumber = reserves.biblionumber AND items.onloan IS NULL ) AS available", "reserves.biblionumber" );
 my @column_titles = ( "Patron", "Title", "Call Number(s)", "Date Placed", "Priority", "Copies Available" );
 my @tables = ( "reserves",
 	       [ # Cross Joined Tables
@@ -96,7 +96,7 @@ if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {
 my @loopfilter = ();
 
 my $where = "( found <> 'F' OR found IS NULL )";
-my $group = "reserves.biblionumber";
+my $group = "reserves.biblionumber,reserves.borrowernumber";
 my $order = "$columns[1]";
 my $page_breaks;
 
