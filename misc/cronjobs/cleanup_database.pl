@@ -50,26 +50,28 @@ Usage: $0 [-h|--help] [--sessions] [--sessdays DAYS] [-v|--verbose] [--zebraqueu
    --zebraqueue DAYS  purge completed entries from the zebraqueue from 
                       more than DAYS days ago.
    -m --mail          purge the mail queue. 
+   --importbatches    purge Staged MARC import batches that have been cleaned.
 USAGE
     exit $_[0];
 }
 
-my ( $help, $sessions, $sess_days, $verbose, $zebraqueue_days, $mail );
+my ( $help, $sessions, $sess_days, $verbose, $zebraqueue_days, $mail, $imports );
 
 GetOptions(
-    'h|help'       => \$help,
-    'sessions'     => \$sessions,
-    'sessdays:i'   => \$sess_days,
-    'v|verbose'    => \$verbose,
-    'm|mail'       => \$mail,
-    'zebraqueue:i' => \$zebraqueue_days,
+    'h|help'          => \$help,
+    'sessions'        => \$sessions,
+    'sessdays:i'      => \$sess_days,
+    'v|verbose'       => \$verbose,
+    'm|mail'          => \$mail,
+    'zebraqueue:i'    => \$zebraqueue_days,
+    'importbatches:i' => \$imports,
 ) || usage(1);
 
 if ($help) {
     usage(0);
 }
 
-if ( !( $sessions || $zebraqueue_days || $mail ) ) {
+if ( !( $sessions || $zebraqueue_days || $mail || $imports ) ) {
     print "You did not specify any cleanup work for the script to do.\n\n";
     usage(1);
 }
@@ -133,6 +135,26 @@ if ($mail) {
     $sth = $dbh->prepare("TRUNCATE message_queue");
     $sth->execute() or $dbh->errstr;
     print "Done with purging the mail queue.\n" if ($verbose);
+}
+
+if ($imports) {
+    $count = 0;
+    if ($verbose) {
+        print "Staged MARC import batches cleanup triggered.\n";
+    }
+    $sth = $dbh->prepare(
+        "SELECT import_batch_id FROM import_batches
+          WHERE import_status = 'cleaned'"
+    );
+    $sth->execute() or die $dbh->errstr;
+    $sth2 = $dbh->prepare("DELETE FROM import_batches WHERE import_batch_id=?");
+    while ( my $record = $sth->fetchrow_hashref ) {
+        $sth2->execute( $record->{import_batch_id} ) or die $dbh->errstr;
+        $count++;
+    }
+    if ($verbose) {
+        print "$count batches were deleted.\nDone with Staged MARC import batches cleanup.\n";
+    }
 }
 exit(0);
 
