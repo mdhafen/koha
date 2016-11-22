@@ -3126,6 +3126,16 @@ sub _koha_modify_biblioitem_nonmarc {
     my ( $dbh, $biblioitem ) = @_;
     my $error;
 
+    $biblioitem->{'isbn'} = substr($biblioitem->{'isbn'},0,30);
+    $biblioitem->{'issn'} = substr($biblioitem->{'issn'},0,9);
+    $biblioitem->{'publishercode'} = substr($biblioitem->{'publishercode'},0,255);
+    $biblioitem->{'illus'} = substr($biblioitem->{'illus'},0,255);
+    $biblioitem->{'pages'} = substr($biblioitem->{'pages'},0,255);
+    $biblioitem->{'size'} = substr($biblioitem->{'size'},0,255);
+    $biblioitem->{'place'} = substr($biblioitem->{'place'},0,255);
+    $biblioitem->{'lccn'} = substr($biblioitem->{'lccn'},0,25);
+    $biblioitem->{'url'} = substr($biblioitem->{'url'},0,255);
+    $biblioitem->{'totalissues'} += 0;
     # re-calculate the cn_sort, it may have changed
     my ($cn_sort) = GetClassSort( $biblioitem->{'biblioitems.cn_source'}, $biblioitem->{'cn_class'}, $biblioitem->{'cn_item'} );
 
@@ -3190,6 +3200,16 @@ sub _koha_add_biblioitem {
     my ( $dbh, $biblioitem ) = @_;
     my $error;
 
+    $biblioitem->{'isbn'} = substr($biblioitem->{'isbn'},0,30);
+    $biblioitem->{'issn'} = substr($biblioitem->{'issn'},0,9);
+    $biblioitem->{'publishercode'} = substr($biblioitem->{'publishercode'},0,255);
+    $biblioitem->{'illus'} = substr($biblioitem->{'illus'},0,255);
+    $biblioitem->{'pages'} = substr($biblioitem->{'pages'},0,255);
+    $biblioitem->{'size'} = substr($biblioitem->{'size'},0,255);
+    $biblioitem->{'place'} = substr($biblioitem->{'place'},0,255);
+    $biblioitem->{'lccn'} = substr($biblioitem->{'lccn'},0,25);
+    $biblioitem->{'url'} = substr($biblioitem->{'url'},0,255);
+    $biblioitem->{'totalissues'} += 0;
     my ($cn_sort) = GetClassSort( $biblioitem->{'biblioitems.cn_source'}, $biblioitem->{'cn_class'}, $biblioitem->{'cn_item'} );
     my $query = "INSERT INTO biblioitems SET
         biblionumber    = ?,

@@ -82,7 +82,7 @@ if ( $op eq 'Trigger' ) {
 
         my @bind = ();
         $query = "
-     SELECT accountlines.*,borrowers.branchcode
+     SELECT accountlines.borrowernumber,borrowers.branchcode
        FROM accountlines
  CROSS JOIN borrowers USING ( borrowernumber )";
         if ( $branch || $category ) {
@@ -151,7 +151,7 @@ if ( $op eq 'Trigger' ) {
 
         my @bind = ();
         $query = "
-     SELECT issues.*
+     SELECT issues.borrowernumber,borrowers.branchcode
        FROM issues
  CROSS JOIN borrowers USING (borrowernumber)
       WHERE TO_DAYS(NOW())-TO_DAYS(date_due) > 0";
