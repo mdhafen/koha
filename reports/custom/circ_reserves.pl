@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "circ_reserves";
 my $reporttitle = "Titles on Hold";
-my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "GROUP_CONCAT( DISTINCT itemcallnumber SEPARATOR ',' ) AS callnumbers", "MIN(reservedate) AS reservedate", "MIN(priority) AS priority", "( SELECT COUNT(*) FROM items WHERE biblionumber = reserves.biblionumber AND items.onloan IS NULL ) AS available", "reserves.biblionumber" );
+my @columns = ( "CONCAT( borrowers.surname, ', ', borrowers.firstname ) AS borrower", "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "GROUP_CONCAT( DISTINCT itemcallnumber SEPARATOR ',' ) AS callnumbers", "MIN(reservedate) AS reservedate", "MIN(priority) AS priority", "( SELECT COUNT(*) FROM items WHERE biblionumber = reserves.biblionumber AND items.onloan IS NULL AND COALESCE(items.itemlost,0) = 0 AND COALESCE(items.restricted,0) = 0 AND COALESCE(items.wthdrawn,0) = 0 ) AS available", "reserves.biblionumber" );
 my @column_titles = ( "Patron", "Title", "Call Number(s)", "Date Placed", "Priority", "Copies Available" );
 my @tables = ( "reserves",
 	       [ # Cross Joined Tables
