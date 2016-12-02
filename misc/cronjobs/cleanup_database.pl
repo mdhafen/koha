@@ -64,7 +64,7 @@ GetOptions(
     'v|verbose'       => \$verbose,
     'm|mail'          => \$mail,
     'zebraqueue:i'    => \$zebraqueue_days,
-    'importbatches:i' => \$imports,
+    'importbatches'   => \$imports,
 ) || usage(1);
 
 if ($help) {
