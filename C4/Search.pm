@@ -2529,6 +2529,7 @@ sub z3950_search_args {
     my $array = [];
     for my $field (qw/ lccn isbn issn title author dewey subject /)
     {
+        next unless ($bibrec->{$field});
         my $encvalue = URI::Escape::uri_escape_utf8($bibrec->{$field});
         push @$array, { name=>$field, value=>$bibrec->{$field}, encvalue=>$encvalue } if defined $bibrec->{$field};
     }

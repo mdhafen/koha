@@ -697,6 +697,7 @@ sub _new_dbh
         # this is better than modifying my.cnf (and forcing all communications to be in utf8)
         $dbh->{'mysql_enable_utf8'}=1; #enable
         $dbh->do("set NAMES 'utf8'");
+        #$dbh->do("set net_read_timeout = 120");
         ($tz) and $dbh->do(qq(SET time_zone = "$tz"));
     }
     elsif ( $db_driver eq 'Pg' ) {
@@ -848,7 +849,7 @@ sub _new_marcfromkohafield
 {
     my $dbh = C4::Context->dbh;
     my $marcfromkohafield;
-    my $sth = $dbh->prepare("select frameworkcode,kohafield,tagfield,tagsubfield from marc_subfield_structure where kohafield > ''");
+    my $sth = $dbh->prepare("select frameworkcode,kohafield,tagfield,tagsubfield from marc_subfield_structure where kohafield <> ''");
     $sth->execute;
     while (my ($frameworkcode,$kohafield,$tagfield,$tagsubfield) = $sth->fetchrow) {
         my $retval = {};

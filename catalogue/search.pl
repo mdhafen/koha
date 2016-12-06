@@ -154,6 +154,7 @@ my $DisplayMultiPlaceHold = C4::Context->preference("DisplayMultiPlaceHold");
 # FIXME: no_undef_params needs to be tested
 use CGI qw('-no_undef_params');
 my $cgi = new CGI;
+$CGI::LIST_CONTEXT_WARN=0;
 
 my ($template,$borrowernumber,$cookie);
 

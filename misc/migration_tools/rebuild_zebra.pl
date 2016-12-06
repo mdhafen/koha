@@ -251,6 +251,7 @@ sub index_records {
 
 sub select_zebraqueue_records {
     my ($record_type, $update_type) = @_;
+    my $dbh = C4::Context->dbh;
 
     my $server = ($record_type eq 'biblio') ? 'biblioserver' : 'authorityserver';
     my $op = ($update_type eq 'deleted') ? 'recordDelete' : 'specialUpdate';
@@ -267,6 +268,7 @@ sub select_zebraqueue_records {
 
 sub mark_all_zebraqueue_done {
     my ($record_type) = @_;
+    my $dbh = C4::Context->dbh;
 
     my $server = ($record_type eq 'biblio') ? 'biblioserver' : 'authorityserver';
 
@@ -278,6 +280,7 @@ sub mark_all_zebraqueue_done {
 
 sub mark_zebraqueue_batch_done {
     my ($entries) = @_;
+    my $dbh = C4::Context->dbh;
 
     $dbh->{AutoCommit} = 0;
     my $sth = $dbh->prepare("UPDATE zebraqueue SET done = 1 WHERE id = ?");
@@ -294,12 +297,14 @@ sub select_all_records {
 }
 
 sub select_all_authorities {
+    my $dbh = C4::Context->dbh;
     my $sth = $dbh->prepare("SELECT authid FROM auth_header");
     $sth->execute();
     return $sth;
 }
 
 sub select_all_biblios {
+    my $dbh = C4::Context->dbh;
     my $sth = $dbh->prepare("SELECT biblionumber FROM biblioitems ORDER BY biblionumber");
     $sth->execute();
     return $sth;
@@ -464,7 +469,8 @@ sub get_corrected_marc_record {
 
 sub get_raw_marc_record {
     my ($record_type, $record_number, $noxml) = @_;
-  
+    my $dbh = C4::Context->dbh;
+
     my $marc; 
     if ($record_type eq 'biblio') {
         if ($noxml) {
@@ -518,6 +524,7 @@ sub fix_biblio_ids {
     # FIXME - it is essential to ensure that the biblionumber is present,
     #         otherwise, Zebra will choke on the record.  However, this
     #         logic belongs in the relevant C4::Biblio APIs.
+    my $dbh = C4::Context->dbh;
     my $marc = shift;
     my $biblionumber = shift;
     my $biblioitemnumber;
