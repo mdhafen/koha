@@ -60,7 +60,7 @@ my ($template, $loggedinuser, $cookie)
            flagsrequired => {borrowers => 1},
            debug => ($debug) ? 1 : 0,
        });
-my $guarantorid    = $input->param('guarantorid');
+my $guarantorid    = $input->param('guarantorid') || '0';
 my $borrowernumber = $input->param('borrowernumber');
 my $actionType     = $input->param('actionType') || '';
 my $modify         = $input->param('modify');

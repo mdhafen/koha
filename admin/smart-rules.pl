@@ -106,17 +106,17 @@ elsif ($op eq 'add') {
     my $br = $branch; # branch
     my $bor  = $input->param('categorycode'); # borrower category
     my $cat  = $input->param('itemtype');     # item type
-    my $fine = $input->param('fine');
-    my $finedays     = $input->param('finedays');
-    my $firstremind  = $input->param('firstremind');
-    my $chargeperiod = $input->param('chargeperiod');
+    my $fine = $input->param('fine') + 0;
+    my $finedays     = $input->param('finedays') + 0;
+    my $firstremind  = $input->param('firstremind') + 0;
+    my $chargeperiod = $input->param('chargeperiod') + 0;
     my $maxissueqty  = $input->param('maxissueqty');
-    my $renewalsallowed  = $input->param('renewalsallowed');
-    my $reservesallowed  = $input->param('reservesallowed');
+    my $renewalsallowed  = $input->param('renewalsallowed') + 0;
+    my $reservesallowed  = $input->param('reservesallowed') + 0;
     $maxissueqty =~ s/\s//g;
     $maxissueqty = undef if $maxissueqty !~ /^\d+/;
     my $issuelength  = $input->param('issuelength');
-    my $rentaldiscount = $input->param('rentaldiscount');
+    my $rentaldiscount = $input->param('rentaldiscount') + 0;
     $debug and warn "Adding $br, $bor, $cat, $fine, $maxissueqty";
 
     $sth_search->execute($br,$bor,$cat);
