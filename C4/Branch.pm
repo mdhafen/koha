@@ -107,18 +107,18 @@ sub GetBranches {
     my %branches;
     my $dbh = C4::Context->dbh;
     my $sth;
-    my $query="SELECT * FROM branches";
+    my $query='SELECT * FROM `branches`';
     my @bind_parameters;
     if ($onlymine && C4::Context->userenv && C4::Context->userenv->{branch}){
-      $query .= ' WHERE branchcode = ? ';
+      $query .= ' WHERE `branchcode` = ? ';
       push @bind_parameters, C4::Context->userenv->{branch};
     }
-        $query.=" ORDER BY branchname";
+        $query.=' ORDER BY `branchname`';
     $sth = $dbh->prepare($query);
     $sth->execute( @bind_parameters );
 
     my $nsth = $dbh->prepare(
-        "SELECT categorycode FROM branchrelations WHERE branchcode = ?"
+        'SELECT `categorycode` FROM `branchrelations` WHERE `branchcode` = ?'
     );  # prepare once, outside while loop
 
     while ( my $branch = $sth->fetchrow_hashref ) {

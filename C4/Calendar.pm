@@ -92,7 +92,7 @@ sub _init {
     my $repeatable = $dbh->prepare( 'SELECT *
                                        FROM repeatable_holidays
                                       WHERE ( branchcode = ? )
-                                        AND (ISNULL(weekday) = ?)' );
+                                        AND (ISNULL(`weekday`) = ?)' );
     $repeatable->execute($branch,0);
     my %week_days_holidays;
     while (my $row = $repeatable->fetchrow_hashref) {
@@ -113,7 +113,7 @@ sub _init {
     }
     $self->{'day_month_holidays'} = \%day_month_holidays;
 
-    my $special = $dbh->prepare( 'SELECT day, month, year, title, description
+    my $special = $dbh->prepare( 'SELECT day, month, year, title, `description`
                                     FROM special_holidays
                                    WHERE ( branchcode = ? )
                                      AND (isexception = ?)' );

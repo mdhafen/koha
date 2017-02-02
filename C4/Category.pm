@@ -76,7 +76,7 @@ sub all {
     return    map { $class->new($_) }    @{$dbh->selectall_arrayref(
         # The categories table is small enough for
         # `SELECT *` to be harmless.
-        "SELECT * FROM categories ORDER BY description",
+        "SELECT * FROM categories ORDER BY `description`",
         { Slice => {} },
     )};
 }

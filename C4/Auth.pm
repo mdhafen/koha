@@ -1499,7 +1499,7 @@ sub getuserflags {
     my $dbh     = @_ ? shift : C4::Context->dbh;
     my $userflags;
     $flags = 0 unless $flags;
-    my $sth = $dbh->prepare("SELECT bit, flag, defaulton FROM userflags");
+    my $sth = $dbh->prepare("SELECT `bit`, flag, defaulton FROM userflags");
     $sth->execute;
 
     while ( my ( $bit, $flag, $defaulton ) = $sth->fetchrow ) {
@@ -1553,7 +1553,7 @@ sub get_user_subpermissions {
     my $sth = $dbh->prepare("SELECT flag, user_permissions.code
                              FROM user_permissions
                              JOIN permissions USING (module_bit, code)
-                             JOIN userflags ON (module_bit = bit)
+                             JOIN userflags ON (module_bit = `bit`)
                              JOIN borrowers USING (borrowernumber)
                              WHERE userid = ?");
     $sth->execute($userid);
@@ -1581,7 +1581,7 @@ sub get_all_subpermissions {
     my $dbh = C4::Context->dbh;
     my $sth = $dbh->prepare("SELECT flag, code, description
                              FROM permissions
-                             JOIN userflags ON (module_bit = bit)");
+                             JOIN userflags ON (module_bit = `bit`)");
     $sth->execute();
 
     my $all_perms = {};

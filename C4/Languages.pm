@@ -188,15 +188,15 @@ sub getAllLanguages {
     my @languages_loop;
     my $dbh=C4::Context->dbh;
     my $current_language = shift || 'en';
-    my $sth = $dbh->prepare('SELECT * FROM language_subtag_registry WHERE type=\'language\'');
+    my $sth = $dbh->prepare('SELECT * FROM language_subtag_registry WHERE `type`=\'language\'');
     $sth->execute();
     while (my $language_subtag_registry = $sth->fetchrow_hashref) {
 
         # pull out all the script descriptions for each language
-        my $sth2= $dbh->prepare("SELECT * FROM language_descriptions LEFT JOIN language_rfc4646_to_iso639 on language_rfc4646_to_iso639.rfc4646_subtag = language_descriptions.subtag WHERE type='language' AND subtag =? AND language_descriptions.lang = ?");
+        my $sth2= $dbh->prepare("SELECT * FROM language_descriptions LEFT JOIN language_rfc4646_to_iso639 on language_rfc4646_to_iso639.rfc4646_subtag = language_descriptions.subtag WHERE `type`='language' AND subtag =? AND language_descriptions.lang = ?");
         $sth2->execute($language_subtag_registry->{subtag},$current_language);
 
-        my $sth3 = $dbh->prepare("SELECT description FROM language_descriptions WHERE type='language' AND subtag=? AND lang=?");
+        my $sth3 = $dbh->prepare("SELECT description FROM language_descriptions WHERE `type`='language' AND subtag=? AND lang=?");
 
         # add the correct description info
         while (my $language_descriptions = $sth2->fetchrow_hashref) {
@@ -340,14 +340,14 @@ sub language_get_description {
     my ($script,$lang,$type) = @_;
     my $dbh = C4::Context->dbh;
     my $desc;
-    my $sth = $dbh->prepare("SELECT description FROM language_descriptions WHERE subtag=? AND lang=? AND type=?");
+    my $sth = $dbh->prepare("SELECT description FROM language_descriptions WHERE subtag=? AND lang=? AND `type`=?");
     #warn "QUERY: SELECT description FROM language_descriptions WHERE subtag=$script AND lang=$lang AND type=$type";
     $sth->execute($script,$lang,$type);
     while (my $descriptions = $sth->fetchrow_hashref) {
         $desc = $descriptions->{'description'};
     }
     unless ($desc) {
-        $sth = $dbh->prepare("SELECT description FROM language_descriptions WHERE subtag=? AND lang=? AND type=?");
+        $sth = $dbh->prepare("SELECT description FROM language_descriptions WHERE subtag=? AND lang=? AND `type`=?");
         $sth->execute($script,'en',$type);
         while (my $descriptions = $sth->fetchrow_hashref) {
             $desc = $descriptions->{'description'};

@@ -984,7 +984,7 @@ sub GetMarcStructure {
     #     my ($total) = $sth->fetchrow;
     #     $frameworkcode = "" unless ( $total > 0 );
     my $sth = $dbh->prepare(
-        "SELECT tagfield,liblibrarian,libopac,mandatory,repeatable 
+        "SELECT tagfield,liblibrarian,libopac,mandatory,`repeatable` 
         FROM marc_tag_structure 
         WHERE frameworkcode=? 
         ORDER BY tagfield"
@@ -1000,7 +1000,7 @@ sub GetMarcStructure {
     }
 
     $sth = $dbh->prepare(
-        "SELECT tagfield,tagsubfield,liblibrarian,libopac,tab,mandatory,repeatable,authorised_value,authtypecode,value_builder,kohafield,seealso,hidden,isurl,link,defaultvalue 
+        "SELECT tagfield,tagsubfield,liblibrarian,libopac,tab,mandatory,`repeatable`,authorised_value,authtypecode,value_builder,kohafield,seealso,hidden,isurl,link,defaultvalue 
          FROM   marc_subfield_structure 
          WHERE  frameworkcode=? 
          ORDER BY tagfield,tagsubfield
@@ -2570,7 +2570,7 @@ sub ModZebra {
         }
 
         # ok, now update the database...
-        my $sth = $dbh->prepare("UPDATE nozebra SET biblionumbers=? WHERE server=? AND indexname=? AND value=?");
+        my $sth = $dbh->prepare("UPDATE nozebra SET biblionumbers=? WHERE server=? AND indexname=? AND `value`=?");
         foreach my $key ( keys %result ) {
             foreach my $index ( keys %{ $result{$key} } ) {
                 $sth->execute( $result{$key}->{$index}, $server, $key, $index );
@@ -2673,7 +2673,7 @@ sub _DelBiblioNoZebra {
     $title = substr( $title, 0, 10 );
 
     #parse each field
-    my $sth2 = $dbh->prepare('SELECT biblionumbers FROM nozebra WHERE server=? AND indexname=? AND value=?');
+    my $sth2 = $dbh->prepare('SELECT biblionumbers FROM nozebra WHERE server=? AND indexname=? AND `value`=?');
     foreach my $field ( $record->fields() ) {
 
         #parse each subfield
@@ -2786,7 +2786,7 @@ sub _AddBiblioNoZebra {
     $title = substr( $title, 0, 10 );
 
     #parse each field
-    my $sth2 = $dbh->prepare('SELECT biblionumbers FROM nozebra WHERE server=? AND indexname=? AND value=?');
+    my $sth2 = $dbh->prepare('SELECT biblionumbers FROM nozebra WHERE server=? AND indexname=? AND `value`=?');
     foreach my $field ( $record->fields() ) {
 
         #parse each subfield
@@ -2837,7 +2837,7 @@ sub _AddBiblioNoZebra {
                             } else {
 
                                 #                             warn "INSERT : $server / $key / $_";
-                                $dbh->do( 'INSERT INTO nozebra SET server=' . $dbh->quote($server) . ', indexname=' . $dbh->quote($key) . ',value=' . $dbh->quote($_) );
+                                $dbh->do( 'INSERT INTO nozebra SET server=' . $dbh->quote($server) . ', indexname=' . $dbh->quote($key) . ',`value`=' . $dbh->quote($_) );
                                 $result{$key}->{"$_"} .= "$biblionumber,$title-1;";
                             }
                         }
@@ -2874,7 +2874,7 @@ sub _AddBiblioNoZebra {
 
                             # create a new ligne for this entry
                         } else {
-                            $dbh->do( 'INSERT INTO nozebra SET server=' . $dbh->quote($server) . ',  indexname="__RAW__",value=' . $dbh->quote($_) );
+                            $dbh->do( 'INSERT INTO nozebra SET server=' . $dbh->quote($server) . ',  indexname="__RAW__",`value`=' . $dbh->quote($_) );
                             $result{'__RAW__'}->{"$_"} .= "$biblionumber,$title-1;";
                         }
                     }
