@@ -105,12 +105,20 @@ sub checkpw_ldap {
     my $db = Net::LDAP->new(\@hosts);
 	#$debug and $db->debug(5);
     my $userldapentry;
+		my $res = ($config{anonymous}) ? $db->bind : $db->bind($ldapname, password=>$ldappassword);
+		if ($res->code) {		# connection refused
+			warn "LDAP bind failed as ldapuser " . ($ldapname || '[ANONYMOUS]') . ": " . description($res);
+			return 0;
+		}
+        my $search = search_method($db, $userid) or return 0;   # warnings are in the sub
+        $userldapentry = $search->shift_entry;
+
 	if ( $ldap->{auth_by_bind} ) {
         my $principal_name = $ldap->{principal_name};
         if ($principal_name and $principal_name =~ /\%/) {
             $principal_name = sprintf($principal_name,$userid);
         } else {
-            $principal_name = $userid;
+            $principal_name = $userldapentry->dn();
         }
 		my $res = $db->bind( $principal_name, password => $password );
         if ( $res->code ) {
@@ -123,19 +131,12 @@ sub checkpw_ldap {
 	# BUG #5094
 	# 2010-08-04 JeremyC
 	# a $userldapentry is only needed if either updating or replicating are enabled
-	if($config{update} or $config{replicate}) {
-	    my $search = search_method($db, $userid) or return 0;   # warnings are in the sub
-	    $userldapentry = $search->shift_entry;
-	}
+	#if($config{update} or $config{replicate}) {
+	#    my $search = search_method($db, $userid) or return 0;   # warnings are in the sub
+	#    $userldapentry = $search->shift_entry;
+	#}
 
 	} else {
-		my $res = ($config{anonymous}) ? $db->bind : $db->bind($ldapname, password=>$ldappassword);
-		if ($res->code) {		# connection refused
-			warn "LDAP bind failed as ldapuser " . ($ldapname || '[ANONYMOUS]') . ": " . description($res);
-			return 0;
-		}
-        my $search = search_method($db, $userid) or return 0;   # warnings are in the sub
-        $userldapentry = $search->shift_entry;
 		my $cmpmesg = $db->compare( $userldapentry, attr=>'userpassword', value => $password );
 		if ($cmpmesg->code != 6) {
 			warn "LDAP Auth rejected : invalid password for user '$userid'. " . description($cmpmesg);
@@ -164,7 +165,9 @@ sub checkpw_ldap {
 		return(1, $cardnumber); # FIXME dpavlin -- don't destroy ExtendedPatronAttributes
         }
     } elsif ($config{replicate}) { # A2, C2
+        $borrower{'password'} = $password if ( $borrower{'userid'} && ! $borrower{'password'} );
         $borrowernumber = AddMember(%borrower) or die "AddMember failed";
+	($borrowernumber,$cardnumber,$local_userid,$savedpw) = exists_local($userid);
    } else {
         return 0;   # B2, D2
     }
@@ -205,7 +208,7 @@ sub ldap_entry_2_hash ($$) {
 		print STDERR "\nkeys(\%\$userldapentry) = " . join(', ', keys %$userldapentry), "\n", $userldapentry->dump();
 		foreach (keys %$userldapentry) {
 			print STDERR "\n\nLDAP key: $_\t", sprintf('(%s)', ref $userldapentry->{$_}), "\n";
-			hashdump("LDAP key: ",$userldapentry->{$_});
+			#hashdump("LDAP key: ",$userldapentry->{$_});
 		}
 	}
 	my $x = $userldapentry->{attrs} or return undef;
