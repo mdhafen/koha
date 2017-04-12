@@ -33,6 +33,7 @@ use C4::Branch;  # GetBranches GetBranchDetail
 use C4::Dates qw/format_date/;
 use C4::Letters;
 use C4::Category;
+use C4::Members qw/GetMember/;
 
 my $cgi = new CGI;
 $CGI::LIST_CONTEXT_WARN=0;
@@ -55,6 +56,7 @@ my $subject  = $cgi->param( 'message-subject' );
 my $body     = $cgi->param( 'message-body' );
 my $select   = $cgi->param( 'patron_select' );
 my $category = $cgi->param( 'category' );
+my $send_to  = $cgi->param( 'send_to' );
 my @patrons  = $cgi->param( 'patrons' );
 
 my $query;
@@ -90,17 +92,26 @@ if ( $op eq 'Send' ) {
        AND amountoutstanding <> 0";
         my $fines_sth = $dbh->prepare( $query );
 
+        # items.content below assumes date_due is first field
         my @issue_columns = qw/date_due barcode title author/;
         $query = "
-     SELECT date_due, barcode, title, author
+     SELECT date_due, barcode, title, author, TO_DAYS(date_due)-TO_DAYS(NOW()) AS days_to_due
        FROM issues
  CROSS JOIN items USING (itemnumber)
  CROSS JOIN biblio USING (biblionumber)
-      WHERE issues.borrowernumber = ?
-        AND TO_DAYS(NOW())-TO_DAYS(date_due) > 0";
-        my $overdue_sth = $dbh->prepare( $query );
+      WHERE issues.borrowernumber = ?";
+        my $issues_sth = $dbh->prepare( $query );
 
         foreach my $borrowernumber ( @patrons ) {
+            my $borrower = GetMember('borrowernumber' => $borrowernumber);
+            my $to_address = '';
+            if ( $send_to eq 'home' ) {
+                $to_address = $borrower->{'email'};
+            } elsif ( $send_to eq 'work' ) {
+                $to_address = $borrower->{'emailpro'};
+            } elsif ( $send_to eq 'both' ) {
+                $to_address = join ',', grep( {$_} $borrower->{'email'},$borrower->{'emailpro'} );
+            }
             my $this_letter = {};
             %$this_letter = %$letter;
             my $admin_email_address;
@@ -115,23 +126,29 @@ if ( $op eq 'Send' ) {
             }
 
             my $overdue_content = '';
-            $overdue_sth->execute( $borrowernumber );
-            while ( my $issue = $overdue_sth->fetchrow_hashref() ) {
+            my $items_content = '';
+            $issues_sth->execute( $borrowernumber );
+            while ( my $issue = $issues_sth->fetchrow_hashref() ) {
                 my @item_info = map { $_ =~ /^date|date$/ ? format_date($issue->{$_}) : $issue->{$_} || '' } @issue_columns;
-                $overdue_content .= join("\t", @item_info) ."\n";
+                if ( $issue->{'days_to_due'} < 0 ) {
+                    $overdue_content .= join("\t", @item_info) ."\n";
+                    $item_info[0] .= " (overdue!)";
+                }
+                $items_content .= join("\t", @item_info) ."\n";
             }
 
             $this_letter = C4::Letters::parseletter( $this_letter, 'borrowers', $borrowernumber );
             $this_letter = C4::Letters::parseletter( $this_letter, 'branches', $branch );
             $this_letter->{content} =~ s/<<fines\.content>>/$fines_content/g;
             $this_letter->{content} =~ s/<<overdue\.content>>/$overdue_content/g;
-            $this_letter->{content} =~ s/<<items\.content>>/$overdue_content/g;
+            $this_letter->{content} =~ s/<<items\.content>>/$items_content/g;
 
             C4::Letters::EnqueueLetter({
                 letter => $this_letter,
                 borrowernumber => $borrowernumber,
                 message_transport_type => 'email',
                 from_address => $admin_email_address,
+                to_address => $to_address,
             });
             $count++;
         }
@@ -161,13 +178,15 @@ elsif ( $op eq 'Search' ) {
         $account_select = "SELECT SUM(amountoutstanding) FROM accountlines WHERE accounttype IN ('F','FU') AND amountoutstanding > 0 AND accountlines.borrowernumber = borrowers.borrowernumber";
         $having = "account > 0";
     }
+    elsif ( $select eq 'issues_or_fines' ) {
+        $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber";
+    }
 
     $query = "
-     SELECT borrowernumber, surname, firstname, sort2, categories.description,
+     SELECT borrowernumber, surname, firstname, sort2,
             ( $account_select ) AS account,
             ( $overdues_select ) AS overdues
-       FROM borrowers
- CROSS JOIN categories USING (categorycode)";
+       FROM borrowers";
 
     if ( $branch || $category ) {
         $query .= " WHERE ";
@@ -252,6 +271,7 @@ while ( my ( $module,$code,$name,$title,$content ) = $sth->fetchrow_array ) {
 }
 
 $template->param(
+    'send_to' => $send_to,
     'branchLOOP' => \@branchLoop,
     'category_loop' => \@categories,
     'circ_letter_loop' => \@circ_letters,
