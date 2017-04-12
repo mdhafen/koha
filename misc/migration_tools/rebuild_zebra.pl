@@ -256,12 +256,12 @@ sub select_zebraqueue_records {
     my $server = ($record_type eq 'biblio') ? 'biblioserver' : 'authorityserver';
     my $op = ($update_type eq 'deleted') ? 'recordDelete' : 'specialUpdate';
 
-    my $sth = $dbh->prepare("SELECT id, biblio_auth_number 
-                             FROM zebraqueue
-                             WHERE server = ?
-                             AND   operation = ?
-                             AND   done = 0
-                             ORDER BY id DESC");
+    my $sth = $dbh->prepare("SELECT `id`, `biblio_auth_number`
+                             FROM `zebraqueue`
+                             WHERE `server` = ?
+                             AND   `operation` = ?
+                             AND   `done` = 0
+                             ORDER BY `id` DESC");
     $sth->execute($server, $op);
     my $entries = $sth->fetchall_arrayref({});
 }

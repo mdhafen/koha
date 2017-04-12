@@ -761,9 +761,9 @@ sub _get_unsent_messages (;$) {
 
     my $dbh = C4::Context->dbh();
     my $statement = << 'ENDSQL';
-SELECT message_id, borrowernumber, subject, content, message_transport_type, status, time_queued, from_address, to_address, content_type
-  FROM message_queue
- WHERE status = ?
+SELECT `message_id`, `borrowernumber`, `subject`, `content`, `message_transport_type`, `status`, `time_queued`, `from_address`, `to_address`, `content_type`
+  FROM `message_queue`
+ WHERE `status` = ?
 ENDSQL
 
     my @query_params = ('pending');
