@@ -461,6 +461,7 @@ accountlines table of the Koha database.
 sub UpdateFine {
     my ( $itemnum, $borrowernumber, $amount, $type, $due ) = @_;
 	$debug and warn "UpdateFine($itemnum, $borrowernumber, $amount, " . ($type||'""') . ", $due) called";
+    my $log_action='';
     my $dbh = C4::Context->dbh;
     # FIXME - What exactly is this query supposed to do? It looks up an
     # entry in accountlines that matches the given item and borrower
@@ -514,6 +515,7 @@ sub UpdateFine {
 			$debug and print STDERR "UpdateFine query: $query\n" .
 				"w/ args: $amount, $out, $diff, $data->{'borrowernumber'}, $data->{'itemnumber'}, \"\%$due\%\"\n";
             $sth2->execute($amount, $out, $diff, $data->{'borrowernumber'}, $data->{'itemnumber'}, "%$due%");
+            $log_action = 'MODIFY';
         } else {
             #      print "no update needed $data->{'amount'}"
         }
@@ -541,13 +543,14 @@ sub UpdateFine {
 		my $sth2 = $dbh->prepare($query);
 		$debug and print STDERR "UpdateFine query: $query\nw/ args: $borrowernumber, $itemnum, $amount, $desc, $amount, $amount, $nextaccntno\n";
         $sth2->execute($borrowernumber, $itemnum, $amount, $desc, $amount, $amount, $nextaccntno);
+        $log_action = 'ADD';
     }
     # logging action
-    &logaction(
+    $log_action && &logaction(
         "FINES",
-        $type,
+        $log_action,
         $borrowernumber,
-        "due=".$due."  amount=".$amount." itemnumber=".$itemnum
+        $type."  due=".$due."  amount=".$amount." itemnumber=".$itemnum
         ) if C4::Context->preference("FinesLog");
 }
 

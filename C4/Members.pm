@@ -883,7 +883,7 @@ sub AddMember {
     $data{'password'} = md5_base64( $data{'password'} ) if $data{'password'};
 	$data{'borrowernumber'}=InsertInTable("borrowers",\%data);	
     # mysql_insertid is probably bad.  not necessarily accurate and mysql-specific at best.
-    logaction("MEMBERS", "CREATE", $data{'borrowernumber'}, "") if C4::Context->preference("BorrowersLog");
+    logaction("MEMBERS", "ADD", $data{'borrowernumber'}, "") if C4::Context->preference("BorrowersLog");
     
     # check for enrollment fee & add it if needed
     my $sth = $dbh->prepare("SELECT enrolmentfee FROM categories WHERE categorycode=?");
@@ -953,7 +953,7 @@ sub changepassword {
         $resultcode=1;
     }
     
-    logaction("MEMBERS", "CHANGE PASS", $member, "") if C4::Context->preference("BorrowersLog");
+    logaction("MEMBERS", "MODIFY", $member, "CHANGE PASS") if C4::Context->preference("BorrowersLog");
     return $resultcode;    
 }
 
