@@ -58,7 +58,8 @@ my @wheres;
 $CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 
-push @wheres, "al1.date > ". $dbh->quote($filters[0]) if ( $filters[0] );
+push @wheres, "al1.date >= ". $dbh->quote(C4::Dates->new( $filters[0] )->output('iso')) if ( $filters[0] );
+push @wheres, "al1.date <= ". $dbh->quote(C4::Dates->new( $filters[1] )->output('iso')) if ( $filters[1] );
 
 if ( my @types = $input->param("FineTypes") ) {
     my @t_wheres;
@@ -77,8 +78,8 @@ if ( my @types = $input->param("FineTypes") ) {
     push @wheres, '('. (join ' OR ', @t_wheres) .')';
 }
 
-if ( C4::Context->preference("IndependantBranches") || $filters[1] ) {
-    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[1];
+if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
+    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[2];
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
     push @wheres, "$hbranch = ". $dbh->quote( $branch );
     push @wheres, "branchcode = ". $dbh->quote( $branch );
@@ -150,7 +151,13 @@ if ($do_it) {
 	push @parameters, {
 	    calendar => 1,
 	    label => "Credits Added Since",
-	    id => "creditdate",
+	    id => "creditstartdate",
+	    value => $today,
+	};
+	push @parameters, {
+	    calendar => 1,
+	    label => "Credits Added Before",
+	    id => "creditenddate",
 	    value => $today,
 	};
 
@@ -221,6 +228,7 @@ sub calculate {
 	my %globalline;
 	my @mainloop;
 	my %big_hash;
+    my $total = 0;
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
@@ -257,7 +265,21 @@ sub calculate {
 
 		$row{ 'values' } = \@mapped_values;
 		push @looprow, \%row;
+        $total += $values[4];
 	}
+    push @looprow, {
+        'values' => [
+            {
+                'width' => @$column_titles - 1,
+                'value' => 'Total',
+                'header' => 1,
+            },
+            {
+                'value' => sprintf( "%.2f", $total * -1),
+                'header' => 1,
+            }
+        ]
+    };
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };
