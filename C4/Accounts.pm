@@ -158,7 +158,7 @@ sub makepayment {
     #here we update both the accountoffsets and the account lines
     #updated to check, if they are paying off a lost item, we return the item
     # from their card, and put a note on the item record
-    my ( $borrowernumber, $accountno, $amount, $desc, $user, $branch ) = @_;
+    my ( $borrowernumber, $accountno, $amount, $desc, $user, $branch, $paytype ) = @_;
     my $dbh = C4::Context->dbh;
 
     # begin transaction
@@ -190,12 +190,16 @@ sub makepayment {
 
     # create new line
     my $payment = 0 - $amount;
+    my $description = "'Payment,thanks - $user'";
+    if ( $paytype eq 'off' ) {
+        $description = "'Payment at Office,thanks - $user'";
+    }
     $dbh->do( "
         INSERT INTO     accountlines
                         (borrowernumber, accountno, date, amount,
                          description, accounttype, amountoutstanding)
         VALUES          ($borrowernumber, $nextaccntno, now(), $payment,
-                        'Payment,thanks - $user', 'Pay', 0)
+                        $description, 'Pay', 0)
         " );
 
     # FIXME - The second argument to &UpdateStats is supposed to be the

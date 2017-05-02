@@ -74,14 +74,14 @@ for ( my $i = 0 ; $i < @names ; $i++ ) {
         $inp{ $names[$i] } = $temp;
         $check = 1;
     }
-    if ( $temp eq 'yes' ) {
+    if ( $temp eq 'yes' || $temp eq 'off' ) {
 
 # FIXME : using array +4, +5, +6 is dirty. Should use arrays for each accountline
         my $amount         = $input->param( $names[ $i + 4 ] );
         my $borrowernumber = $input->param( $names[ $i + 5 ] );
         my $accountno      = $input->param( $names[ $i + 6 ] );
-	my $description    = $input->param( $names[ $i + 10 ] );
-        makepayment( $borrowernumber, $accountno, $amount, $description, $user, $branch );
+        my $description    = $input->param( $names[ $i + 10 ] );
+        makepayment( $borrowernumber, $accountno, $amount, $description, $user, $branch, $temp );
         $check = 2;
     }
 }

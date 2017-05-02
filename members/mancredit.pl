@@ -57,6 +57,10 @@ if ($add){
     my $amount=$input->param('amount') || 0;
     $amount = -$amount if ( $amount > 0 );
     my $type=$input->param('type');
+    if ( $type eq 'OFF' ) {
+        $type = 'C';
+        $desc = 'Paid at Office - '. $desc;
+    }
     manualinvoice($borrowernumber,$itemnum,$desc,$type,$amount);
     print $input->redirect("/cgi-bin/koha/members/boraccount.pl?borrowernumber=$borrowernumber");
 } else {
