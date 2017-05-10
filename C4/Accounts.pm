@@ -130,7 +130,7 @@ sub recordpayment {
     );
     $usth->execute( $borrowernumber, $nextaccntno, 0 - $data, 0 - $amountleft );
     $usth->finish;
-    UpdateStats( $branch, 'payment', $data, '', '', '', $borrowernumber, $nextaccntno );
+    UpdateStats( $branch, 'payment', $data, '', 0, undef, $borrowernumber, $nextaccntno );
     $sth->finish;
 }
 
@@ -205,7 +205,7 @@ sub makepayment {
     # FIXME - The second argument to &UpdateStats is supposed to be the
     # branch code.
     # UpdateStats is now being passed $accountno too. MTJ
-    UpdateStats( $user, 'payment', $amount, '', '', '', $borrowernumber,
+    UpdateStats( $user, 'payment', $amount, '', 0, undef, $borrowernumber,
         $accountno );
     $sth->finish;
 
@@ -512,7 +512,7 @@ sub fixcredit {
 	    $done = 1;
         }
     }
-    UpdateStats( $user, $type, $data, $user, '', '', $borrowernumber );
+    UpdateStats( $user, $type, $data, $user, 0, undef, $borrowernumber );
     return $amountleft;
 }
 

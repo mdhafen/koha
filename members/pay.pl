@@ -228,6 +228,6 @@ sub writeoff {
     $sth->execute( $borrowernumber, $accountnum, $account->{'max(accountno)'},
         $amount );
     $sth->finish;
-    UpdateStats( $branch, 'writeoff', $amount, '', '', '',
+    UpdateStats( $branch, 'writeoff', $amount, '', 0, undef,
         $borrowernumber );
 }
