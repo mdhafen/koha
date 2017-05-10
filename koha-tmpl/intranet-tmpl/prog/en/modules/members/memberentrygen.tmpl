@@ -106,7 +106,17 @@
 				<input type="hidden" name="nodouble" value="1" />
 				<input class="new" type="submit" value="Not a duplicate. Save as new record" />
 			</div>
-	<!--/TMPL_IF-->
+	<!-- /TMPL_IF -->
+
+	<!-- TMPL_IF NAME="other_branch" -->
+			<div class="dialog alert">
+				<h3>Patron not at your branch</h3>
+				<form name="form_other_branch" action="/cgi-bin/koha/members/memberentry.pl" method="post">
+				<input type="hidden" name="confirm_edit_other" value="1" />
+		                <input type="hidden" name="nodouble"  value="<!-- TMPL_VAR NAME="nodouble" -->">
+				<input class="new" type="submit" value="Save Anyway" />
+			</div>
+	<!-- /TMPL_IF -->
 
 	<!-- TMPL_IF Name="debug" -->
 		<div id="debug">
@@ -151,8 +161,8 @@
 	<!-- /TMPL_IF -->
 	
   
-<!-- TMPL_UNLESS NAME="check_member" --><form name="form" id="entryform"  action="/cgi-bin/koha/members/memberentry.pl" method="post">
-<input type="hidden" name="nodouble"  value="<!-- TMPL_VAR NAME="nodouble" -->" /> <!-- /TMPL_UNLESS -->
+<!-- TMPL_UNLESS NAME="check_member" --><!-- TMPL_UNLESS NAME="other_branch" --><form name="form" id="entryform"  action="/cgi-bin/koha/members/memberentry.pl" method="post">
+<input type="hidden" name="nodouble"  value="<!-- TMPL_VAR NAME="nodouble" -->" /> <!-- /TMPL_UNLESS --><!-- /TMPL_UNLESS -->
 <!--    field always hidden in different form (1,2,3) -->
 <input type="hidden" name="BorrowerMandatoryField" value="<!--TMPL_VAR NAME="BorrowerMandatoryField"-->" />
 <input type="hidden" name="category_type" value="<!-- TMPL_VAR name="category_type" -->" />

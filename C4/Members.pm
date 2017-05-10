@@ -320,6 +320,19 @@ sub Search {
         @finalfilter = @filters;
     }
     $searchtype ||= "start_with";
+
+    # shortcut for cardnumber searches, ignoring branchcode filters
+    if ( ( grep {ref($_) ne 'HASH' || ! $_->{'branchcode'} } @finalfilter ) == 1 && grep {$_ eq 'cardnumber'} @$search_on_fields ) {
+        my $dbh   = C4::Context->dbh;
+        my $query = "SELECT * FROM borrowers WHERE cardnumber = ?";
+        my $sth = $dbh->prepare($query);
+        $sth->execute($finalfilter[0]);
+        my $data = $sth->fetchall_arrayref({});
+        if (@$data){
+            return ( $data );
+        }
+    }
+
 	my $data = SearchInTable( "borrowers", \@finalfilter, $orderby, $limit, $columns_out, $search_on_fields, $searchtype );
     return ($data);
 }

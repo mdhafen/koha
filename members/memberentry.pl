@@ -70,6 +70,7 @@ my $destination    = $input->param('destination');
 my $cardnumber     = $input->param('cardnumber');
 my $check_member   = $input->param('check_member');
 my $nodouble       = $input->param('nodouble');
+my $confirm_edit_other = $input->param('confirm_edit_other') || 0;
 $nodouble = 1 if $op eq 'modify'; # FIXME hack to represent fact that if we're
                                   # modifying an existing patron, it ipso facto
                                   # isn't a duplicate.  Marking FIXME because this
@@ -168,6 +169,7 @@ if ($op eq 'insert' || $op eq 'modify' || $op eq 'save') {
         qr/^\d+$/,
         qr/^\d+-DAYS/,
         qr/^patron_attr_/,
+        qr/^confirm_edit_other/,
     );
     for my $regexp (@keys_to_delete) {
         for (keys %newdata) {
@@ -251,8 +253,11 @@ if ($op eq 'save' || $op eq 'insert'){
   if (C4::Context->preference("IndependantBranches")) {
     if ($userenv && $userenv->{flags} % 2 != 1){
       $debug and print STDERR "  $newdata{'branchcode'} : ".$userenv->{flags}.":".$userenv->{branch};
-      unless (!$newdata{'branchcode'} || $userenv->{branch} eq $newdata{'branchcode'}){
+      unless (!$newdata{'branchcode'} || $userenv->{branch} eq $newdata{'branchcode'} || $newdata{'branchcode'} eq $borrower_data->{'branchcode'}){
         push @errors, "ERROR_branch";
+      }
+      if ( !$newdata{'branchcode'} ) {
+          delete $newdata{'branchcode'};
       }
     }
   }
@@ -372,9 +377,8 @@ if ($nok or !$nodouble){
 if (C4::Context->preference("IndependantBranches")) {
     my $userenv = C4::Context->userenv;
     if ($userenv->{flags} % 2 != 1 && $data{branchcode}){
-        unless ($userenv->{branch} eq $data{'branchcode'}){
-            print $input->redirect("/cgi-bin/koha/members/members-home.pl");
-            exit;
+        unless ($userenv->{branch} eq $data{'branchcode'} || $confirm_edit_other){
+            $template->param( other_branch => 1 );
         }
     }
 }
@@ -521,8 +525,8 @@ foreach (keys(%flags)) {
 
 #get Branches
 my @branches;
-my @select_branch;
-my %select_branches;
+my @select_branch = ('');
+my %select_branches = (''=>'Select Library');
 
 my $onlymine=(C4::Context->preference('IndependantBranches') && 
               C4::Context->userenv && 
