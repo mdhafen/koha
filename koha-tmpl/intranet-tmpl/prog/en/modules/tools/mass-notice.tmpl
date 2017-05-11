@@ -1,5 +1,5 @@
 <!-- TMPL_INCLUDE NAME="doc-head-open.inc" -->
-<title>Koha &rsaquo; Tools &rsaquo; Send a message to patrons</title>
+<title>Koha &rsaquo; Tools &rsaquo; <!-- TMPL_UNLESS name="op" -->Send a message to patrons<!-- TMPL_ELSE --><a href="/cgi-bin/koha/tools/mass-notice.pl">Send a message to patrons</a> &rsaquo; <!-- TMPL_IF name="Send" -->Messages will be sent<!-- TMPL_ELSE --><!-- TMPL_IF name="Search" -->Select patrons<!-- /TMPL_IF --><!-- /TMPL_IF --><!-- /TMPL_UNLESS --></title>
 
 <style>
   td {
@@ -62,7 +62,7 @@ function clearAll () {
 <!-- TMPL_INCLUDE NAME="header.inc" -->
 <!-- TMPL_INCLUDE NAME="patron-search.inc"-->
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a> &rsaquo; <!-- TMPL_UNLESS NAME="Send" -->Send a message to patrons<!-- TMPL_ELSE --><a href="/cgi-bin/koha/tools/mass-notice.pl">Send a message to patrons</a> &rsaquo; Results of sending a message<!-- /TMPL_UNLESS --> </div>
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Tools</a> &rsaquo; <!-- TMPL_UNLESS name="op" -->Send a message to patrons<!-- TMPL_ELSE --><a href="/cgi-bin/koha/tools/mass-notice.pl">Send a message to patrons</a> &rsaquo; <!-- TMPL_IF name="Send" -->Messages will be sent<!-- TMPL_ELSE --><!-- TMPL_IF name="Search" -->Select patrons<!-- /TMPL_IF --><!-- /TMPL_IF --><!-- /TMPL_UNLESS --></div>
 
 <div id="doc3" class="yui-t2">
     <div id="bd">
@@ -94,11 +94,12 @@ function clearAll () {
                 <a href="#" onclick="clearAll(); return false;">Clear All</a>
                 </div>
                 <table>
-                    <tr><th>Name</th><th>sort2</th><th>Fines</th><th>Checked Out/Overdues</th></tr>
+                    <tr><th>Name</th><th>sort1</th><th>sort2</th><th>Fines</th><th>Checked Out/Overdues</th></tr>
                     <tbody>
                     <!-- TMPL_LOOP NAME="patron_list" -->
                     <tr>
                         <td><input type="checkbox" class="selection" id="patron_<!-- TMPL_VAR NAME="borrowernumber" -->" name="patrons" value="<!-- TMPL_VAR NAME="borrowernumber" -->"> <!-- TMPL_VAR NAME="firstname" --> <!-- TMPL_VAR NAME="surname" --></td>
+                        <td><!-- TMPL_VAR NAME="sort1" --></td>
                         <td><!-- TMPL_VAR NAME="sort2" --></td>
                         <td><!-- TMPL_VAR NAME="account" --></td>
                         <td><!-- TMPL_VAR NAME="overdues" --></td>
@@ -235,6 +236,15 @@ function clearAll () {
                                     <option value="overdue">Patrons with any books overdue</option>
                                     <option value="overdue_fines">Patrons with any overdue fines</option>
                                     <option value="fines">Patrons with any fines</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label for="sort_select">Sort list by:</label>
+                            <select name="sort_select" id="sort_select">
+                                    <option value="">Name</option>
+                                    <option value="sort1">Sort1</option>
+                                    <option value="sort2">Sort2</option>
+                                    <option value="sort12">Sort1 and Sort2</option>
                             </select>
                         </li>
                         <li><input type="submit" name="op" value="Search" class="submit" /> <a href="/cgi-bin/koha/tools/tools-home.pl" class="cancel">Cancel</a></li>

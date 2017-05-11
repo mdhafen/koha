@@ -55,6 +55,7 @@ my $branch   = $cgi->param( 'branch' );
 my $subject  = $cgi->param( 'message-subject' );
 my $body     = $cgi->param( 'message-body' );
 my $select   = $cgi->param( 'patron_select' );
+my $sort     = $cgi->param( 'sort_select' );
 my $category = $cgi->param( 'category' );
 my $send_to  = $cgi->param( 'send_to' );
 my @patrons  = $cgi->param( 'patrons' );
@@ -156,6 +157,7 @@ if ( $op eq 'Send' ) {
 
     $template->param(
         $op => 1,
+        op => $op,
         emails_sent => $count,
         );
 
@@ -165,6 +167,7 @@ elsif ( $op eq 'Search' ) {
     my $account_select = "SELECT SUM(amountoutstanding) FROM accountlines WHERE accountlines.borrowernumber = borrowers.borrowernumber";
     my $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber AND TO_DAYS(NOW()) - TO_DAYS(date_due) > 0";
     my $having = "account > 0 OR overdues > 0";
+    my $order = 'surname,firstname';
 
     if ( $select eq 'overdue' ) {
         $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber AND TO_DAYS(NOW()) - TO_DAYS(date_due) > 0";
@@ -185,11 +188,22 @@ elsif ( $op eq 'Search' ) {
         $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber";
     }
 
+    # No-Op for ""
+    if ( $sort eq 'sort1' ) {
+        $order = 'sort1,surname,firstname';
+    }
+    elsif ( $sort eq 'sort2' ) {
+        $order = 'sort2,surname,firstname';
+    }
+    elsif ( $sort eq 'sort12' ) {
+        $order = 'sort1,sort2,surname,firstname';
+    }
+
     $query = "
-     SELECT borrowernumber, surname, firstname, sort2,
+     SELECT borrowernumber, surname, firstname, sort1, sort2,
             ( $account_select ) AS account,
             ( $overdues_select ) AS overdues
-       FROM borrowers";
+       FROM borrowers ";
 
     if ( $branch || $category ) {
         $query .= " WHERE ";
@@ -207,7 +221,8 @@ elsif ( $op eq 'Search' ) {
     }
     $query .= "
    GROUP BY borrowers.borrowernumber
-     HAVING $having";
+     HAVING $having
+   ORDER BY $order";
 
     my $sth = $dbh->prepare( $query );
     $sth->execute(@bind);
@@ -218,6 +233,7 @@ elsif ( $op eq 'Search' ) {
 
     $template->param(
         $op => 1,
+        op => $op,
         branch => $branch,
         message_subject => $subject,
         message_body => $body,
