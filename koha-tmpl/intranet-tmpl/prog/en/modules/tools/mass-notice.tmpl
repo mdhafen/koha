@@ -186,7 +186,7 @@ function clearAll () {
                                     </optgroup>
                                     <optgroup label="Other">
                                     <option value="fines.content">Fines Information</option>
-                                    <option value="overdue.content">Overdues Information</option>
+                                    <option value="overdue.content">Check-outs Information</option>
                                     </optgroup>
                                 </select>
                                 <input type="button" name="insert" value="&gt;&gt;" onclick="insert_value()">
@@ -232,8 +232,9 @@ function clearAll () {
                                     <option value="">All patrons with overdues or fines</option>
                                     <option value="issues_or_fines">All patrons with books checked out or fines</option>
                                     <option value="due_today">Patrons with a book due today</option>
-                                    <option value="circulation">Patrons with any books overdue</option>
+                                    <option value="overdue">Patrons with any books overdue</option>
                                     <option value="overdue_fines">Patrons with any overdue fines</option>
+                                    <option value="fines">Patrons with any fines</option>
                             </select>
                         </li>
                         <li><input type="submit" name="op" value="Search" class="submit" /> <a href="/cgi-bin/koha/tools/tools-home.pl" class="cancel">Cancel</a></li>

@@ -166,8 +166,8 @@ elsif ( $op eq 'Search' ) {
     my $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber AND TO_DAYS(NOW()) - TO_DAYS(date_due) > 0";
     my $having = "account > 0 OR overdues > 0";
 
-    if ( $select eq 'overdue_today' ) {
-        $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber AND TO_DAYS(NOW()) - TO_DAYS(date_due) = 1";
+    if ( $select eq 'overdue' ) {
+        $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber AND TO_DAYS(NOW()) - TO_DAYS(date_due) > 0";
         $having = "overdues > 0";
     }
     elsif ( $select eq 'due_today' ) {
@@ -176,6 +176,9 @@ elsif ( $op eq 'Search' ) {
     }
     elsif ( $select eq 'overdue_fines' ) {
         $account_select = "SELECT SUM(amountoutstanding) FROM accountlines WHERE accounttype IN ('F','FU') AND amountoutstanding > 0 AND accountlines.borrowernumber = borrowers.borrowernumber";
+        $having = "account > 0";
+    }
+    elsif ( $select eq 'fines' ) {
         $having = "account > 0";
     }
     elsif ( $select eq 'issues_or_fines' ) {
