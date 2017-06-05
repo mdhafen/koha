@@ -149,25 +149,13 @@ Creates two lists: C<Koha> and C<External> which list all the users in the Koha
 
 sub ListMembers_External {
     my ( $category, $branch ) = @_;
-    my ( %koha, $external );
-
-    my $dbh = C4::Context->dbh;
-    my $query = "SELECT * FROM borrowers";
-    $query .= " WHERE branchcode = ". $dbh->quote( $branch ) if ( $branch );
-    my $sth = $dbh->prepare( $query );
-    $sth->execute();
-    while ( my $data = $sth->fetchrow_hashref ) {
-        $$data{cardnumber} =~ s/^\s*//;
-        $$data{cardnumber} =~ s/\s*$//;
-        $koha{ $$data{cardnumber} } = $data;
-    }
-
+    my $external;
     my @filter;
     if ( $branch ) {
         push @filter, { 'field' => 'branchcode', 'op' => '=', 'value' => $branch };
     }
-    $query = DBI_QueryExternal( $category, [ 'cardnumber' ], \@filter );
-    return ( \%koha, {} ) unless ( @$query );
+    my $query = DBI_QueryExternal( $category, [ 'cardnumber' ], \@filter );
+    return ( {} ) unless ( @$query );
     foreach my $row ( @$query ) {
 	my $card = $$row{ 'cardnumber' };
 	$card =~ s/^\s*//;
@@ -175,7 +163,7 @@ sub ListMembers_External {
 	$$external{ $card } = 1;
     }
 
-    return ( \%koha, $external );
+    return ( $external );
 }
 
 =item PatronInMappedCategory

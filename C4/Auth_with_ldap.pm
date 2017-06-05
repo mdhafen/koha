@@ -81,7 +81,11 @@ sub search_method {
     my $db     = shift or return;
     my $userid = shift or return;
 	my $uid_field = $mapping{userid}->{is} or die ldapserver_error("mapping for 'userid'");
-	my $filter = Net::LDAP::Filter->new("$uid_field=$userid") or die "Failed to create new Net::LDAP::Filter";
+    my $filter_str = "($uid_field=$userid)";
+    if ( $ldap->{filter} ) {
+        $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
+    }
+	my $filter = Net::LDAP::Filter->new($filter_str) or die "Failed to create new Net::LDAP::Filter";
 	my $search = $db->search(
 		  base => $base,
 	 	filter => $filter,

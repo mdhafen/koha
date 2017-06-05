@@ -27,13 +27,14 @@ This script get patron lists which are pulled from the Koha database and from an
 use strict;
 use warnings;
 use CGI;
+use C4::Debug;
 use C4::Auth;
 use C4::Output;
 use C4::Branch;  # GetBranchesLoop GetBranchesWithProperty
 use C4::Reserves;  # GetReservesFromBorrowernumber
 use C4::Members;  # MoveMemberToDeleted DelMember AddMember ModMember GetMemberIssuesAndFines
-use C4::MembersExternal;  # GetMemberDetails_External ListMembers_External GetExternalMappedCategories
 
+our $debug;
 my $cgi = new CGI;
 
 # getting the template
@@ -47,12 +48,54 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
     }
 );
 
+my @categories;
+my $ldap_conn;
+if ( C4::Context->config("MembersExternalEngine") ) {
+    use C4::MembersExternal;  # GetMemberDetails_External ListMembers_External GetExternalMappedCategories
+    push @categories, GetExternalMappedCategories();
+}
+
+if ( C4::Context->config("ldapserver") ) {
+    my $ldap = C4::Context->config("ldapserver");
+    my %mapping = %{$ldap->{mapping}};
+    my @mapkeys = keys %mapping;
+
+    if ( defined $mapping{categorycode}->{is} ) {
+        unless ( $ldap_conn ) {
+            my $prefhost = $ldap->{hostname};
+            my $ldapname = $ldap->{user};
+            my $ldappassword = $ldap->{pass};
+            my @hosts = split(',', $prefhost);
+            $ldap_conn = Net::LDAP->new(\@hosts);
+            ($ldapname) ? $ldap_conn->bind($ldapname, password=>$ldappassword) : $ldap_conn->bind;
+        }
+        my $base = $ldap->{base};
+        my $cat_field = $mapping{categorycode}->{is};
+        my $filter_str = "($cat_field=*)";
+        if ( $ldap->{filter} ) {
+            $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
+        }
+        my $filter = Net::LDAP::Filter->new($filter_str);
+        my $search = $ldap_conn->search( base => $base, filter => $filter, attrs => [$cat_field] );
+        if ( $search->code() ) { $debug && warn $search->error(); }
+        my %unique_cat;
+        while ( my $entry = $search->shift_entry ) {
+            push @categories, $entry->get_value($cat_field);
+        }
+    }
+    else {
+        push @categories, $mapping{categorycode}->{content};
+    }
+}
+
+# Make sure values in @categories are unique
+{ my %h; @categories = grep {!$h{$_}++} @categories; }
+
 my $dbh = C4::Context->dbh;
 my $op     = $cgi->param( 'op' ) || '';
 my $confirmed = $cgi->param( 'confirmed' ) || '';
 my $branch = $cgi->param( 'branch' );
 my $category = $cgi->param('category');
-my @categories = GetExternalMappedCategories();
 
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
@@ -64,7 +107,65 @@ if ( $op eq 'Sync' and @categories ) {
 	$historical_branch = 0;
     }
 
-    my ( $dbhash, $dirhash ) = ListMembers_External( $category, $branch );
+    my ( $dbhash, $dirhash ) = ({},{});
+    my $query = "SELECT * FROM borrowers";
+    $query .= " WHERE branchcode = ". $dbh->quote( $branch ) if ( $branch );
+    my $sth = $dbh->prepare( $query );
+    $sth->execute();
+    while ( my $data = $sth->fetchrow_hashref ) {
+        $$data{cardnumber} =~ s/^\s*//;
+        $$data{cardnumber} =~ s/\s*$//;
+        $dbhash->{ $$data{cardnumber} } = $data;
+    }
+    if ( C4::Context->config("MembersExternalEngine") ) {
+        $dirhash = ListMembers_External( $category, $branch );
+        foreach my $card ( keys %$dirhash ) {
+            my $attribs = GetMemberDetails_External( $card );
+            $dirhash->{$card} = $attribs;
+        }
+    }
+    if ( C4::Context->config("ldapserver") ) {
+        require C4::Auth_with_ldap;
+        my $ldap = C4::Context->config("ldapserver");
+        my $base = $ldap->{base};
+        unless ( $ldap_conn ) {
+            my $prefhost = $ldap->{hostname};
+            my $ldapname = $ldap->{user};
+            my $ldappassword = $ldap->{pass};
+            my @hosts = split(',', $prefhost);
+            $ldap_conn = Net::LDAP->new(\@hosts);
+            ($ldapname) ? $ldap_conn->bind($ldapname, password=>$ldappassword) : $ldap_conn->bind;
+        }
+        my %mapping = %{$ldap->{mapping}};
+        my @filters;
+        my $filter_str;
+        if ( defined $mapping{categorycode}->{is} ) {
+            my $field = $mapping{categorycode}->{is};
+            push @filters,"($field=*)";
+        }
+        if ( $branch && defined $mapping{branchcode}->{is} ) {
+            my $field = $mapping{branchcode}->{is};
+            push @filters,"($field=$branch)";
+        }
+        if ( scalar @filters > 1 ) {
+            $filter_str = "(&". (join "",@filters) .")";
+        }
+        else {
+            $filter_str = $filters[0];
+        }
+        if ( $ldap->{filter} ) {
+            $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
+        }
+        my $filter = Net::LDAP::Filter->new($filter_str);
+        my $search = $ldap_conn->search( base => $base, filter => $filter );
+        while ( my $entry = $search->shift_entry ) {
+            my %attribs = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef );
+            if ( $attribs{cardnumber} && $attribs{cardnumber} ne ' ' ) {
+                $dirhash->{$attribs{cardnumber}} = \%attribs;
+            }
+        }
+    }
+
     my ( %deleted, %added, %existing );
     my ( $numdeleted, $numadded, $numchanged ) = ( "0", "0", "0" );
     my ( $total );
@@ -89,7 +190,35 @@ if ( $op eq 'Sync' and @categories ) {
 	    $fines += 0;  #  Force to number
 
 	    # this prevents a delete when a patron has changed branches
-	    my $bordata = GetMemberDetails_External( $cardnumber );
+	    my $bordata;
+        if ( C4::Context->config("MembersExternalEngine") ) {
+            $bordata = GetMemberDetails_External( $cardnumber )
+        }
+        if ( C4::Context->config("ldapserver") ) {
+            my $ldap = C4::Context->config("ldapserver");
+            my $base = $ldap->{base};
+            unless ( $ldap_conn ) {
+                my $prefhost = $ldap->{hostname};
+                my $ldapname = $ldap->{user};
+                my $ldappassword = $ldap->{pass};
+                my @hosts = split(',', $prefhost);
+                $ldap_conn = Net::LDAP->new(\@hosts);
+                ($ldapname) ? $ldap_conn->bind($ldapname, password=>$ldappassword) : $ldap_conn->bind;
+            }
+            my %mapping = %{$ldap->{mapping}};
+            if ( defined $mapping{cardnumber}->{is} ) {
+                my $field = $mapping{cardnumber}->{is};
+                my $filter_str = "($field=$cardnumber)";
+                my $filter = Net::LDAP::Filter->new($filter_str);
+                if ( $ldap->{filter} ) {
+                    $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
+                }
+                my $search = $ldap_conn->search( base => $base, filter => $filter );
+                if ( $search->code() ) { $debug && warn $search->error(); }
+                my $entry = $search->shift_entry;
+                %{$bordata} = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef );
+            }
+        }
 	    $$bordata{'surname'} ||= '';
 	    $$bordata{'firstname'} ||= '';
 
@@ -133,9 +262,9 @@ if ( $op eq 'Sync' and @categories ) {
     }
     foreach (sort keys %$dirhash) {
 	if ( $$dbhash{ $_ } ) {
-	    $existing{ $_ } = 1;
+	    $existing{ $_ } = $dirhash->{$_};
 	} else {
-	    $added{ $_ } = 1;
+	    $added{ $_ } = $dirhash->{$_};
 	}
 	$total++;
     }
@@ -184,9 +313,9 @@ if ( $op eq 'Sync' and @categories ) {
 	if ( @fields ) {
 	    # Cardnumber exists already.  Assume patron changed branches.
 	    # This should be an update
-	    $existing{ $cardnumber } = 1;
+	    $existing{ $cardnumber } = $added{$cardnumber};
 	} else {
-	    my $attribs = GetMemberDetails_External( $cardnumber, $category );
+	    my $attribs = $added{$cardnumber};
 	    foreach my $attr ( keys %$attribs ) {
 		$$attribs{$attr} =~ s/\s*$// if ( $$attribs{$attr} );
 	    }
@@ -227,9 +356,10 @@ if ( $op eq 'Sync' and @categories ) {
 #warn "Starting update check...";
     foreach my $cardnumber ( sort keys %existing ) {
 	my ( $diff, @fields );
-	my $attribs = GetMemberDetails_External( $cardnumber );
+	my $attribs = $existing{$cardnumber};
 	$get->execute( $cardnumber );
 	my $values = $get->fetchrow_hashref;
+    my @changes;
 
 	foreach ( keys %$attribs ) {
 	    defined $$attribs{ $_ } &&
@@ -240,7 +370,7 @@ if ( $op eq 'Sync' and @categories ) {
 	    $$attribs{ categorycode } = $category;
 	}
 
-	foreach ( keys %$values ) {
+	foreach ( sort keys %$values ) {
 	    if ( exists $$attribs{ $_ } && defined $$attribs{ $_ } ) {
 		if ( $_ eq 'password' ) {
 		    if ( $$attribs{ $_ } ne $$values{ $_ } && $confirmed ) {
@@ -249,9 +379,13 @@ if ( $op eq 'Sync' and @categories ) {
 		    delete $$attribs{ 'password' };
 		}
 		elsif ( defined $$values{ $_ } ) {
-		    $diff = 1 if ( $$attribs{ $_ } ne $$values{ $_ } );
+		    if ( $$attribs{ $_ } ne $$values{ $_ } ) {
+                $diff = 1;
+                push @changes, { field => $_, old => $$values{$_}, new => $$attribs{$_} };
+            }
 		} else {
 		    $diff = 1;
+            push @changes, { field => $_, old => '', new => $$attribs{$_} };
 		}
 	    } elsif ( exists $$attribs{ $_ } ) {  # value is undefined.  Delete
 		delete $$attribs{ $_ };
@@ -269,14 +403,13 @@ if ( $op eq 'Sync' and @categories ) {
 	    push @report, {
 		name => $$attribs{surname} .', '. $$attribs{firstname},
 		cardnumber => $cardnumber,
-		changed => 1,
+		changed => \@changes,
 	    };
 	    $numchanged++;
 	}
     }
 
     $template->param(
-		     categories => scalar @categories,
 		     op => $op,
 		     branch => $branch,
 		     categorycode => $category,
@@ -304,7 +437,6 @@ if ( $op eq 'Sync' and @categories ) {
     $template->param(
 	'branchloop' => $branches,
 	'categoryloop' => \@categoryloop,
-        'categories' => scalar @categories,
 	);
 }
 
