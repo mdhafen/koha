@@ -209,14 +209,14 @@ if ( $op eq 'Sync' and @categories ) {
             if ( defined $mapping{cardnumber}->{is} ) {
                 my $field = $mapping{cardnumber}->{is};
                 my $filter_str = "($field=$cardnumber)";
-                my $filter = Net::LDAP::Filter->new($filter_str);
                 if ( $ldap->{filter} ) {
                     $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
                 }
+                my $filter = Net::LDAP::Filter->new($filter_str);
                 my $search = $ldap_conn->search( base => $base, filter => $filter );
                 if ( $search->code() ) { $debug && warn $search->error(); }
                 my $entry = $search->shift_entry;
-                %{$bordata} = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef );
+                if ( $entry ) { %{$bordata} = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef ); }
             }
         }
 	    $$bordata{'surname'} ||= '';
