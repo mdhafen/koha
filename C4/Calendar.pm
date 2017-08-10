@@ -285,7 +285,7 @@ sub insert_single_holiday {
     
 	my $dbh = C4::Context->dbh();
     my $isexception = 0;
-    my $insertHoliday = $dbh->prepare("insert into special_holidays (id,branchcode,day,month,year,isexception,title,description) values ('', ?,?,?,?,?,?,?)");
+    my $insertHoliday = $dbh->prepare("insert into special_holidays (branchcode,day,month,year,isexception,title,description) values (?,?,?,?,?,?,?)");
 	$insertHoliday->execute( $self->{branchcode}, $options{day},$options{month},$options{year}, $isexception, $options{title}, $options{description});
     $self->{'single_holidays'}->{"$options{year}/$options{month}/$options{day}"}{title} = $options{title};
     $self->{'single_holidays'}->{"$options{year}/$options{month}/$options{day}"}{description} = $options{description};
