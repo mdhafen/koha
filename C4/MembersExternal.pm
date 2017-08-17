@@ -501,10 +501,10 @@ sub DBI_QueryExternal {
     foreach my $row ( @$filters, @l_columns ) {
         my ( $table, $field );
         if ( ref( $row ) eq 'HASH' ) {
-            $$row{ 'field' } =~ /([^\.\s]*)\.\S+/;
+            $$row{ 'field' } =~ /([^\.\s\(]*)\.\S+/;
 			$table = $1;
         } else {
-            $row =~ /([^\.\s]*)\.\S+/;
+            $row =~ /([^\.\s\(]*)\.\S+/;
 			$table = $1;
         }
         $tables{ $table } = 1 if ( $table );
