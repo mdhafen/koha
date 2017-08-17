@@ -126,6 +126,8 @@ if ( $op eq 'Sync' and @categories ) {
     }
     if ( C4::Context->config("ldapserver") ) {
         require C4::Auth_with_ldap;
+        use Net::LDAP::Control::Paged;
+        use Net::LDAP::Constant qw( LDAP_CONTROL_PAGED );
         my $ldap = C4::Context->config("ldapserver");
         my $base = $ldap->{base};
         unless ( $ldap_conn ) {
@@ -141,7 +143,7 @@ if ( $op eq 'Sync' and @categories ) {
         my $filter_str;
         if ( defined $mapping{categorycode}->{is} ) {
             my $field = $mapping{categorycode}->{is};
-            push @filters,"($field=*)";
+            push @filters,"($field=$category)";
         }
         if ( $branch && defined $mapping{branchcode}->{is} ) {
             my $field = $mapping{branchcode}->{is};
@@ -157,12 +159,19 @@ if ( $op eq 'Sync' and @categories ) {
             $filter_str = "(&(".$ldap->{filter}.")$filter_str)";
         }
         my $filter = Net::LDAP::Filter->new($filter_str);
-        my $search = $ldap_conn->search( base => $base, filter => $filter );
-        while ( my $entry = $search->shift_entry ) {
-            my %attribs = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef );
-            if ( $attribs{cardnumber} && $attribs{cardnumber} ne ' ' ) {
-                $dirhash->{$attribs{cardnumber}} = \%attribs;
+        my $paged = Net::LDAP::Control::Paged->new( size => 500 );
+        while (1) {
+            my $search = $ldap_conn->search( base => $base, filter => $filter, control => [ $paged ] );
+            $search->code and last;
+            while ( my $entry = $search->shift_entry ) {
+                my %attribs = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef );
+                if ( $attribs{cardnumber} && $attribs{cardnumber} ne ' ' ) {
+                    $dirhash->{$attribs{cardnumber}} = \%attribs;
+                }
             }
+            my ($response) = $search->control( LDAP_CONTROL_PAGED ) or last;
+            my $cookie = $response->cookie or last;
+            $paged->cookie($cookie);
         }
     }
 
