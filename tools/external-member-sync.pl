@@ -30,7 +30,7 @@ use CGI;
 use C4::Debug;
 use C4::Auth;
 use C4::Output;
-use C4::Branch;  # GetBranchesLoop GetBranchesWithProperty
+use C4::Branch;  # GetBranchesLoop GetBranchesWithProperty GetBranches
 use C4::Reserves;  # GetReservesFromBorrowernumber
 use C4::Members;  # MoveMemberToDeleted DelMember AddMember ModMember GetMemberIssuesAndFines
 
@@ -99,6 +99,7 @@ my $category = $cgi->param('category');
 
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
+    my $branches = GetBranches();
     my $historical_branch = GetBranchesWithProperty( 'HIST' );
     if ( @$historical_branch ) {
 	$historical_branch = $$historical_branch[0];
@@ -238,7 +239,13 @@ if ( $op eq 'Sync' and @categories ) {
 
 	    if ( $bordata && $$bordata{'branchcode'} && ( $$bordata{'branchcode'} != $branch ) ) {
 		$allow_delete = 0;
-		if ( $confirmed ) { $branch_update->execute( $$bordata{'branchcode'}, $cardnumber ) };
+		if ( $confirmed ) {
+		    if ( $historical_branch && ! $$branches{$$bordata{'branchcode'}} ) {
+			$branch_update->execute( $$historical_branch{'branchcode'}, $cardnumber );
+		    } else {
+			$branch_update->execute( $$bordata{'branchcode'}, $cardnumber )
+		    }
+		}
 		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
 		$this_report{moved} = 1;
 	    }
