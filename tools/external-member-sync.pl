@@ -412,6 +412,10 @@ if ( $op eq 'Sync' and @categories ) {
 	    $$attribs{borrowernumber} = $$values{borrowernumber};
 
 	    if ( $confirmed ) {
+		if ( ! $$attribs{'gonenoaddress'} && $$values{'gonenoaddress'} ) {
+		    $$attribs{'gonenoaddress'} = 0;
+		}
+
 		ModMember( %$attribs );
 #warn "Updated $$attribs{cardnumber}";
 	    }
