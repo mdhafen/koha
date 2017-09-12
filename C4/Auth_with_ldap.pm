@@ -93,11 +93,11 @@ sub search_method {
 	) or die "LDAP search failed to return object.";
 	my $count = $search->count;
 	if ($search->code > 0) {
-		warn sprintf("LDAP Auth rejected : %s gets %d hits\n", $filter->as_string, $count) . description($search);
+		$debug && warn sprintf("LDAP Auth rejected : %s gets %d hits\n", $filter->as_string, $count) . description($search);
 		return 0;
 	}
 	if ($count != 1) {
-		warn sprintf("LDAP Auth rejected : %s gets %d hits\n", $filter->as_string, $count);
+		$debug && warn sprintf("LDAP Auth rejected : %s gets %d hits\n", $filter->as_string, $count);
 		return 0;
 	}
     return $search;
@@ -111,7 +111,7 @@ sub checkpw_ldap {
     my $userldapentry;
 		my $res = ($config{anonymous}) ? $db->bind : $db->bind($ldapname, password=>$ldappassword);
 		if ($res->code) {		# connection refused
-			warn "LDAP bind failed as ldapuser " . ($ldapname || '[ANONYMOUS]') . ": " . description($res);
+			$debug && warn "LDAP bind failed as ldapuser " . ($ldapname || '[ANONYMOUS]') . ": " . description($res);
 			return 0;
 		}
         my $search = search_method($db, $userid) or return 0;   # warnings are in the sub
@@ -143,7 +143,7 @@ sub checkpw_ldap {
 	} else {
 		my $cmpmesg = $db->compare( $userldapentry, attr=>'userpassword', value => $password );
 		if ($cmpmesg->code != 6) {
-			warn "LDAP Auth rejected : invalid password for user '$userid'. " . description($cmpmesg);
+			$debug && warn "LDAP Auth rejected : invalid password for user '$userid'. " . description($cmpmesg);
 			return 0;
 		}
 	}
@@ -163,7 +163,7 @@ sub checkpw_ldap {
     if ($borrowernumber) {
         if ($config{update}) { # A1, B1
             my $c2 = &update_local($local_userid,$password,$borrowernumber,\%borrower) || '';
-            ($cardnumber eq $c2) or warn "update_local returned cardnumber '$c2' instead of '$cardnumber'";
+            ($cardnumber eq $c2) or ($debug && warn "update_local returned cardnumber '$c2' instead of '$cardnumber'");
         } else { # C1, D1
             # maybe update just the password?
 		return(1, $cardnumber); # FIXME dpavlin -- don't destroy ExtendedPatronAttributes
@@ -186,7 +186,7 @@ sub checkpw_ldap {
 			my $attr=$extended_patron_attributes->[$i];
 			unless (C4::Members::Attributes::CheckUniqueness($attr->{code}, $attr->{value}, $borrowernumber)) {
 				unshift @errors, $i;
-				warn "ERROR_extended_unique_id_failed $attr->{code} $attr->{value}";
+				$debug && warn "ERROR_extended_unique_id_failed $attr->{code} $attr->{value}";
 			}
 		}
 		#Removing erroneous attributes
@@ -265,7 +265,7 @@ sub _do_changepassword {
 	if ($sth->rows) {
 		my ($md5password, $cardnum) = $sth->fetchrow;
         ($digest eq $md5password) and return $cardnum;
-		warn "Password mismatch after update to cardnumber=$cardnum (borrowernumber=$borrowerid)";
+		$debug && warn "Password mismatch after update to cardnumber=$cardnum (borrowernumber=$borrowerid)";
 		return undef;
 	}
 	die "Unexpected error after password update to userid/borrowernumber: $userid / $borrowerid.";
