@@ -53,10 +53,10 @@ my $DBversion = "3.00.00.000";
         action_logs     => "(
                         `timestamp` TIMESTAMP NOT NULL ,
                         `user` INT( 11 ) NOT NULL default '0' ,
-                        `module` TEXT default '',
-                        `action` TEXT default '' ,
+                        `module` TEXT default NULL,
+                        `action` TEXT default NULL,
                         `object` INT(11) NULL ,
-                        `info` TEXT default '' ,
+                        `info` TEXT default NULL,
                         PRIMARY KEY ( `timestamp` , `user` )
                     )",
         letter        => "(
@@ -132,7 +132,7 @@ my $DBversion = "3.00.00.000";
                     labelid int(11) NOT NULL auto_increment,
                                 batch_id varchar(10) NOT NULL default '1',
                                 itemnumber varchar(100) NOT NULL default '',
-                                timestamp timestamp(14) NOT NULL,
+                                timestamp timestamp NOT NULL,
                                 PRIMARY KEY  (labelid)
                                 )",
     
@@ -214,11 +214,12 @@ my $DBversion = "3.00.00.000";
     );
     
     my %requirefields = (
-        subscription => { 'letter' => 'varchar(20) NULL', 'distributedto' => 'text NULL', 'firstacquidate'=>'date default NULL','irregularity'=>'TEXT NULL default \'\'','numberpattern'=>'TINYINT(3) NULL default 0', 'callnumber'=>'text NULL', 'hemisphere' =>'TINYINT(3) NULL default 0', 'issuesatonce'=>'TINYINT(3) NOT NULL default 1',  'branchcode' =>'varchar(10) NOT NULL default \'\'', 'manualhistory'=>'TINYINT(1) NOT NULL default 0','internalnotes'=>'LONGTEXT NULL default \'\''},
+        subscription => { 'letter' => 'varchar(20) NULL', 'distributedto' => 'text NULL', 'firstacquidate'=>'date default NULL','irregularity'=>'TEXT NULL default NULL','numberpattern'=>'TINYINT(3) NULL default 0', 'callnumber'=>'text NULL', 'hemisphere' =>'TINYINT(3) NULL default 0', 'issuesatonce'=>'TINYINT(3) NOT NULL default 1',  'branchcode' =>"varchar(10) NOT NULL default ''", 'manualhistory'=>'TINYINT(1) NOT NULL default 0','internalnotes'=>'LONGTEXT NULL'},
         itemtypes => { 'imageurl' => 'varchar(200) NULL'},
-        aqbookfund => { 'branchcode' => 'varchar(4) NULL'},
+        aqbookfund => { 'branchcode' => "varchar(4) NOT NULL DEFAULT ''"},
         aqbudget => { 'branchcode' => 'varchar(4) NULL'},
         auth_header => { 'marc' => 'BLOB NOT NULL', 'linkid' => 'BIGINT(20) NULL'},
+	# auth_header.marcxml created by move_marc_to_auth_header.pl
         auth_subfield_structure =>{ 'hidden' => 'TINYINT(3) NOT NULL default 0', 'kohafield' => "VARCHAR(45) NULL default ''", 'linkid' =>  'TINYINT(1) NOT NULL default 0', 'isurl' => 'TINYINT(1)', 'frameworkcode'=>'VARCHAR(8) NOT  NULL'},
         marc_breeding => { 'isbn' => 'varchar(13) NOT NULL'},
         serial =>{ 'publisheddate' => 'date AFTER planneddate', 'claimdate' => 'date', 'itemnumber'=>'text NULL','routingnotes'=>'text NULL',},
@@ -235,9 +236,25 @@ my $DBversion = "3.00.00.000";
     # Enter here the table to delete.
     my @TableToDelete = qw(
         additionalauthors
+        auth_word
+        biblioanalysis
         bibliosubject
         bibliosubtitle
         bibliothesaurus
+        borexp
+        catalogueentry
+        charges
+        daysclosed
+        fundmaping
+        itemsprices
+        marc_word
+        marcrecorddone
+        sessionqueries
+        uploadedmarc
+        users
+        websites
+        z3950queue
+        z3950results
     );
     
     my %uselessfields = (
@@ -246,6 +263,7 @@ my $DBversion = "3.00.00.000";
         deletedborrowers=> "suburb,altstreetaddress,altsuburb,altcity,studentnumber,school,area,preferredcont,altcp",
         items => "multivolumepart,multivolume,binding",
         deleteditems => "multivolumepart,multivolume,binding",
+        itemtypes => "notforopac",
         );
     # the other hash contains other actions that can't be done elsewhere. they are done
     # either BEFORE of AFTER everything else, depending on "when" entry (default => AFTER)
@@ -1336,13 +1354,14 @@ my $DBversion = "3.00.00.000";
             },
         ],
         
+        # the biblioitems.marcxml column is added by move_marc_to_biblioitems.pl
         biblioitems =>  [
             {
                 field    => 'itemtype',
                 type    => 'varchar(10)',
                 null    => 'NOT NULL',
                 key        => '',
-                default    => '',
+                default    => "''",
                 extra    => '',
             },
             {
@@ -1436,6 +1455,13 @@ my $DBversion = "3.00.00.000";
                 default => '',
                 extra   => '',
             },
+            {
+                field   => 'marc',
+                type    => 'longblob',
+                null    => '',
+                default => '',
+                extra   => '',
+            },
         ],
                 
         biblio => [
@@ -1448,6 +1474,13 @@ my $DBversion = "3.00.00.000";
             },
             {
                 field   => 'title',
+                type    => 'mediumtext',
+                null    => 'NULL',
+                default => '',
+                extra   => '',
+            },
+            {
+                field   => 'subtitle',
                 type    => 'mediumtext',
                 null    => 'NULL',
                 default => '',
@@ -1614,6 +1647,14 @@ my $DBversion = "3.00.00.000";
 
         branchcategories => [
             {
+                field   => 'categorycode',
+                type    => 'VARCHAR(10)',
+                null    => 'NOT NULL',
+                key     => '',
+                default => "''",
+                extra   => '',
+            },
+            {
                 field   => 'codedescription',
                 type    => 'mediumtext',
                 null    => 'NULL',
@@ -1713,7 +1754,7 @@ my $DBversion = "3.00.00.000";
                 key     => '',
                 default => "''",
                 extra   => '',
-            }
+            },
         ],
 
         branchtransfers =>[
@@ -1768,6 +1809,17 @@ my $DBversion = "3.00.00.000";
             },
         ],
         
+        currency => [
+            {
+                field   => 'currency',
+                type    => 'VARCHAR(10)',
+                null    => 'NOT NULL',
+                key     => '',
+                default => "''",
+                extra   => '',
+            },
+            ],
+
         deletedborrowers => [
             {
                 field => 'branchcode',
@@ -2544,6 +2596,9 @@ my $DBversion = "3.00.00.000";
             {    indexname => 'isbn',
                 content => 'isbn',
             },
+            {    indexname => 'issn',
+                content => 'issn',
+            },
             {    indexname => 'publishercode',
                 content => 'publishercode',
             },
@@ -3010,19 +3065,195 @@ my $DBversion = "3.00.00.000";
                     },
                 ],
             );
-        
-    
+
+    # column changes
+    my %column_fixes = (
+        # table
+        accountlines => [
+                    {
+                        column => 'itemnumber',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT itemnumber FROM items)',
+                    },
+        ],
+        aqbudget => [
+                    {
+                        column => 'startdate',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        aqorderdelivery => [
+                    {
+                        column => 'ordernumber',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        auth_header => [
+                    {
+                        column => 'datecreated',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        biblioitems => [
+                    {
+                        column => 'itemtype',
+                        value => '""',
+                        from => '',
+                    },
+                    {
+                        column => 'marc',
+                        value => '""',
+                        from => '',
+                    },
+        ],
+        borrowers => [
+                    # Watchout for branchcode.  It's NOT NULL and has a
+                    # Foreign Key by the end of this.  I have no way of fixing
+                    # values in branchcode automatically.
+                    {
+                        column => 'streetaddress',
+                        value => '""',
+                        from => '',
+                    },
+                    {
+                        column => 'city',
+                        value => '""',
+                        from => '',
+                    },
+        ],
+        branchtransfers => [
+                    {
+                        column => 'itemnumber',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT itemnumber FROM items)',
+                    },
+        ],
+        issues => [
+                    {
+                        column => 'returndate',
+                        value => 'NULL',
+                        from => '= "0000-00-00"',
+                    },
+        ],
+        items => [
+                    {
+                        column => 'dateaccessioned',
+                        value => 'NULL',
+                        from => '= "0000-00-00"',
+                    },
+                    {
+                        column => 'biblioitemnumber',
+                        value => '0',
+                        from => 'NOT IN (SELECT biblioitemnumber FROM biblioitems)',
+                    },
+                    {
+                        column => 'homebranch',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT branchcode FROM branches)',
+                    },
+                    {
+                        column => 'holdingbranch',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT branchcode FROM branches)',
+                    },
+        ],
+        marc_biblio => [
+                    {
+                        column => 'datecreated',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        reserveconstraints => [
+                    {
+                        column => 'reservedate',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        reserves => [
+                    {
+                        column => 'reservedate',
+                        default => '"1000-01-01"',
+                    },
+                    {
+                        column => 'itemnumber',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT itemnumber FROM items)',
+                    },
+        ],
+        serial => [
+                    {
+                        column => 'planneddate',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        shelfcontents => [
+                    {
+                        column => 'itemnumber',
+                        value => 'NULL',
+                        from => 'NOT IN (SELECT itemnumber FROM items)',
+                    },
+        ],
+        statistics => [
+                    {
+                        column => 'branch',
+                        value => '""',
+                        from => '',
+                    },
+                    {
+                        column => 'datetime',
+                        default => '"1000-01-01 00:00:00"',
+                    },
+        ],
+        subscription => [
+                    {
+                        column => 'startdate',
+                        default => '"1000-01-01"',
+                    },
+        ],
+        subscriptionhistory => [
+                    {
+                        column => 'histstartdate',
+                        default => '"1000-01-01"',
+                    },
+                    {
+                        column => 'enddate',
+                        default => '"1000-01-01"',
+                    },
+        ],
+    );
+
+    # First Fix some things that will cause errors in the next few ops
+    my ($sqlmode) = $dbh->selectrow_array('SELECT @@sql_mode');
+    my @modes = split ',', $sqlmode;
+    @modes = grep !/(:?NO_ZERO_IN_DATE|NO_ZERO_DATE|STRICT_TRANS_TABLES|STRICT_ALL_TABLES)/, @modes;
+    $dbh->do("SET SESSION sql_mode = '". join( ',', @modes ) ."'");
+    foreach my $table (keys %column_fixes) {
+        my $tablerows = $column_fixes{$table};
+        foreach my $row ( @$tablerows ) {
+            if ( $row->{default} ) {
+                my $sql = "ALTER TABLE `$table` ALTER COLUMN `". $row->{column} ."` SET DEFAULT ".$row->{default};
+                $dbh->do($sql) or warn "Error while executing: $sql";
+            }
+            if ( $row->{value} ) {
+                my $sql = "UPDATE `$table` SET `". $row->{column} ."` = ". $row->{value} ." WHERE `". $row->{column} ."` ". ($row->{from} ? $row->{from} : " IS NULL");
+                $dbh->do($sql) or warn "Error while executing: $sql";
+            }
+        }
+    }
+    $dbh->do("SET SESSION sql_mode = '$sqlmode'");
+
     # MOVE all tables TO UTF-8 and innoDB
     $sth = $dbh->prepare("show table status");
     $sth->execute;
     while ( my $table = $sth->fetchrow_hashref ) {
-        next if $table->{Name} eq 'marc_word';
         next if $table->{Name} eq 'marc_subfield_table';
-        next if $table->{Name} eq 'auth_word';
+        next if $table->{Name} eq 'marc_blob_subfield';
+        next if $table->{Name} eq 'marc_biblio';
         next if $table->{Name} eq 'auth_subfield_table';
+	next if grep { $_ eq $table->{Name} } @TableToDelete;
         if ($table->{Engine} ne 'InnoDB') {
             print "moving $table->{Name} to InnoDB\n";
-            $dbh->do("ALTER TABLE $table->{Name} TYPE = innodb");
+            $dbh->do("ALTER TABLE $table->{Name} ENGINE = innodb");
         }
         unless ($table->{Collation} =~ /^utf8/) {
             print "moving $table->{Name} to utf8\n";
@@ -3047,6 +3278,12 @@ my $DBversion = "3.00.00.000";
                                 [ 'sort1',         'varchar(80) default NULL'   ],
                                 [ 'sort2',         'varchar(80) default NULL'   ],
                              ],
+        serial => [
+                     ['publisheddate','date default NULL'],
+                  ],
+        subscription => [
+                     ['firstacquidate','date default NULL'],
+                  ],
     );
 
     foreach $table ( keys %required_prereq_fields ) {
@@ -3167,6 +3404,9 @@ my $DBversion = "3.00.00.000";
                 print "Error : $sth->errstr \n";
                 $sth->finish;
             }    # if error
+            else {
+                $existingtables{$table} = 1;
+            }
         }    # unless exists
     }    # foreach
     
@@ -3454,16 +3694,6 @@ my $DBversion = "3.00.00.000";
             }
         }
     }
-    # now drop useless tables
-    foreach $table ( @TableToDelete ) {
-        if ( $existingtables{$table} ) {
-            print "Dropping unused table $table\n" if $debug and not $silent;
-            $dbh->do("drop table $table");
-            if ( $dbh->err ) {
-                print "Error : $dbh->errstr \n";
-            }
-        }
-    }
     
     #
     # SPECIFIC STUFF
@@ -3498,7 +3728,7 @@ my $DBversion = "3.00.00.000";
         }
         print "\rdone\n";
     }
-    
+
     # at last, remove useless fields
     foreach $table ( keys %uselessfields ) {
         my @fields = split (/,/,$uselessfields{$table});
@@ -3522,6 +3752,17 @@ my $DBversion = "3.00.00.000";
         }
     }    # foreach
     
+    # now drop useless tables
+    foreach $table ( @TableToDelete ) {
+        if ( $existingtables{$table} ) {
+            print "Dropping unused table $table\n" if $debug and not $silent;
+            $dbh->do("drop table $table");
+            if ( $dbh->err ) {
+                print "Error : $dbh->errstr \n";
+            }
+        }
+    }
+
     #
     # Changing aqbookfund's primary key 
     #

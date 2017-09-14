@@ -34,7 +34,7 @@ if ( @ARGV && $ARGV[0] eq 'run' ) {
 
 	$rev = 'wcsd_nuib';
 	unless ( $revisions{ $rev } ) {
-	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx`, ADD KEY `itembarcodeidx` (`barcode`)");
+	    $dbh->do("ALTER TABLE items DROP KEY `itembarcodeidx`, ADD UNIQUE KEY `itembarcodeidx` (`barcode`,`homebranch`)");
 	    print "Non-Unique Item Barcodes update\n";
 	    $version_changed = 1;
 	}

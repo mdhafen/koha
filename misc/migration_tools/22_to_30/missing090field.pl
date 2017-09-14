@@ -37,6 +37,9 @@ sub MARCmodbiblionumber{
     
     my ($tagfield,$biblionumtagsubfield) = &GetMarcFromKohaField("biblio.biblionumber","");
     my ($tagfield2,$biblioitemtagsubfield) = &GetMarcFromKohaField("biblio.biblioitemnumber","");
+    unless ( $tagfield2 && $biblioitemtagsubfield ) {
+        ($tagfield2,$biblioitemtagsubfield) = &GetMarcFromKohaField("biblioitems.biblioitemnumber","");
+    }
         
     my $update=0;
     if (defined $record) {
