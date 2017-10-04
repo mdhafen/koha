@@ -793,7 +793,7 @@ Returns MARC::Record of the authority passed in parameter.
 sub GetAuthority {
     my ($authid)=@_;
     my $dbh=C4::Context->dbh;
-    my $sth=$dbh->prepare("select authtypecode, marcxml from auth_header where authid=?");
+    my $sth=$dbh->prepare("select authtypecode, marcxml from `auth_header` where authid=?");
     $sth->execute($authid);
     my ($authtypecode, $marcxml) = $sth->fetchrow;
     my $record=eval {MARC::Record->new_from_xml(StripNonXmlChars($marcxml),'UTF-8',

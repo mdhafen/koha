@@ -1103,7 +1103,7 @@ The MARC record contains both biblio & item data.
 sub GetMarcBiblio {
     my $biblionumber = shift;
     my $dbh          = C4::Context->dbh;
-    my $sth          = $dbh->prepare("SELECT marcxml FROM biblioitems WHERE biblionumber=? ");
+    my $sth          = $dbh->prepare("SELECT marcxml FROM `biblioitems` WHERE biblionumber=? ");
     $sth->execute($biblionumber);
     my $row     = $sth->fetchrow_hashref;
     my $marcxml = StripNonXmlChars( $row->{'marcxml'} );

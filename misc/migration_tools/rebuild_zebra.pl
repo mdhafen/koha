@@ -298,14 +298,14 @@ sub select_all_records {
 
 sub select_all_authorities {
     my $dbh = C4::Context->dbh;
-    my $sth = $dbh->prepare("SELECT authid FROM auth_header");
+    my $sth = $dbh->prepare("SELECT authid FROM `auth_header`");
     $sth->execute();
     return $sth;
 }
 
 sub select_all_biblios {
     my $dbh = C4::Context->dbh;
-    my $sth = $dbh->prepare("SELECT biblionumber FROM biblioitems ORDER BY biblionumber");
+    my $sth = $dbh->prepare("SELECT biblionumber FROM `biblioitems` ORDER BY biblionumber");
     $sth->execute();
     return $sth;
 }
@@ -532,7 +532,7 @@ sub fix_biblio_ids {
         $biblioitemnumber = shift;
     } else {    
         my $sth = $dbh->prepare(
-            "SELECT biblioitemnumber FROM biblioitems WHERE biblionumber=?");
+            "SELECT biblioitemnumber FROM `biblioitems` WHERE biblionumber=?");
         $sth->execute($biblionumber);
         ($biblioitemnumber) = $sth->fetchrow_array;
         $sth->finish;
