@@ -95,7 +95,7 @@ if ( ($op eq 'Upload') && $uploadfile ) {       # Case is important in these ope
         }
         close $tfh;
         if ( $filetype eq 'zip' ) {
-            unless (system("unzip", $tempfile,  '-d', $dirname) == 0) {
+            unless (system("unzip", '-qq', $tempfile,  '-d', $dirname) == 0) {
                 $errors{'UZIPFAIL'} = $uploadfilename;
 	        $template->param( ERRORS => [ \%errors ] );
                 output_html_with_http_headers $input, $cookie, $template->output;   # This error is fatal to the import, so bail out here
@@ -164,6 +164,10 @@ sub handle_dir {
         while ( my $filename = readdir $dirhandle ) {
             $file = "$dir/$filename" if ($filename =~ m/datalink\.txt/i || $filename =~ m/idlink\.txt/i);
         }
+        unless ($file) {
+            $debug and warn "No linking file found in $dir";
+            return 1;
+        };
         unless (open (FILE, $file)) {
 		warn "Opening $dir/$file failed!";
                 $errors{'OPNLINK'} = $file;
