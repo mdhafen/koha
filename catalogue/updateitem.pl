@@ -63,6 +63,12 @@ if (defined $itemnotes) { # i.e., itemnotes parameter passed from form
     }
 } elsif ($itemlost ne $item_data_hashref->{'itemlost'}) {
     $item_changes->{'itemlost'} = $itemlost;
+    if ($itemlost==1 && $item_data_hashref->{'itemlost'}==0) {
+        C4::Accounts::chargelostitem($itemnumber);
+    }
+    elsif (!$itemlost && $item_data_hashref->{'itemlost'}==1) {
+        C4::Circulation::_FixAccountForLostAndReturned( $itemnumber, undef, $item_data_hashref->{'barcode'} );
+    }
 } elsif ($wthdrawn ne $item_data_hashref->{'wthdrawn'}) {
     $item_changes->{'wthdrawn'} = $wthdrawn;
 } elsif ($damaged ne $item_data_hashref->{'damaged'}) {
@@ -74,7 +80,5 @@ if (defined $itemnotes) { # i.e., itemnotes parameter passed from form
 }
 
 ModItem($item_changes, $biblionumber, $itemnumber);
-
-C4::Accounts::chargelostitem($itemnumber) if ($itemlost==1) ;
 
 print $cgi->redirect("moredetail.pl?biblionumber=$biblionumber&itemnumber=$itemnumber#item$itemnumber");
