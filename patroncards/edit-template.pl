@@ -53,7 +53,7 @@ if ($op eq 'edit') {
     $profile_list = get_all_profiles(field_list => 'profile_id,printer_name,paper_bin', filter => "template_id=$template_id OR template_id=''");
 }
 elsif ($op eq 'save') {
-    my @params = (      profile_id      => $cgi->param('profile_id') || '',
+    my @params = (      profile_id      => $cgi->param('profile_id') || 0,
                         template_code   => $cgi->param('template_code'),
                         template_desc   => $cgi->param('template_desc'),
                         page_width      => $cgi->param('page_width'),
