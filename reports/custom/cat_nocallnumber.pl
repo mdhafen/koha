@@ -55,7 +55,7 @@ my ($template, $borrowernumber, $cookie)
 
 my $reportname = "cat_nocallnumber";
 my $reporttitle = "Copies Without a Call Number";
-my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode" );
+my @columns = ( "CONCAT_WS(' ', biblio.title, biblio.remainderoftitle ) AS title", "barcode", "itemnumber", "biblionumber" );
 my @column_titles = ( "Title", "Barcode" );
 my @tables = ( "items",
 	       [ # Cross Joined Tables
@@ -339,6 +339,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
+        $mapped_values[0]{'link'} = "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&amp;itemnumber=". $values[ $#values - 1 ] ."&amp;biblionumber=". $values[ $#values ];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
