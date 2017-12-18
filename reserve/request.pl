@@ -63,10 +63,12 @@ my $branches = GetBranches();
 my $itemtypes = GetItemTypes();
     
 my $default = C4::Context->userenv->{branch};
+my $onlymine = C4::Branch::onlymine();
 my @values;
 my %label_of;
     
 foreach my $branchcode (sort keys %{$branches} ) {
+    next if ( $onlymine && $branchcode ne $default );
     push @values, $branchcode;
     $label_of{$branchcode} = $branches->{$branchcode}->{branchname};
 }
