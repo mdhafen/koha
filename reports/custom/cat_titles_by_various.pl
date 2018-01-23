@@ -29,14 +29,8 @@ use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
 use C4::Members;  # GetMemberSortValues
-use C4::Koha;
+use C4::Koha;  # GetAuthorisedValues
 use C4::Circulation;
-
-my $accesses_borrowers = 0;  # bool to indicate this report uses the borrowers table
-
-if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
-    use C4::MembersExternal;
-}
 
 # Watch out for:
 #  C4::Context->preference('MembersViaExternal')
@@ -44,9 +38,6 @@ if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
 
 my $input = new CGI;
 my $dbh = C4::Context->dbh;
-
-my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
-my $itype = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'biblioitems.itemtype';
 
 my ($template, $borrowernumber, $cookie)
 	= get_template_and_user({template_name => "reports/custom_report.tmpl",
@@ -57,30 +48,12 @@ my ($template, $borrowernumber, $cookie)
 				debug => 0,
 				});
 
+my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
+my $itype = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'biblioitems.itemtype';
+
 my $reportname = "cat_titles_by_various";  # ie "collection_itemnums"
 my $reporttitle = "Titles By Various Criteria";  # ie "Item Number by Branch"
-my @columns = ( "CONCAT_WS(' ',biblio.title,biblio.remainderoftitle) AS title", "biblio.author", "$hbranch", "items.itemcallnumber", "items.barcode", "$itype", "items.itemnotes", "items.itemnumber", "items.biblionumber" );
 my @column_titles = ( "Title", "Author", "Library", "Call Number", "Barcode", "Item Type", "Copy Notes" );
-my @tables = ( "items",
-	       [ # Cross Joined Tables
-	         {
-	           table => 'biblio',  # Table name
-	           using => 'biblionumber',  # Using column
-	         },
-		 {
-		   table => 'biblioitems',
-		   using =>'biblioitemnumber',
-		 },
-	       ],
-	       [ # Left Joined Tables
-#	         {
-#	           table => '',  # Table name
-#	           using => '',  # Using column
-#	           on_l => '',   # Left hand Join On column
-#	           on_r => '',   # Right hand Join On column
-#	         },
-	       ],
-	       );
 
 #FIXME build queryfilter
 $CGI::LIST_CONTEXT_WARN=0;
@@ -88,7 +61,7 @@ my @filters = $input->param("Filter");
 my @options = ( scalar $input->param( "Option1" ) );
 my @queryfilter = ();
 
-my $where = "";
+my @wheres;
 my $order = "title";
 my $group = "";
 my $page_breaks = "";
@@ -97,39 +70,59 @@ my $page_breaks = "";
 my ( $crit, $op, $filt, $title, $val );
 for ( $filters[0] ) {
     if ( $_ =~ /itemnote/ ) {
-	( $crit, $op, $filt, $title, $val ) = ( "items.itemnotes", "LIKE", $dbh->quote( "%". $filters[1] ."%" ), "Copy Notes", $filters[1] ) if ( $filters[1] );
+        ( $crit, $op, $filt, $title, $val ) = ( "items.itemnotes", "LIKE", $dbh->quote( "%". $filters[1] ."%" ), "Copy Notes", $filters[1] ) if ( $filters[1] );
     }
     elsif ( $_ =~ /itemcall/ ) {
-	( $crit, $op, $filt, $title, $val ) = ( "items.itemcallnumber", "LIKE", $dbh->quote( $filters[1] ."%" ), "Call Number", $filters[1] ) if ( $filters[1] );
+        ( $crit, $op, $filt, $title, $val ) = ( "items.itemcallnumber", "LIKE", $dbh->quote( $filters[1] ."%" ), "Call Number", $filters[1] ) if ( $filters[1] );
     }
     elsif ( $_ =~ /awards/ ) {
-	if ( $filters[1] ) {
-	    ( $crit, $op, $filt, $title, $val ) = ( "biblioitems.marcxml", "LIKE", $dbh->quote( "%<datafield tag=\"586\"%<subfield code=\"a\">". $filters[1] ."%" ), "Awards", $filters[1] );
-	}
+        if ( $filters[1] ) {
+            ( $crit, $op, $filt, $title, $val ) = ( "biblioitems.marcxml", "LIKE", $dbh->quote( "%<datafield tag=\"586\"%<subfield code=\"a\">". $filters[1] ."%" ), "Awards", $filters[1] );
+        }
     }
     elsif ( $_ =~ /itemtype/ ) {
-	( $crit, $op, $filt, $title, $val ) = ( "$itype", "=", $dbh->quote( $filters[2] ), "Item Type", $filters[2] );
+        ( $crit, $op, $filt, $title, $val ) = ( "$itype", "=", $dbh->quote( $filters[2] ), "Item Type", $filters[2] );
+    }
+    elsif ( $_ =~ /location/ ) {
+        ( $crit, $op, $filt, $title, $val ) = ( 'items.location', '=', $dbh->quote( $filters[3] ), "Shelving Location", $filters[3] );
     }
 }
-push @queryfilter, { crit => $crit, op => $op, filter => $filt, title => $title, value => $val } if ( $crit );
+if ( $crit ) {
+    push @wheres, "$crit $op $filt";
+    push @queryfilter, { title => $title, op => $op, value => $val };
+}
 }
 
-for ( $filters[3] ) {
+for ( $filters[4] ) {
     if    ( $_ eq 'title' )      {$order = "title"}
     elsif ( $_ eq 'callnumber' ) {$order = "itemcallnumber"}
     else  {$order = "title"}
 }
 
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[4] ) {
+if ( C4::Context->preference("IndependantBranches") || $filters[5] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
-    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[3];
-    push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    my $branch = ( C4::Context->preference("IndependantBranches") ) ? C4::Context->userenv->{branch} : $filters[5];
+    push @wheres, "$hbranch = ". $dbh->quote( $branch );
+    push @queryfilter, { title => "School", op => "=", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
-my @loopfilter = ();
-
 $group = "biblioitems.biblioitemnumber" if ( $options[0] );
+
+my $query =
+    "SELECT CONCAT_WS(' ',biblio.title,biblio.remainderoftitle) AS title,
+            biblio.author, $hbranch, items.itemcallnumber, items.barcode,
+            $itype, items.itemnotes, items.itemnumber, items.biblionumber
+       FROM items
+ CROSS JOIN biblio USING (biblionumber)
+ CROSS JOIN biblioitems USING (biblioitemnumber)";
+if ( @wheres ) {
+    $query .= " WHERE ". join ' AND ', @wheres;
+}
+if ( $group ) {
+    $query .= " GROUP BY $group";
+}
+$query .= " ORDER BY $order";
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -150,7 +143,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $group, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( $query, \@column_titles, \@queryfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -183,9 +176,6 @@ if ($do_it) {
 		}
 		foreach my $line ( @lines ) {
 			foreach my $cell ( @{ $line->{values} } ) {
-				if ( $$cell{value} =~ m|<a\s[^>]+>([^<]+)</a>| ) {
-					$$cell{value} = $1;
-				}
 				print $$cell{value}.$sep;
 				print $sep x ( $$cell{width} - 1 ) if ( $$cell{width} );
 			}
@@ -202,6 +192,7 @@ if ($do_it) {
 	    { value => 'itemcall', label => 'Call Number' },
 	    { value => 'awards', label => 'Award' },
 	    { value => 'itemtype', label => 'Item Type' },
+        { value => 'location', label => 'Shelving Location' },
 	);
 	push @parameters, {
 	    select_box => 1,
@@ -209,20 +200,20 @@ if ($do_it) {
 	    label => "Criteria",
 	    onchange => 'onchange=\'{
   var s_value = this.options[ this.selectedIndex ].value;
-  var s_id;
-  var s_other;
+  var ids = [ "input_1", "input_2", "input_3" ];
+  for ( var i = 0, l = ids.length; i < l; i++ ) {
+    var s_block = document.getElementById(ids[i]);
+    s_block.style.display = "none";
+  }
   if ( s_value == "itemtype" ) {
     s_id = "input_2";
-    s_other = "input_1";
+  } else if ( s_value == "location" ) {
+    s_id = "input_3";
   } else {
     s_id = "input_1";
-    s_other = "input_2";
   }
   var s_block = document.getElementById(s_id);
   s_block.style.display = "list-item";
-
-  s_block = document.getElementById(s_other);
-  s_block.style.display = "none";
 }\'',
 	};
 
@@ -248,6 +239,24 @@ if ($do_it) {
 	    first_blank => 1,
 	    style => "display:none",
 	    li_id => 'input_2',
+	};
+
+	my $locations = GetAuthorisedValues('LOC');
+	my @locationsloop;
+	foreach my $loc ( sort {$a->{'lib'} cmp $b->{'lib'} } @$locations ) {
+	    my %row = (
+		value => $loc->{'authorised_value'},
+		label => $loc->{'lib'},
+		);
+	    push @locationsloop, \%row;
+	}
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@locationsloop,
+	    label => "Shelving Location",
+	    first_blank => 1,
+	    style => "display:none",
+	    li_id => 'input_3',
 	};
 
 	push @parameters, {
@@ -301,10 +310,9 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $group, $order, $qfilters, $lfilters) = @_;
+	my ($query, $column_titles, $qfilters) = @_;
 
 	my $dbh = C4::Context->dbh;
-	my @wheres;
 	my @looprow;
 	my @loopheader;
 	my %globalline;
@@ -314,150 +322,35 @@ sub calculate {
 	my $break;
 	my $break_index;
 
-	my $table = shift @$tables;
-	my $column = join ',', @$columns;
-	my %columns_reverse_hash = map { $_ => $break_index++ } @$columns;
-
-	# FIXME you might want to add DISTINCT here or a GROUP BY below
-	my $query = "SELECT $column FROM $table ";
-	if ( @$tables ) {
-	    if ( my @cross = @{ shift @$tables } ) {
-		foreach my $cross_table ( @cross ) {
-		    $query .= "CROSS JOIN $$cross_table{table} ";
-		    if ( $$cross_table{using} ) {
-			$query .= "USING ($$cross_table{using}) ";
-		    } elsif ($$cross_table{on_l} and $$cross_table{on_r}) {
-			$query .= "ON $$cross_table{on_l} = $$cross_table{on_r} ";
-		    } else {
-			warn "$reportname : don't know how to join table $$cross_table{table}";
-		    }
-		}
-	    }
-	    if ( my @left = @{ shift @$tables } ) {
-		foreach my $left_table ( @left ) {
-		    $query .= "LEFT JOIN $$left_table{table} ";
-		    if ( $$left_table{using} ) {
-			$query .= "USING ($$left_table{using}) ";
-		    } elsif ($$left_table{on_l} and $$left_table{on_r}) {
-			$query .= "ON $$left_table{on_l} = $$left_table{on_r} ";
-		    } else {
-			warn "$reportname : don't know how to join table $$left_table{table}";
-		    }
-		}
-	    }
-	}
-	$query .= "WHERE ";
-	$query .= "$where AND " if ( $where );
-
-	if ( @$qfilters ) {
-	    foreach ( @$qfilters ) {
-		if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-		    my %okfields = (
-				    borrowernumber => 1,
-				    cardnumber => 1,
-				    surname => 1,
-				    firstname => 1,
-				    othernames => 1,
-				    branchcode => 1,
-				    );
-		    #  External fields will have to be handled down in the loop
-		    unless ( $okfields{ $1 } ) {
-			#  leading and trailing ' will muddle MembersExternal
-			$$_{filter} =~ s/^\'(.*)\'$/$1/;
-			push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
-		    } else {
-			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		    }
-		} else {
-		    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		}
-	    }
-	}
-	$query .= join "AND ", @wheres;
-
-	$query .= "GROUP BY $group " if ( $group );
-
-	$query .= "ORDER BY $order" if ( $order );
-
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
 
 CALC_MAIN_LOOP:
 	while ( my ( @values ) = $sth_col->fetchrow ) {
-	    #  This block is to handle MembersViaExternal stuff, and
-	    #   for other custom loop filters
-	    if ( @$lfilters ) {
-		my %external_bor_fields;
-		foreach ( @$lfilters ) {
-		    if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-			$external_bor_fields{ $1 } = $$_{filter};
-		    } else {
-			# Process other loop filters here
-		    }
-
-		}
-		if ( %external_bor_fields ) {
-		    # FIXME borrowers.cardnumber needs to be last in the columns for this
-		    my $cardnumber = $values[ $#values ];
-		    my $temp = GetMemberDetails_External( $cardnumber );
-
-		    if ( ref $temp eq 'HASH' && %$temp ) { # not empty hash ref
-			foreach ( sort keys %external_bor_fields ) {
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
-			}
-		    } else { # non-external patron, compare against @values
-			foreach ( sort keys %external_bor_fields ) {
-			    my $index = $columns_reverse_hash{ $_ };
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $values[ $index ] );
-			}
-		    }
-		}
-	    }
 	    push @big_loop, \@values;
 	}
 
-	# FIXME Sort big_loop here
-	#  This is necessary if MembersViaExternal is on and
-	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
-
-	if ( $accesses_borrowers && $order =~ /sort2/ ) {
-	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
-	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
-	    my $sort_func = sub {
-		( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
-		    ( uc $$a[0] cmp uc $$b[0] ) ||
-		    ( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
-		    ( uc $$a[ $num+4 ] cmp uc $$b[ $num+4 ] )
-	    };
-	    @big_loop = sort $sort_func @big_loop;
-	}
-
 	if ( $page_breaks ) {
-	    $break = 'break';
-	    $break_index = 0;
-	    foreach my $index ( 0..$#$columns ) {
-		if ( $$columns[ $index ] =~ /borrower/ ) {
-		    $break_index = $index;
-		}
-	    }
+	    $break = '__break__';
+	    $break_index = $page_breaks - 1;
 	}
 
 	foreach my $data ( @big_loop ) {
 	    my %row;
 	    my @mapped_values;
-	    my @values = @$data;
+        my @values = @$data;
 
 	    if ( $break && $break ne $values[ $break_index ] ) {
-		$break = $values[ $break_index ];
-		if ( $break ne 'break' ) {
-		    $row{ 'break' } = 1;
-		}
+            if ( $break ne '__break__' ) {
+                $row{ 'break' } = 1;
+            }
+            $break = $values[ $break_index ];
 	    }
 
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
-	    $mapped_values[4] = { value => "<a href='/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7] ."'>". $values[4] ."</a>" };
+	    $mapped_values[4] = { link => "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7] };
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
