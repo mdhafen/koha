@@ -28,7 +28,7 @@ use C4::Context;
 use C4::Output;
 use C4::Dates qw/format_date format_date_in_iso/;
 use C4::Branch;  # GetBranches GetBranchInfo
-use C4::Members;  # GetMemberSortValues
+use C4::Members;  # GetMemberSortValues GetBorrowercategoryList
 use C4::Koha;
 use C4::Circulation;
 
@@ -70,6 +70,11 @@ if ( $filters[1] ) {
     push @where, " borrowers.sort2 = ". $dbh->quote( $filters[1] );
 }
 
+if ( $filters[2] ) {
+    push @queryfilter, { title => "Patron Category", op => "=", value => $filters[2] };
+    push @where, " borrowers.categorycode = ". $dbh->quote( $filters[2] );
+}
+
 if ( $input->param('Status1') ) {
     push @queryfilter, { title => "Gone", op => "=", value => "No Address" };
     push @where, " borrowers.gonenoaddress = 1";
@@ -85,8 +90,8 @@ if ( $input->param('Status3') ) {
     push @where, " borrowers.debarred = 1";
 }
 
-if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
-    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[2];
+if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
+    my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[3];
     push @queryfilter, { title => "Library", op => "=", value => $branch };
     push @where, " borrowers.branchcode = ".$dbh->quote( $branch );
 }
@@ -186,6 +191,18 @@ if ($do_it) {
 	    select_box => 1,
 	    select_loop => \@sort2_loop,
 	    label => "sort2",
+	    first_blank => 1,
+	};
+
+	my $patron_cats = GetBorrowercategoryList();
+	my @patron_cats_loop = ();
+	foreach ( @$patron_cats ) {
+	    push @patron_cats_loop, { value => $_->{categorycode}, label => $_->{description} };
+	}
+	push @parameters, {
+	    select_box => 1,
+	    select_loop => \@patron_cats_loop,
+	    label => "Patron Category",
 	    first_blank => 1,
 	};
 
