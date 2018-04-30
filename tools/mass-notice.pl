@@ -33,7 +33,7 @@ use C4::Branch;  # GetBranches GetBranchDetail
 use C4::Dates qw/format_date/;
 use C4::Letters;
 use C4::Category;
-use C4::Members qw/GetMember/;
+use C4::Members qw/GetMember GetMemberSortValues/;
 
 my $cgi = new CGI;
 $CGI::LIST_CONTEXT_WARN=0;
@@ -56,6 +56,8 @@ my $subject  = $cgi->param( 'message-subject' );
 my $body     = $cgi->param( 'message-body' );
 my $select   = $cgi->param( 'patron_select' );
 my $sort     = $cgi->param( 'sort_select' );
+my $sort1    = $cgi->param( 'sort1_filter' );
+my $sort2    = $cgi->param( 'sort2_filter' );
 my $category = $cgi->param( 'category' );
 my $send_to  = $cgi->param( 'send_to' );
 my @patrons  = $cgi->param( 'patrons' );
@@ -205,20 +207,27 @@ elsif ( $op eq 'Search' ) {
             ( $overdues_select ) AS overdues
        FROM borrowers ";
 
-    if ( $branch || $category ) {
-        $query .= " WHERE ";
-        if ( $branch ) {
-            $query .= "borrowers.branchcode = ?";
-            push @bind, $branch;
-            if ( $category ) {
-                $query .= " AND ";
-            }
-        }
-        if ( $category ) {
-            $query .= "borrowers.categorycode = ?";
-            push @bind, $category;
-        }
+    my @wheres;
+    if ( $branch ) {
+        push @wheres, "borrowers.branchcode = ?";
+        push @bind, $branch;
     }
+    if ( $category ) {
+        push @wheres, "borrowers.categorycode = ?";
+        push @bind, $category;
+    }
+    if ( $sort1 ) {
+        push @wheres, "borrowers.sort1 = ?";
+        push @bind, $sort1;
+    }
+    if ( $sort2 ) {
+        push @wheres, "borrowers.sort2 = ?";
+        push @bind, $sort2;
+    }
+    if ( @wheres ) {
+        $query .= 'WHERE '. ( join ' AND ',@wheres );
+    }
+
     $query .= "
    GROUP BY borrowers.borrowernumber
      HAVING $having
@@ -265,6 +274,15 @@ foreach my $this_branch ( sort {$branches->{$a}{'branchname'} cmp $branches->{$b
 
 my @categories = C4::Category->all;
 
+my ( $sort1_values, $sort2_values ) = GetMemberSortValues();
+my ( @sort1_loop, @sort2_loop );
+foreach ( sort @$sort1_values ) {
+    push @sort1_loop, { value => $_, label => $_ } if ( $_ );
+}
+foreach ( sort @$sort2_values ) {
+    push @sort2_loop, { value => $_, label => $_ } if ( $_ );
+}
+
 $query = "
  SELECT module, code, name, title, content
    FROM letter
@@ -293,6 +311,8 @@ $template->param(
     'send_to' => $send_to,
     'branchLOOP' => \@branchLoop,
     'category_loop' => \@categories,
+    'sort1_loop' => \@sort1_loop,
+    'sort2_loop' => \@sort2_loop,
     'circ_letter_loop' => \@circ_letters,
     'fine_letter_loop' => \@fine_letters,
     'patron_list' => \@patron_list,
