@@ -81,7 +81,7 @@ if ( my @types = $input->param("FineTypes") ) {
 if ( C4::Context->preference("IndependantBranches") || $filters[2] ) {
     my $branch = ( C4::Context->preference('IndependantBranches') ) ? $userenv->{branch} : $filters[2];
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
-    push @wheres, "$hbranch = ". $dbh->quote( $branch );
+    push @wheres, "( $hbranch = ". $dbh->quote( $branch ) ." OR $hbranch IS NULL )";
     push @wheres, "branchcode = ". $dbh->quote( $branch );
 }
 
