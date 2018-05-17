@@ -110,7 +110,7 @@ if ( $filters[2] ) {
     $columns[5] = 'SUM(accountlines.amountoutstanding)';
     splice @columns,2,3;
     splice @column_titles,2,3;
-    push @queryfilter, { crit => '1', op => '>=', filter => '1', title => 'Fine', value => $filters[2] };
+    push @queryfilter, { crit => '1', op => '>=', filter => '1', title => 'Fine/Credit', value => $filters[2] };
     $group = "borrowernumber HAVING SUM(amountoutstanding) >= ";
     $group .= $dbh->quote( $filters[2] );
     $group .= " OR SUM(amountoutstanding) <= ";
@@ -212,7 +212,7 @@ if ($do_it) {
 
 	push @parameters, {
 	    input_box => 1,
-	    label => "Fines greater than \$",
+	    label => "Fines/Credits greater than \$",
 	};
 
 	my $itemtypes = GetItemTypes();
