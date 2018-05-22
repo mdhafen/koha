@@ -107,15 +107,25 @@ if ( C4::Context->preference("IndependantBranches") || $filters[5] ) {
     push @queryfilter, { title => "School", op => "=", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
 }
 
-$group = "biblioitems.biblioitemnumber" if ( $options[0] );
-
-my $query =
+my $query;
+if ( $options[0] ) {
+	$group = "biblioitems.biblioitemnumber,biblio.biblionumber";
+	$query =
+    "SELECT CONCAT_WS(' ', biblio.title,biblio.remainderoftitle) AS title,
+            biblio.author, GROUP_CONCAT( DISTINCT $hbranch) AS branch, GROUP_CONCAT(DISTINCT items.itemcallnumber) AS itemcallnumber, GROUP_CONCAT(DISTINCT items.barcode) AS barcode,
+            GROUP_CONCAT(DISTINCT $itype) AS itype, GROUP_CONCAT(DISTINCT items.itemnotes) AS itemnotes, MAX(items.itemnumber) AS itemnumber, items.biblionumber
+       FROM items
+ CROSS JOIN biblio USING (biblionumber)
+ CROSS JOIN biblioitems USING (biblioitemnumber)";
+} else {
+	$query =
     "SELECT CONCAT_WS(' ',biblio.title,biblio.remainderoftitle) AS title,
             biblio.author, $hbranch, items.itemcallnumber, items.barcode,
             $itype, items.itemnotes, items.itemnumber, items.biblionumber
        FROM items
  CROSS JOIN biblio USING (biblionumber)
  CROSS JOIN biblioitems USING (biblioitemnumber)";
+}
 if ( @wheres ) {
     $query .= " WHERE ". join ' AND ', @wheres;
 }
@@ -350,7 +360,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
-	    $mapped_values[4] = { link => "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7] };
+	    $mapped_values[4]->{ 'link' } = "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
