@@ -219,7 +219,7 @@ sub insert_week_day_holiday {
     my %options = @_;
 
     my $dbh = C4::Context->dbh();
-    my $insertHoliday = $dbh->prepare("insert into repeatable_holidays (id,branchcode,weekday,day,month,title,description) values ( '',?,?,NULL,NULL,?,? )"); 
+    my $insertHoliday = $dbh->prepare("insert into repeatable_holidays (id,branchcode,weekday,day,month,title,description) values ( NULL,?,?,NULL,NULL,?,? )"); 
 	$insertHoliday->execute( $self->{branchcode}, $options{weekday},$options{title}, $options{description});
     $self->{'week_days_holidays'}->{$options{weekday}}{title} = $options{title};
     $self->{'week_days_holidays'}->{$options{weekday}}{description} = $options{description};
