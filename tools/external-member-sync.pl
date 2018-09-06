@@ -229,8 +229,9 @@ if ( $op eq 'Sync' and @categories ) {
                 if ( $entry ) { %{$bordata} = C4::Auth_with_ldap::ldap_entry_2_hash( $entry, undef ); }
             }
         }
-	    $$bordata{'surname'} ||= '';
-	    $$bordata{'firstname'} ||= '';
+	    $$bordata{'surname'} ||= $$dbhash{$cardnumber}{'surname'};
+	    $$bordata{'firstname'} ||= $$dbhash{$cardnumber}{'firstname'};
+	    $$bordata{'cardnumber'} ||= $cardnumber;
 
 	    my %this_report = (
 		name => $$bordata{'surname'} .', '. $$bordata{'firstname'},
@@ -274,6 +275,9 @@ if ( $op eq 'Sync' and @categories ) {
 	    if ( $allow_delete ) { # || $historical_branch ) {
 		$deleted{ $cardnumber } = 1;
 	    }
+        else {
+            push @report, \%this_report;
+        }
 	}
     }
     foreach (sort keys %$dirhash) {
@@ -322,14 +326,25 @@ if ( $op eq 'Sync' and @categories ) {
     foreach my $cardnumber ( sort keys %added ) {
 	my @fields;
 
-	$get->execute( $cardnumber );
-	( @fields ) = $get->fetchrow;
+    $get = $dbh->prepare( "SELECT * FROM borrowers WHERE cardnumber = ? OR userid = ?" );
+	$get->execute( $cardnumber, $added{$cardnumber}{'userid'} );
+	@fields = @{ $get->fetchall_arrayref({}) };
 	$get->finish;
 
 	if ( @fields ) {
 	    # Cardnumber exists already.  Assume patron changed branches.
 	    # This should be an update
-	    $existing{ $cardnumber } = $added{$cardnumber};
+        if ( $#fields > 1 ) {
+            # To many rows returned
+            push @report, {
+                name => $added{$cardnumber}{'surname'} .', '. $added{$cardnumber}{'firstname'},
+                cardnumber => $cardnumber,
+                duplicate => 1,
+            };
+        }
+        else {
+            $existing{ $cardnumber } = $added{$cardnumber};
+        }
 	} else {
 	    my $attribs = $added{$cardnumber};
 	    foreach my $attr ( keys %$attribs ) {
