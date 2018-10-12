@@ -850,7 +850,7 @@ sub _new_marcfromkohafield
 {
     my $dbh = C4::Context->dbh;
     my $marcfromkohafield;
-    my $sth = $dbh->prepare("SELECT frameworkcode,kohafield,tagfield,tagsubfield FROM `marc_subfield_structure` WHERE kohafield <> ''");
+    my $sth = $dbh->prepare("SELECT `frameworkcode`,kohafield,tagfield,tagsubfield FROM `marc_subfield_structure` WHERE kohafield <> ''");
     $sth->execute;
     while (my ($frameworkcode,$kohafield,$tagfield,$tagsubfield) = $sth->fetchrow) {
         my $retval = {};
