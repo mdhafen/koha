@@ -705,6 +705,7 @@ foreach (qw(/usr/local/lib/idzebra-2.0/modules/mod-grs-xml.so
             /usr/local/lib/idzebra/modules/mod-grs-xml.so
             /usr/lib/idzebra/modules/mod-grs-xml.so
             /usr/lib/idzebra-2.0/modules/mod-grs-xml.so
+            /usr/lib/x86_64-linux-gnu/idzebra-2.0/modules/mod-grs-xml.so
         )) {
     if ( -f $_ ) {
         $modulesdir=$_;
