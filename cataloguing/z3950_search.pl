@@ -104,7 +104,7 @@ if ( $op ne "do_search" ) {
 else {
     my @id = $input->param('id');
 
-    if ( not defined @id ) {
+    if ( not @id ) {
         # empty server list -> report and exit
         $template->param( emptyserverlist => 1 );
         output_html_with_http_headers $input, $cookie, $template->output;

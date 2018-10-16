@@ -645,7 +645,7 @@ sub build_tabs ($$$$$) {
                           ;    #check for visibility flag
                                # if subfield is $9 in a field whose $a is authority-controlled,
                                # always include in the form regardless of the hidden setting - bug 2206
-                        next if ( defined( $field->subfield($subfield) ) );
+                        next if ( $field->subfield($subfield) );
                         push(
                             @subfields_data,
                             &create_input(
