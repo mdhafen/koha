@@ -223,6 +223,7 @@ if ($findborrower) {
     if ( $#borrowers == -1 ) {
         $query->param( 'findborrower', '' );
         $message = "'$findborrower'";
+        $sounderror_borr = 1;
     }
     elsif ( $#borrowers == 0 ) {
         $query->param( 'borrowernumber', $borrowers[0]->{'borrowernumber'} );
