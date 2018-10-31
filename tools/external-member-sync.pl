@@ -388,7 +388,7 @@ if ( $op eq 'Sync' and @categories ) {
     foreach my $cardnumber ( sort keys %existing ) {
 	my ( $diff, @fields );
 	my $attribs = $existing{$cardnumber};
-	$get->execute( $cardnumber );
+	$get->execute( $cardnumber, $existing{$cardnumber}{'userid'} );
 	my $values = $get->fetchrow_hashref;
     my @changes;
 
