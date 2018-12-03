@@ -1,0 +1,18 @@
+# SystemD Unit file for Koha IDZebra search server
+# place in /etc/systemd/system/ or /lib/systemd/system/
+
+[Unit]
+Description=Koha Zebrasrv Service
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+User=koha
+Group=koha
+ExecStart=/usr/bin/zebrasrv -v none,fatal -f /usr/local/koha3/etc/koha-conf.xml
+ExecStopPost=/usr/bin/find /usr/local/koha3/var/run/zebradb/ -name *socket -delete
+ExecStopPost=/usr/bin/find /usr/local/koha3/var/lib/zebradb/ -type f -name zrs_* -delete
+
+[Install]
+WantedBy=multi-user.target
+
