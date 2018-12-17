@@ -1034,8 +1034,8 @@ sub fixup_cardnumber ($) {
 
      # MODIFIED BY JF: mysql4.1 allows casting as an integer, which is probably
      # better. I'll leave the original in in case it needs to be changed for you
-     # my $sth=$dbh->prepare("select max(borrowers.cardnumber) from borrowers");
-        my $query = "select max(cast(cardnumber as signed)) from borrowers";
+        my $query ="select max(borrowers.cardnumber) from borrowers";
+        #my $query = "select max(cast(cardnumber as signed)) from borrowers";
         if ( C4::Context->preference('IndependantBranches') ) {
             if (C4::Context->userenv && C4::Context->userenv->{'branch'}){
                 $query.=" WHERE branchcode = ".$dbh->quote(C4::Context->userenv->{'branch'});
@@ -1044,7 +1044,25 @@ sub fixup_cardnumber ($) {
         my $sth = $dbh->prepare( $query );
         $sth->execute;
         my ($result) = $sth->fetchrow;
-        return $result + 1;
+        if ( $result =~ /\D/ ) {
+            if ( $result =~ /(\d+)$/ ) {
+                my $digits = $1;
+                my $l = length $digits;
+                $digits = sprintf( "%0${l}d", $digits + 1 );
+                $result =~ s/\d+$/$digits/;
+            }
+            elsif ( $result =~ /^(\d+)/ ) {
+                my $digits = $1;
+                my $l = length $digits;
+                $digits = sprintf( "%0${l}d", $digits + 1 );
+                $result =~ s/^\d+/$digits/;
+            }
+        }
+        else {
+            my $l = length $result;
+            $result = sprintf( "%0${l}d", $result + 1 );
+        }
+        return $result;
     }
     return $cardnumber;     # just here as a fallback/reminder 
 }
