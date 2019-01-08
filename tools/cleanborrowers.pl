@@ -60,7 +60,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
         query           => $cgi,
         type            => "intranet",
         authnotrequired => 0,
-        flagsrequired   => { tools => 'delete_anonymize_patrons', catalogue => 1 },
+        flagsrequired   => { superlibrarian => 1 }, #tools => 'delete_anonymize_patrons', catalogue => 1 },
     }
 );
 
