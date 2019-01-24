@@ -311,7 +311,8 @@ foreach my $biblionumber (@biblionumbers) {
     }
     
     ## Hash of item number to 'item' table fields
-    my $iteminfos_of = GetItemInfosOf(@itemnumbers);
+    my $iteminfos_of = {};
+    $iteminfos_of = GetItemInfosOf(@itemnumbers) if (@itemnumbers);
     
     ## Here we go backwards again to create hash of biblioitemnumber to itemnumbers,
     ## when by definition all of the itemnumber have the same biblioitemnumber

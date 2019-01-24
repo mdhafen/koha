@@ -321,12 +321,12 @@ if ( $op eq 'Sync' and @categories ) {
 	};
     }
 
+    $get = $dbh->prepare( "SELECT * FROM borrowers WHERE cardnumber = ? OR userid = ?" );
     # Handle new borrowers
 #warn "Adding...";
     foreach my $cardnumber ( sort keys %added ) {
 	my @fields;
 
-    $get = $dbh->prepare( "SELECT * FROM borrowers WHERE cardnumber = ? OR userid = ?" );
 	$get->execute( $cardnumber, $added{$cardnumber}{'userid'} );
 	@fields = @{ $get->fetchall_arrayref({}) };
 	$get->finish;
