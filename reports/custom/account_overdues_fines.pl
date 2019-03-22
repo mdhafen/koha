@@ -113,9 +113,14 @@ push @queryfilter, { crit => 'borrowers.sort2', op => '=', filter => $dbh->quote
 push @queryfilter, { crit => 'categorycode', op => '=', filter => $dbh->quote( $filters[2] ), title => 'Patron Category', value => $filters[2] } if ( $filters[2] );
 push @queryfilter, { crit => "COALESCE( borrowers.gonenoaddress, 0 )", op => "=", filter => "0", title => 'Not flagged', value => 'Gone' } if ( $input->param( 'Options6' ) );
 
+if ( $filters[3] ) {
+    my $s = join ',', map { $dbh->quote($_) } split( /[\s,]+/, $filters[3] );
+    push @queryfilter, { crit => "borrowers.cardnumber", op => 'in', filter => "($s)", title => "Card Numbers", value => $filters[3] };
+}
+
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
-if ( C4::Context->preference("IndependantBranches") || $filters[3] ) {
-    my $branch = $filters[3] || C4::Context->userenv->{branch};
+if ( C4::Context->preference("IndependantBranches") || $filters[4] ) {
+    my $branch = $filters[4] || C4::Context->userenv->{branch};
     if ( $local_only ) {
 	push @queryfilter, { crit => "( ( items.homebranch = ". $dbh->quote( $branch)." OR items.homebranch IS NULL ) AND borrowers.branchcode", op => "=", filter => $dbh->quote( $branch ) ." )", title => "School Only", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
     } else {
@@ -245,6 +250,11 @@ if ($do_it) {
 	    select_loop => \@patron_cats_loop,
 	    label => "Patron Category",
 	    first_blank => 1,
+	};
+
+	push @parameters, {
+	    input_box => 1,
+	    label => "Only Show patrons with these Card Numbers",
 	};
 
 	unless ( C4::Context->preference("IndependantBranches") ) {
