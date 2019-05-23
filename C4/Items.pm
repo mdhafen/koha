@@ -1017,7 +1017,7 @@ END_SQL
         push @bind_params, $branchcode;
     }
     
-    if ( $itemtype ) {
+    if ( ref $itemtype eq 'ARRAY' && @$itemtype ) {
         push @where_strings, 'items.itype IN ('. join( ',', map {$dbh->quote($_)} @$itemtype ) .')';
     }
 
