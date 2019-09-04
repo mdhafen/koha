@@ -796,6 +796,8 @@ sub checkauth {
 						my $domain = $branches->{$branchcode}->{'branchip'};
 						my $match = 0;
 						foreach my $subdomain ( split /\|/, $domain ) {
+							$subdomain =~ s/\./\\./g;
+							$subdomain =~ s/\*/.*/g;
 							if ( $ip =~ /^$subdomain/ ) {
 								$match = 1;
 							}
