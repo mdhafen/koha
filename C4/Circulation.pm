@@ -2124,9 +2124,9 @@ sub CanBookBeRenewed {
                    AND
                     itemnumber = ?
                    ORDER BY
+                    issuingrules.branchcode desc,
                     issuingrules.categorycode desc,
-                    issuingrules.itemtype desc,
-                    issuingrules.branchcode desc
+                    issuingrules.itemtype desc
                    LIMIT 1;
                   ");
 
