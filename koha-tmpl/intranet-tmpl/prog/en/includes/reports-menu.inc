@@ -18,6 +18,7 @@
 		<li><a href="/cgi-bin/koha/reports/custom/circ_stats_noissues.pl">Copies With No Checkouts</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/circ_all_issues.pl">All Checkouts</a></li>
 		<li><a href="/cgi-bin/koha/reports/custom/circ_yearly_total.pl">Yearly Circulation Totals</a></li>
+		<li><a href="/cgi-bin/koha/reports/custom/circ_monthly_total.pl">Monthly Circulation Totals</a></li>
 	</ul>
 <h5>Patrons</h5>
 	<ul>
