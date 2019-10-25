@@ -50,17 +50,25 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 
 my @data;
 if ($input->param('renew_all')) {
+    $CGI::LIST_CONTEXT_WARN=0;
     @data = $input->param('all_items[]');
+    $CGI::LIST_CONTEXT_WARN=1;
 }
 else {
+    $CGI::LIST_CONTEXT_WARN=0;
     @data = $input->param('items[]');
+    $CGI::LIST_CONTEXT_WARN=1;
 }
 
 my @barcodes;
 if ($input->param('return_all')) {
+    $CGI::LIST_CONTEXT_WARN=0;
     @barcodes = $input->param('all_barcodes[]');
+    $CGI::LIST_CONTEXT_WARN=1;
 } else {
+    $CGI::LIST_CONTEXT_WARN=0;
     @barcodes = $input->param('barcodes[]');
+    $CGI::LIST_CONTEXT_WARN=1;
 }
 
 my $branch=$input->param('branch');

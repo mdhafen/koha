@@ -325,12 +325,14 @@ my @errors; # store errors found while checking data BEFORE saving item.
 if ($op eq "additem") {
 #-------------------------------------------------------------------------------
     # rebuild
+    $CGI::LIST_CONTEXT_WARN=0;
     my @tags      = $input->param('tag');
     my @subfields = $input->param('subfield');
     my @values    = $input->param('field_value');
     # build indicator hash.
     my @ind_tag   = $input->param('ind_tag');
     my @indicator = $input->param('indicator');
+    $CGI::LIST_CONTEXT_WARN=1;
     my $xml = TransformHtmlToXml(\@tags,\@subfields,\@values,\@indicator,\@ind_tag, 'ITEM');
     my $record = MARC::Record::new_from_xml($xml, 'UTF-8');
 
@@ -486,12 +488,14 @@ if ($op eq "additem") {
 } elsif ($op eq "saveitem") {
 #-------------------------------------------------------------------------------
     # rebuild
+    $CGI::LIST_CONTEXT_WARN=0;
     my @tags      = $input->param('tag');
     my @subfields = $input->param('subfield');
     my @values    = $input->param('field_value');
     # build indicator hash.
     my @ind_tag   = $input->param('ind_tag');
     my @indicator = $input->param('indicator');
+    $CGI::LIST_CONTEXT_WARN=1;
     # my $itemnumber = $input->param('itemnumber');
     my $xml = TransformHtmlToXml(\@tags,\@subfields,\@values,\@indicator,\@ind_tag,'ITEM');
     my $itemtosave=MARC::Record::new_from_xml($xml, 'UTF-8');

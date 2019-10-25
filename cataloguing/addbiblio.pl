@@ -921,7 +921,9 @@ $template->param( edit_allowed => $edit_allowed );
 if ( $op eq "addbiblio" ) {
 #-------------------------------------------------------------------------------------
     # getting html input
+    $CGI::LIST_CONTEXT_WARN=0;
     my @params = $input->param();
+    $CGI::LIST_CONTEXT_WARN=1;
     $record = TransformHtmlToMarc( \@params , $input );
     # check for a duplicate
     my ($duplicatebiblionumber,$duplicatetitle) = FindDuplicate($record) if (!$is_a_modif);

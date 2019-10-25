@@ -614,6 +614,7 @@ if ($op) {
 }
 
 if ( $op eq 'update_and_reedit' ) {
+    $CGI::LIST_CONTEXT_WARN=0;
     foreach ( $input->param ) {
     }
     my $value = '';
@@ -651,6 +652,7 @@ if ( $op eq 'update_and_reedit' ) {
             );    # we show only the TMPL_VAR names $op
         }
     }
+    $CGI::LIST_CONTEXT_WARN=1;
     my $dbh   = C4::Context->dbh;
     my $query = "select * from systempreferences where variable=?";
     my $sth   = $dbh->prepare($query);

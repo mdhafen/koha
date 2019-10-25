@@ -102,7 +102,9 @@ if ( $op ne "do_search" ) {
     output_html_with_http_headers $input, $cookie, $template->output;
 }
 else {
+    $CGI::LIST_CONTEXT_WARN=0;
     my @id = $input->param('id');
+    $CGI::LIST_CONTEXT_WARN=1;
 
     if ( not @id ) {
         # empty server list -> report and exit

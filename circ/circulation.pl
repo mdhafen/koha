@@ -90,9 +90,11 @@ if (!$branch){
 
 my $branches = GetBranches();
 
+$CGI::LIST_CONTEXT_WARN=0;
 my @failedrenews = $query->param('failedrenew');    # expected to be itemnumbers 
 my %renew_failed;
 for (@failedrenews) { $renew_failed{$_} = 1; }
+$CGI::LIST_CONTEXT_WARN=1;
 
 my ( %soundederrors, $sounderror_borr );
 if ( $session->param( 'soundederrors' ) ) {

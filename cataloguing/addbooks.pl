@@ -38,7 +38,9 @@ my $input = new CGI;
 
 my $success = $input->param('biblioitem');
 my $query   = $input->param('q');
+$CGI::LIST_CONTEXT_WARN=0;
 my @value   = $input->param('value');
+$CGI::LIST_CONTEXT_WARN=1;
 my $page    = $input->param('page') || 1;
 my $results_per_page = 20;
 

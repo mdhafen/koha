@@ -37,6 +37,7 @@ my $input = CGI->new();
 
 my ($user, $cookie, $sesion_id, $flags) = checkauth($input, 0, { reserveforothers => 'place_holds' }, 'intranet');
 
+$CGI::LIST_CONTEXT_WARN=0;
 my @bibitems=$input->param('biblioitem');
 # FIXME I think reqbib does not exist anymore, it's used in line 82, to AddReserve of contraint type 'o'
 #       I bet it's a 2.x feature, reserving a given biblioitem, that is useless in Koha 3.0
@@ -58,6 +59,7 @@ my $expirationdate = $input->param('expiration_date');
 my $multi_hold = $input->param('multi_hold');
 my $biblionumbers = $multi_hold ? $input->param('biblionumbers') : ($biblionumber . '/');
 my $bad_bibs = $input->param('bad_bibs');
+$CGI::LIST_CONTEXT_WARN=1;
 
 my %bibinfos = ();
 my @biblionumbers = split '/', $biblionumbers;

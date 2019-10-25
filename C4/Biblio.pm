@@ -1961,12 +1961,14 @@ sub TransformHtmlToMarc {
 
         # if we are on biblionumber, store it in the MARC::Record (it may not be in the edited fields)
         if ( $param eq 'biblionumber' ) {
+            $CGI::LIST_CONTEXT_WARN=0;
             my ( $biblionumbertagfield, $biblionumbertagsubfield ) = &GetMarcFromKohaField( "biblio.biblionumber", '' );
             if ( $biblionumbertagfield < 10 ) {
                 $newfield = MARC::Field->new( $biblionumbertagfield, $cgi->param($param), );
             } else {
                 $newfield = MARC::Field->new( $biblionumbertagfield, '', '', "$biblionumbertagsubfield" => $cgi->param($param), );
             }
+            $CGI::LIST_CONTEXT_WARN=1;
             push @fields, $newfield if ($newfield);
         } elsif ( $param =~ /^tag_(\d*)_indicator1_/ ) {    # new field start when having 'input name="..._indicator1_..."
             my $tag = $1;
@@ -1981,21 +1983,26 @@ sub TransformHtmlToMarc {
                 if ( $tag eq '000' ) {
                     # Force a fake leader even if not provided to avoid crashing
                     # during decoding MARC record containing UTF-8 characters
+                    $CGI::LIST_CONTEXT_WARN=0;
                     $record->leader(
                         length( $cgi->param($params->[$j+1]) ) == 24
                         ? $cgi->param( $params->[ $j + 1 ] )
                         : '     nam a22        4500'
 			)
                     ;
+                    $CGI::LIST_CONTEXT_WARN=1;
                     # between 001 and 009 (included)
                 } elsif ( $cgi->param( $params->[ $j + 1 ] ) ne '' ) {
+                    $CGI::LIST_CONTEXT_WARN=0;
                     $newfield = MARC::Field->new( $tag, $cgi->param( $params->[ $j + 1 ] ), );
+                    $CGI::LIST_CONTEXT_WARN=1;
                 }
 
                 # > 009, deal with subfields
             } else {
                 while ( defined $params->[$j] && $params->[$j] =~ /_code_/ ) {    # browse all it's subfield
                     my $inner_param = $params->[$j];
+                    $CGI::LIST_CONTEXT_WARN=0;
                     if ($newfield) {
                         if ( $cgi->param( $params->[ $j + 1 ] ) ne '' ) {         # only if there is a value (code => value)
                             $newfield->add_subfields( $cgi->param($inner_param) => $cgi->param( $params->[ $j + 1 ] ) );
@@ -2005,6 +2012,7 @@ sub TransformHtmlToMarc {
                             $newfield = MARC::Field->new( $tag, $ind1, $ind2, $cgi->param($inner_param) => $cgi->param( $params->[ $j + 1 ] ), );
                         }
                     }
+                    $CGI::LIST_CONTEXT_WARN=1;
                     $j += 2;
                 }
             }

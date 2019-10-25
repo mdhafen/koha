@@ -119,7 +119,9 @@ $category_type="A" unless $category_type; # FIXME we should display a error mess
 # initialize %newdata
 my %newdata;	# comes from $input->param()
 if ($op eq 'insert' || $op eq 'modify' || $op eq 'save') {
+    $CGI::LIST_CONTEXT_WARN=0;
     my @names= ($borrower_data && $op ne 'save') ? keys %$borrower_data : $input->param();
+    $CGI::LIST_CONTEXT_WARN=1;
     foreach my $key (@names) {
         if (defined $input->param($key)) {
             $newdata{$key} = $input->param($key);
@@ -695,7 +697,9 @@ output_html_with_http_headers $input, $cookie, $template->output;
 
 sub  parse_extended_patron_attributes {
     my ($input) = @_;
+    $CGI::LIST_CONTEXT_WARN=0;
     my @patron_attr = grep { /^patron_attr_\d+$/ } $input->param();
+    $CGI::LIST_CONTEXT_WARN=1;
 
     my @attr = ();
     my %dups = ();

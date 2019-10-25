@@ -80,7 +80,9 @@ sub handle_form_action {
                         message_attribute_id    => $option->{'message_attribute_id'} };
         
         # find the desired transports
+        $CGI::LIST_CONTEXT_WARN=0;
         @{$updater->{'message_transport_types'}} = $query->param( $option->{'message_attribute_id'} );
+        $CGI::LIST_CONTEXT_WARN=1;
         next OPTION unless $updater->{'message_transport_types'};
 
         if ( $option->{'has_digest'} ) {

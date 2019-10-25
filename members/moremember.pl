@@ -66,8 +66,10 @@ my $input = new CGI;
 $debug or $debug = $input->param('debug') || 0;
 my $print = $input->param('print');
 my $override_limit = $input->param("override_limit") || 0;
+$CGI::LIST_CONTEXT_WARN=0;
 my @failedrenews = $input->param('failedrenew');
 my @failedreturns = $input->param('failedreturn');
+$CGI::LIST_CONTEXT_WARN=1;
 my $error = $input->param('error');
 my %renew_failed;
 for my $renew (@failedrenews) { $renew_failed{$renew} = 1; }

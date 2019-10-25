@@ -78,7 +78,7 @@ my ($picture, $dberror) = GetPatronImage($borrower->{'cardnumber'});
 $template->param( picture => 1 ) if $picture;
 
 # get some recent messages sent to this borrower for display:
-my $message_queue = C4::Letters::GetQueuedMessages( { borrowernumber => $query->param('borrowernumber') } );
+my $message_queue = C4::Letters::GetQueuedMessages( { borrowernumber => $borrowernumber } );
 
 $template->param( messagingview               => 1,
                   message_queue               => $message_queue,

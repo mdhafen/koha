@@ -241,7 +241,7 @@ my $biblionumbers = $input->param('biblionumbers');
 if ($multihold) {
     @biblionumbers = split '/', $biblionumbers;
 } else {
-    push @biblionumbers, $input->param('biblionumber');
+    push @biblionumbers, scalar $input->param('biblionumber');
 }
 
 my @biblioloop = ();
@@ -600,7 +600,7 @@ foreach my $biblionumber (@biblionumbers) {
 $template->param( biblioloop => \@biblioloop );
 $template->param( biblionumbers => $biblionumbers );
 $template->param( DHTMLcalendar_dateformat  => C4::Dates->DHTMLcalendar() );
-$template->param( request_placed => $input->param('success') );
+$template->param( request_placed => scalar $input->param('success') );
 
 if ($multihold) {
     $template->param( multi_hold => 1 );

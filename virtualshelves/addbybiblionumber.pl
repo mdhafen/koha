@@ -87,7 +87,9 @@ my $query           = new CGI;
 my $biblionumber    = $query->param('biblionumber');
 
 # If set, then multiple item case.
+$CGI::LIST_CONTEXT_WARN=0;
 my @biblionumber   = $query->param('biblionumber');
+$CGI::LIST_CONTEXT_WARN=1;
 my $biblionumbers   = $query->param('biblionumbers');
 
 my $shelfnumber     = $query->param('shelfnumber');
