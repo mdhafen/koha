@@ -206,6 +206,7 @@ sub calculate {
 	my %globalline;
 	my @mainloop;
 	my %big_hash;
+    my $grantotal = 0;
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
@@ -235,7 +236,23 @@ sub calculate {
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };
+        $grantotal++;
 	}
+
+    # add the total row at the bottom of the table
+	push @looprow, {
+			 'values' => [
+				       {
+					   'width' => @$column_titles - 1,
+					   'value' => 'Total Checkouts',
+					   'header' => 1,
+				       },
+				       {
+					   'value' => $grantotal,
+					   'header' => 1,
+				       }
+				     ]
+		       };
 
 	# the header of the table
 	$globalline{loopheader} = \@loopheader;
