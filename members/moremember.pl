@@ -262,6 +262,8 @@ my $lib2 = &GetSortDetails( "Bsort2", $data->{'sort2'} );
 $template->param( lib1 => $lib1 ) if ($lib1);
 $template->param( lib2 => $lib2 ) if ($lib2);
 
+my $branch=C4::Context->userenv->{'branch'};
+
 # current issues
 #
 my $issue = GetPendingIssues($borrowernumber);
@@ -272,6 +274,8 @@ my @issuedata;
 my $overdues_exist = 0;
 my $totalprice = 0;
 for ( my $i = 0 ; $i < $issuecount ; $i++ ) {
+    $issue->[$i]{branchname} = GetBranchName( $issue->[$i]{'holdingbranch'} );
+    $issue->[$i]{samebranch} = ( $issue->[$i]{'holdingbranch'} eq $branch );
     my $datedue = $issue->[$i]{'date_due'};
     my $issuedate = $issue->[$i]{'issuedate'};
     $issue->[$i]{'date_due'}  = C4::Dates->new($issue->[$i]{'date_due'}, 'iso')->output('syspref');
@@ -427,8 +431,6 @@ if($userenv->{flags} % 2 == 1){
 # patronimage related interface on
 my ($picture, $dberror) = GetPatronImage($data->{'cardnumber'});
 $template->param( picture => 1 ) if $picture;
-
-my $branch=C4::Context->userenv->{'branch'};
 
 $template->param($data);
 

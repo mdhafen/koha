@@ -486,6 +486,8 @@ if ($borrower) {
     my ($issueslist) = GetPendingIssues($borrower->{'borrowernumber'});
     # split in 2 arrays for today & previous
     foreach my $it ( @$issueslist ) {
+    $it->{branchname} = GetBranchName( $it->{'holdingbranch'} );
+    $it->{samebranch} = ( $it->{'holdingbranch'} eq $branch );
         my $itemtypeinfo = getitemtypeinfo( (C4::Context->preference('item-level_itypes')) ? $it->{'itype'} : $it->{'itemtype'} );
         # set itemtype per item-level_itype syspref - FIXME this is an ugly hack
         $it->{'itemtype'} = ( C4::Context->preference( 'item-level_itypes' ) ) ? $it->{'itype'} : $it->{'itemtype'};
