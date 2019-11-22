@@ -1034,8 +1034,8 @@ sub fixup_cardnumber ($) {
 
      # MODIFIED BY JF: mysql4.1 allows casting as an integer, which is probably
      # better. I'll leave the original in in case it needs to be changed for you
-        my $query ="select max(borrowers.cardnumber) from borrowers";
-        #my $query = "select max(cast(cardnumber as signed)) from borrowers";
+        #my $query ="select max(borrowers.cardnumber) from borrowers";
+        my $query = "select max(cast(cardnumber as signed)) from borrowers";
         if ( C4::Context->preference('IndependantBranches') ) {
             if (C4::Context->userenv && C4::Context->userenv->{'branch'}){
                 $query.=" WHERE branchcode = ".$dbh->quote(C4::Context->userenv->{'branch'});
