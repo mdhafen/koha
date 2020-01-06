@@ -76,7 +76,7 @@ my @tables = ( "accountlines",  # ie "items"
 		  "borrowers.sort2",
 		  "borrowers.cardnumber",
 		  "CONCAT_WS(', ',borrowers.surname,borrowers.firstname) AS patron",
-		  "CONCAT_WS( '<br>', CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ), CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' &nbsp; Call Number: ', itemcallnumber ), CONCAT( '<b>Replacement Price: ', replacementprice, '</b>' ) ) AS description",
+		  "CONCAT_WS( '<br>', CONCAT_WS( ' ', biblio.title, biblio.remainderoftitle ), CONCAT( 'Due: ', date_due ), CONCAT( 'Barcode: ', barcode, ' (', branchname,') &nbsp; Call Number: ', COALESCE(itemcallnumber,'') ), CONCAT( '<b>Replacement Price: ', replacementprice, '</b>' ) ) AS description",
 		  "NULL",
 		  "borrowers.cardnumber"
 	       ],
@@ -95,6 +95,12 @@ my @tables = ( "accountlines",  # ie "items"
 		   join => 'CROSS',
 	           table => 'biblio',  # Table name
 	           using => 'biblionumber',  # Using column
+	         },
+	         {
+			   join => 'CROSS',
+			   table => 'branches',	 # Table name
+			   on_l => 'homebranch',  # Using column
+			   on_r => 'branches.branchcode',
 	         },
 	       ],
 	       );
