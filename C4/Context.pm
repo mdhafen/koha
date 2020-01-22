@@ -615,6 +615,7 @@ sub _new_Zconn {
     my $Zconn; # connection object
     $server = "biblioserver" unless $server;
     $syntax = "usmarc" unless $syntax;
+    my $elementSetName = ($syntax eq 'xml') ? 'marcxml' : 'F';
 
     my $host = $context->{'listen'}->{$server}->{'content'};
     my $servername = $context->{"config"}->{$server};
@@ -632,7 +633,7 @@ sub _new_Zconn {
         $o->option(cqlfile=> $context->{"server"}->{$server}->{"cql2rpn"});
         $o->option(cclfile=> $context->{"serverinfo"}->{$server}->{"ccl2rpn"});
         $o->option(preferredRecordSyntax => $syntax);
-        $o->option(elementSetName => "F"); # F for 'full' as opposed to B for 'brief'
+        $o->option(elementSetName => $elementSetName); # F for 'full' as opposed to B for 'brief'
         $o->option(databaseName => ($servername?$servername:"biblios"));
 
         # create a new connection object

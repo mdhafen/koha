@@ -219,7 +219,13 @@ sub SimpleSearch {
         # Initialize & Search Zebra
         for ( my $i = 0 ; $i < @servers ; $i++ ) {
             eval {
-                $zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+                if ( $servers[$i] =~ /biblioserver/ && C4::Context->config('zebra_bib_index_mode') eq 'dom' ) {
+                    # request xml syntax from the koha zebra server
+                    $zconns[$i] = C4::Context->Zconn( $servers[$i], 1, undef, undef, 'xml' );
+                }
+                else {
+                    $zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+                }
                 $zoom_queries[$i] = new ZOOM::Query::CCL2RPN( $query, $zconns[$i]);
                 $tmpresults[$i] = $zconns[$i]->search( $zoom_queries[$i] );
 
@@ -315,7 +321,13 @@ sub getRecords {
 
     ### LOOP THROUGH THE SERVERS
     for ( my $i = 0 ; $i < @servers ; $i++ ) {
-        $zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+        if ( $servers[$i] =~ /biblioserver/ && ! $scan && C4::Context->config('zebra_bib_index_mode') eq 'dom' ) {
+            # request xml syntax from the koha zebra server
+            $zconns[$i] = C4::Context->Zconn( $servers[$i], 1, undef, undef, 'xml' );
+        }
+        else {
+            $zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+        }
 
 # perform the search, create the results objects
 # if this is a local search, use the $koha-query, if it's a federated one, use the federated-query
@@ -454,8 +466,16 @@ sub getRecords {
                         $results_hash->{'RECORDS'}[$j] = $record;
 
             # Fill the facets while we're looping, but only for the biblioserver
-                        $facet_record = MARC::Record->new_from_usmarc($record)
-                          if $servers[ $i - 1 ] =~ /biblioserver/;
+                        if ( $servers[ $i - 1 ] =~ /biblioserver/ ) {
+                            if ( ! $scan && C4::Context->config('zebra_bib_index_mode') eq 'dom' ) {
+                                my $marcxml = StripNonXmlChars( $record );
+                                MARC::File::XML->default_record_format( C4::Context->preference('marcflavour') );
+                                $facet_record = MARC::Record::new_from_xml( $marcxml, "utf8",  C4::Context->preference('marcflavour') );
+                            }
+                            else {
+                                $facet_record = MARC::Record->new_from_usmarc($record);
+                            }
+                        }
 
                     #warn $servers[$i-1]."\n".$record; #.$facet_record->title();
                         if ($facet_record) {
@@ -1416,7 +1436,15 @@ sub searchResults {
 
     # loop through all of the records we've retrieved
     for ( my $i = $offset ; $i <= $times - 1 ; $i++ ) {
-        my $marcrecord = MARC::File::USMARC::decode( $marcresults[$i] );
+        my $marcrecord;
+        if ( ! $scan && C4::Context->config('zebra_bib_index_mode') eq 'dom' ) {
+            my $marcxml = StripNonXmlChars( $marcresults[$i] );
+            MARC::File::XML->default_record_format( C4::Context->preference('marcflavour') );
+            $marcrecord = MARC::Record::new_from_xml( $marcxml, "utf8",  C4::Context->preference('marcflavour') );
+        }
+        else {
+            $marcrecord = MARC::File::USMARC::decode( $marcresults[$i] );
+        }
         $fw = $scan
              ? undef
              : $bibliotag < 10
@@ -2658,7 +2686,13 @@ sub GetDistinctValues {
 		my @servers=qw<biblioserver authorityserver>;
 		my (@zconns,@results);
         for ( my $i = 0 ; $i < @servers ; $i++ ) {
-        	$zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+                if ( C4::Context->config('zebra_bib_index_mode') eq 'dom' ) {
+                    # request xml syntax from the koha zebra server
+                    $zconns[$i] = C4::Context->Zconn( $servers[$i], 1, undef, undef, 'xml' );
+                }
+                else {
+                    $zconns[$i] = C4::Context->Zconn( $servers[$i], 1 );
+                }
 			$results[$i] =
                       $zconns[$i]->scan(
                         ZOOM::Query::CCL2RPN->new( qq"$fieldname $string", $zconns[$i])
