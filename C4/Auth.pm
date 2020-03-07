@@ -814,6 +814,8 @@ sub checkauth {
 							#     now we work with the treatment of ip
 							my $domain = $branches->{$br}->{'branchip'};
 							foreach my $subdomain ( split /\|/, $domain ) {
+								$subdomain =~ s/\./\\./g;
+								$subdomain =~ s/\*/.*/g;
 								if ( $subdomain && $ip =~ /^$subdomain/ ) {
 									$branchcode = $branches->{$br}->{'branchcode'};
 
@@ -916,6 +918,8 @@ sub checkauth {
 					#     now we work with the treatment of ip
 					my $domain = $branches->{$br}->{'branchip'};
 					foreach my $subdomain ( split /\|/, $domain ) {
+						$subdomain =~ s/\./\\./g;
+						$subdomain =~ s/\*/.*/g;
 						if ( $subdomain && $ip =~ /^$subdomain/ ) {
 							$branchcode = $branches->{$br}->{'branchcode'};
 						}
@@ -1222,6 +1226,8 @@ sub check_api_auth {
                     #     now we work with the treatment of ip
                     my $domain = $branches->{$br}->{'branchip'};
 		    foreach my $subdomain ( split /\|/, $domain ) {
+			$subdomain =~ s/\./\\./g;
+			$subdomain =~ s/\*/.*/g;
 			if ( $subdomain && $ip =~ /^$subdomain/ ) {
 			    $branchcode = $branches->{$br}->{'branchcode'};
 
