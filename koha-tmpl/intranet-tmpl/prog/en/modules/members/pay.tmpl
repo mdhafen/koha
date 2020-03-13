@@ -43,6 +43,7 @@
 	<th>Level</th>
 	<th>Amount</th>
 	<th>Amount Outstanding</th>
+	<th>Payment Amount</th>
 </tr>
 	
 <!-- TMPL_LOOP name="allfile" -->
@@ -57,6 +58,7 @@
 	<option value="wo">Writeoff</option>
 	</select>
 	<!-- /TMPL_IF -->
+	<input type="hidden" name="line_ids" value="<!-- TMPL_VAR name="i" -->" />
 	<input type="hidden" name="itemnumber<!-- TMPL_VAR name="i" -->" value="<!-- TMPL_VAR name="itemnumber" -->" />
 	<input type="hidden" name="accounttype<!-- TMPL_VAR name="i" -->" value="<!-- TMPL_VAR name="accounttype" -->" />
 	<input type="hidden" name="amount<!-- TMPL_VAR name="i" -->" value="<!-- TMPL_VAR name="amount" -->" />
@@ -73,6 +75,7 @@
 	<td><!-- TMPL_VAR name="notify_level" --></td>
 	<td class="debit"><!-- TMPL_VAR name="amount" --></td>
 	<td class="debit"><!-- TMPL_VAR name="amountoutstanding" --></td>
+	<td><input name="payment<!-- TMPL_VAR NAME="i" -->" value="<!-- TMPL_VAR name="amountoutstanding" -->"></td>
 </tr>
 <!-- /TMPL_LOOP  -->
 <!-- TMPL_IF  NAME="total"-->
@@ -80,12 +83,14 @@
 
 	<td colspan="6">Sub Total</td>
 	<td><!-- TMPL_VAR name="total" --></td>
+	<td></td>
 </tr>
 <!--/TMPL_IF-->
 <!-- /TMPL_LOOP  -->
 <tr>
 	<td colspan="6">Total Due</td>
 	<td><!-- TMPL_VAR name="total" --></td>
+	<td></td>
 </tr>
 </table>
 <fieldset class="action"><input type="submit" name="submit"  value="Make Payment" class="submit" /> <a class="cancel" href="/cgi-bin/koha/members/boraccount.pl?borrowernumber=<!-- TMPL_VAR NAME="borrowernumber" -->">Cancel</a></fieldset></form><!-- TMPL_ELSE --><p><!-- TMPL_VAR NAME="firstname" --> <!-- TMPL_VAR NAME="surname" --> has no outstanding fines.</p><!-- /TMPL_IF -->

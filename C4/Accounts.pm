@@ -170,10 +170,11 @@ sub makepayment {
     $sth->execute( $borrowernumber, $accountno );
     my $data = $sth->fetchrow_hashref;
     $sth->finish;
+    $newamtos    = $data->{'amountoutstanding'} - $amount;
 
     $dbh->do(
         "UPDATE  accountlines
-        SET     amountoutstanding = 0,
+        SET     amountoutstanding = $newamtos,
                 description = ". $dbh->quote($desc) ."
         WHERE   borrowernumber = $borrowernumber
           AND   accountno = $accountno
@@ -181,12 +182,12 @@ sub makepayment {
     );
 
     #  print $updquery;
-#    $dbh->do( "
-#        INSERT INTO     accountoffsets
-#                        (borrowernumber, accountno, offsetaccount,
-#                         offsetamount)
-#        VALUES          ($borrowernumber, $accountno, $nextaccntno, $newamtos)
-#        " );
+    $dbh->do( "
+        INSERT INTO     accountoffsets
+                        (borrowernumber, accountno, offsetaccount,
+                         offsetamount)
+        VALUES          ($borrowernumber, $accountno, $nextaccntno, $amount)
+        " );
 
     # create new line
     my $payment = 0 - $amount;
