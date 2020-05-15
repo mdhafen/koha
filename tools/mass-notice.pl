@@ -96,9 +96,9 @@ if ( $op eq 'Send' ) {
         my $fines_sth = $dbh->prepare( $query );
 
         # items.content below assumes date_due is first field
-        my @issue_columns = qw/date_due barcode title author/;
+        my @issue_columns = qw/date_due barcode title author replacementprice/;
         $query = "
-     SELECT date_due, barcode, title, author, TO_DAYS(date_due)-TO_DAYS(NOW()) AS days_to_due
+     SELECT date_due, barcode, title, author, replacementprice, TO_DAYS(date_due)-TO_DAYS(NOW()) AS days_to_due
        FROM issues
  CROSS JOIN items USING (itemnumber)
  CROSS JOIN biblio USING (biblionumber)
@@ -139,6 +139,8 @@ if ( $op eq 'Send' ) {
                 }
                 $items_content .= join("\t", @item_info) ."\n";
             }
+            $overdue_content = join("\t", @issue_columns) ."\n" . $overdue_content if ($overdue_content);
+            $items_content = join("\t", @issue_columns) ."\n" . $items_content if ($items_content);
 
             $this_letter = C4::Letters::parseletter( $this_letter, 'borrowers', $borrowernumber );
             $this_letter = C4::Letters::parseletter( $this_letter, 'branches', $branch );
