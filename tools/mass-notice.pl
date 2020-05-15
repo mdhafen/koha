@@ -186,6 +186,10 @@ elsif ( $op eq 'Search' ) {
     elsif ( $select eq 'fines' ) {
         $having = "account > 0";
     }
+    elsif ( $select eq 'issues' ) {
+        $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber";
+        $having = "overdues > 0";
+    }
     elsif ( $select eq 'issues_or_fines' ) {
         $overdues_select = "SELECT count(*) FROM issues WHERE issues.borrowernumber = borrowers.borrowernumber";
     }
