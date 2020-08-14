@@ -43,7 +43,7 @@ sub AuthorizedValuesForCategory ($) {
 }
 
 my $input = new CGI;
-my $id          = $input->param('id');
+my $id          = $input->param('id')     || undef;
 my $op          = $input->param('op')     || '';
 my $offset      = $input->param('offset') || 0;
 my $searchfield = $input->param('searchfield');
