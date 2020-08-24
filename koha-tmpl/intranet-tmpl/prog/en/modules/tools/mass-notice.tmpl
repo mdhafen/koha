@@ -243,7 +243,7 @@ function clearAll () {
                         <li>
                             <label for="sort1_filter">Filter by sort1:</label>
                             <select name="sort1_filter" id="sort1_filter">
-                                    <option value="">Select a sort1 value</option><!-- TMPL_LOOP NAME="sort1_loop" -->
+                                    <option value="">Any sort1 value</option><!-- TMPL_LOOP NAME="sort1_loop" -->
                                     <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
                                     <!-- /TMPL_LOOP -->
                             </select>
@@ -251,7 +251,15 @@ function clearAll () {
                         <li>
                             <label for="sort2_filter">Filter by sort2:</label>
                             <select name="sort2_filter" id="sort2_filter">
-                                    <option value="">Select a sort2 value</option><!-- TMPL_LOOP NAME="sort2_loop" -->
+                                    <option value="">Any sort2 value</option><!-- TMPL_LOOP NAME="sort2_loop" -->
+                                    <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
+                                    <!-- /TMPL_LOOP -->
+                            </select>
+                        </li>
+                        <li>
+                            <label for="itype_filter">Filter by item type:</label>
+                            <select name="itype_filter" id="itype_filter">
+                                    <option value="">Any Item Type</option><!-- TMPL_LOOP NAME="itype_loop" -->
                                     <option value="<!-- TMPL_VAR NAME="value" -->"><!-- TMPL_VAR NAME="label" --></option>
                                     <!-- /TMPL_LOOP -->
                             </select>

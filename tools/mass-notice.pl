@@ -29,6 +29,7 @@ use warnings;
 use CGI;
 use C4::Auth;
 use C4::Output;
+use C4::Koha;  # GetItemTypes
 use C4::Branch;  # GetBranches GetBranchDetail
 use C4::Dates qw/format_date/;
 use C4::Letters;
@@ -58,6 +59,7 @@ my $select   = $cgi->param( 'patron_select' );
 my $sort     = $cgi->param( 'sort_select' );
 my $sort1    = $cgi->param( 'sort1_filter' );
 my $sort2    = $cgi->param( 'sort2_filter' );
+my $itype    = $cgi->param( 'itype_filter' );
 my $category = $cgi->param( 'category' );
 my $send_to  = $cgi->param( 'send_to' );
 my @patrons  = $cgi->param( 'patrons' );
@@ -230,6 +232,10 @@ elsif ( $op eq 'Search' ) {
         push @wheres, "borrowers.sort2 = ?";
         push @bind, $sort2;
     }
+    if ( $itype ) {
+        push @wheres, "items.itype = ?";
+        push @bind, $itype;
+    }
     if ( @wheres ) {
         $query .= 'WHERE '. ( join ' AND ',@wheres );
     }
@@ -289,6 +295,16 @@ foreach ( sort @$sort2_values ) {
     push @sort2_loop, { value => $_, label => $_ } if ( $_ );
 }
 
+my $itemtypes = GetItemTypes();
+my @itemtype_loop;
+foreach my $thisitype ( sort keys %$itemtypes ) {
+    my %row = (
+        value => $thisitype,
+        label => $$itemtypes{ $thisitype }{'description'},
+    );
+    push @itemtype_loop, \%row;
+}
+
 $query = "
  SELECT module, code, name, title, content
    FROM letter
@@ -319,6 +335,7 @@ $template->param(
     'category_loop' => \@categories,
     'sort1_loop' => \@sort1_loop,
     'sort2_loop' => \@sort2_loop,
+    'itype_loop' => \@itemtype_loop,
     'circ_letter_loop' => \@circ_letters,
     'fine_letter_loop' => \@fine_letters,
     'patron_list' => \@patron_list,
