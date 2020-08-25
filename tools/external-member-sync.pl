@@ -411,26 +411,28 @@ if ( $op eq 'Sync' and @categories ) {
 		}
 		elsif ( defined $$values{ $_ } ) {
 		    if ( $$attribs{ $_ } ne $$values{ $_ } ) {
-                $diff = 1;
-                push @changes, { field => $_, old => $$values{$_}, new => $$attribs{$_} };
-            }
+                        $diff = 1;
+                        push @changes, { field => $_, old => $$values{$_}, new => $$attribs{$_} };
+		    }
 		} else {
 		    $diff = 1;
-            push @changes, { field => $_, old => '', new => $$attribs{$_} };
+		    push @changes, { field => $_, old => '', new => $$attribs{$_} };
 		}
 	    } elsif ( exists $$attribs{ $_ } ) {  # value is undefined.  Delete
 		delete $$attribs{ $_ };
 	    }
 	}
 
+	if ( ! $$attribs{'gonenoaddress'} && $$values{'gonenoaddress'} ) {
+	    $$attribs{'gonenoaddress'} = 0;
+		$diff = 1;
+		push @changes, { field => 'gonenoaddress', old => 'set', new => 'cleared' };
+	}
+
 	if ( $diff ) {
 	    $$attribs{borrowernumber} = $$values{borrowernumber};
 
 	    if ( $confirmed ) {
-		if ( ! $$attribs{'gonenoaddress'} && $$values{'gonenoaddress'} ) {
-		    $$attribs{'gonenoaddress'} = 0;
-		}
-
 		ModMember( %$attribs );
 #warn "Updated $$attribs{cardnumber}";
 	    }
