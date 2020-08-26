@@ -32,14 +32,7 @@ use C4::Members;  # GetMemberSortValues
 use C4::Koha;
 use C4::Circulation;
 
-my $accesses_borrowers = 0;  # bool to indicate this report uses the borrowers table
-
-if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') ) {
-    use C4::MembersExternal;
-}
-
 # Watch out for:
-#  C4::Context->preference('MembersViaExternal')
 #  C4::Context->preference("IndependantBranches")
 
 my $input = new CGI;
@@ -58,43 +51,29 @@ my $reportname = "cat_usedbarcodes";  # ie "collection_itemnums"
 my $reporttitle = "Used Barcodes";  # ie "Item Number by Branch"
 my @columns = ( "barcode" );  # ie "biblio.title as BIT"
 my @column_titles = ( "Barcode" );  # ie "Title"
-my @tables = ( "items",  # ie "items"
-#	       [ # Cross Joined Tables
-#	         {
-#	           table => '',  # Table name
-#	           using => '',  # Using column
-#	           on_l => '',   # Left hand Join On column
-#	           on_r => '',   # Right hand Join On column
-#	         },
-#	       ],
-#	       [ # Left Joined Tables
-#	         {
-#	           table => '',  # Table name
-#	           using => '',  # Using column
-#	           on_l => '',   # Left hand Join On column
-#	           on_r => '',   # Right hand Join On column
-#	         },
-#	       ],
-	       );
 
 #FIXME build queryfilter
 $CGI::LIST_CONTEXT_WARN=0;
 my @filters = $input->param("Filter");
 my @queryfilter = ();
 
+my $query = 'SELECT barcode FROM items ';
+my $where = "barcode <> ''";
+my $order = "barcode";
+
 #FIXME change $filters[2] to the index in @parameters of the patron branch field
 if ( C4::Context->preference("IndependantBranches") || $filters[0] ) {
     #FIXME change $hbranch here to match whatever tracks branch in the query
     my $hbranch = C4::Context->preference('HomeOrHoldingBranch') eq 'homebranch' ? 'items.homebranch' : 'items.holdingbranch';
     my $branch = $filters[0] || C4::Context->userenv->{branch};
-    push @queryfilter, { crit => $hbranch, op => "=", filter => $dbh->quote( $branch ), title => "School", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    push @queryfilter, { title => "School", op => "=", value => GetBranchInfo( $branch )->[0]->{'branchname'} };
+    $where = "$hbranch = ". $dbh->quote( $branch );
 }
 
-my @loopfilter = ();
-
-my $where = "barcode <> ''";
-my $order = "$columns[0]";
-my $page_breaks;
+if ( $where ) {
+    $query .= "WHERE $where ";
+}
+$query .= "ORDER BY $order";
 
 # Rest of params
 my $do_it=$input->param('do_it');
@@ -115,7 +94,7 @@ $template->param(
 		 );
 
 if ($do_it) {
-	my $results = calculate( \@columns, \@column_titles, \@tables, $where, $order, \@queryfilter, \@loopfilter );
+	my $results = calculate( $query, \@column_titles, \@queryfilter );
 	if ($output eq "screen"){
 		$template->param(mainloop => $results);
 		output_html_with_http_headers $input, $cookie, $template->output;
@@ -192,181 +171,57 @@ if ($do_it) {
 }
 
 sub calculate {
-	my ($columns, $column_titles, $tables, $where, $order, $qfilters, $lfilters) = @_;
+	my ( $query, $column_titles, $qfilters ) = @_;
 
 	my $dbh = C4::Context->dbh;
-	my @wheres;
 	my @looprow;
 	my @loopheader;
 	my %globalline;
 	my @mainloop;
-	my $grantotal = 0;
 	my @big_loop;
-	my $break = 'break';
-	my $break_index;
-
-	my $table = shift @$tables;
-	my $column = join ',', @$columns;
-	my %columns_reverse_hash = map { $_ => $break_index++ } @$columns;
-	$break_index = $break;
-
-	# FIXME you might want to add DISTINCT here or a GROUP BY below
-	my $query = "SELECT $column FROM $table ";
-	if ( @$tables ) {
-	    if ( my @cross = @{ shift @$tables } ) {
-		foreach my $cross_table ( @cross ) {
-		    $query .= "CROSS JOIN $$cross_table{table} ";
-		    if ( $$cross_table{using} ) {
-			$query .= "USING ($$cross_table{using}) ";
-		    } elsif ($$cross_table{on_l} and $$cross_table{on_r}) {
-			$query .= "ON $$cross_table{on_l} = $$cross_table{on_r} ";
-		    } else {
-			warn "$reportname : don't know how to join table $$cross_table{table}";
-		    }
-		}
-	    }
-	    if ( my @left = @{ shift @$tables } ) {
-		foreach my $left_table ( @left ) {
-		    $query .= "LEFT JOIN $$left_table{table} ";
-		    if ( $$left_table{using} ) {
-			$query .= "USING ($$left_table{using}) ";
-		    } elsif ($$left_table{on_l} and $$left_table{on_r}) {
-			$query .= "ON $$left_table{on_l} = $$left_table{on_r} ";
-		    } else {
-			warn "$reportname : don't know how to join table $$left_table{table}";
-		    }
-		}
-	    }
-	}
-	$query .= "WHERE ";
-	$query .= "$where " if ( $where );
-	$query .= "AND " if ( $where && @$qfilters );
-
-	if ( @$qfilters ) {
-	    foreach ( @$qfilters ) {
-		if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-		    my %okfields = (
-				    borrowernumber => 1,
-				    cardnumber => 1,
-				    surname => 1,
-				    firstname => 1,
-				    othernames => 1,
-				    branchcode => 1,
-				    );
-		    #  External fields will have to be handled down in the loop
-		    unless ( $okfields{ $1 } ) {
-			#  leading and trailing ' will muddle MembersExternal
-			$$_{filter} =~ s/^\'(.*)\'$/$1/;
-			push @$lfilters, { crit => $$_{crit}, filter => $$_{filter} };
-		    } else {
-			push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		    }
-		} else {
-		    push @wheres, "$$_{crit} $$_{op} $$_{filter} ";
-		}
-	    }
-	}
-	$query .= join "AND ", @wheres;
-
-	$query .= "ORDER BY $order" if ( $order );
 
 	my $sth_col = $dbh->prepare( $query );
 	$sth_col->execute();
 
 CALC_MAIN_LOOP:
-	while ( my ( @values ) = $sth_col->fetchrow ) {
-	    #  This block is to handle MembersViaExternal stuff, and
-	    #   for other custom loop filters
-	    if ( @$lfilters ) {
-		my %external_bor_fields;
-		foreach ( @$lfilters ) {
-		    if ( $accesses_borrowers && C4::Context->preference('MembersViaExternal') && $$_{crit} =~ m/^borrowers\.(.*?)$/i ) {
-			$external_bor_fields{ $1 } = $$_{filter};
-		    } else {
-			# Process other loop filters here
-		    }
-
-		}
-		if ( %external_bor_fields ) {
-		    # FIXME borrowers.cardnumber needs to be last in the columns for this
-		    my $cardnumber = $values[ $#values ];
-		    my $temp = GetMemberDetails_External( $cardnumber );
-
-		    if ( ref $temp eq 'HASH' && %$temp ) { # not empty hash ref
-			foreach ( sort keys %external_bor_fields ) {
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $temp->{$_} );
-			}
-		    } else { # non-external patron, compare against @values
-			foreach ( sort keys %external_bor_fields ) {
-			    my $index = $columns_reverse_hash{ $_ };
-			    next CALC_MAIN_LOOP if ( $external_bor_fields{$_} ne $values[ $index ] );
-			}
-		    }
-		}
-	    }
-	    my $barcode = $values[0];
-	    my $last = $break_index;
-	    if ( $barcode =~ /\D/ ) {
-		$barcode =~ /[\D0]+(\d+)/;
-		$barcode = $1;
-		if ( $last =~ /\D/ ) {
-		    $last =~ /[\D0]*(\d+)/;
-		    $last = $1;
-		}
-	    }
-	    if ( $barcode ne $last + 1 ) {
-		push @big_loop, [ "$break - $break_index" ] if ( $break ne 'break' );
-		$break = $values[0];
-	    }
-	    $break_index = $values[0];
-	}
-	$break = '';
+    while ( my ( @values ) = $sth_col->fetchrow ) {
+        $values[0] =~ /[\D0]*(\d+)\s*$/;
+        my $sort = $1;
+        if ( $values[0] ) {
+            push @big_loop, { sort => $sort, barcode => $values[0] };
+        }
+    }
 
 	# FIXME Sort big_loop here
-	#  This is necessary if MembersViaExternal is on and
-	#  there are borrowers fields ( ie sort1 or sort2 ) in the order clause
-
-	if ( $accesses_borrowers && $order =~ /sort2/ ) {
-	    my $num = 0;  # sort2 is always [0], others might be offset by sort1
-	    $num = 1 if ( $$columns[1] eq 'borrowers.sort1' );
-	    my $sort_func = sub {
-		( uc $$a[ $num+1 ] cmp uc $$b[ $num+1 ] ) ||
-		    ( uc $$a[0] cmp uc $$b[0] ) ||
-		    ( uc $$a[ $num+3 ] cmp uc $$b[ $num+3 ] ) ||
-		    ( uc $$a[ $num+4 ] cmp uc $$b[ $num+4 ] )
-	    };
-	    @big_loop = sort $sort_func @big_loop;
-	}
-
-	if ( $page_breaks ) {
-	    $break = 'break';
-	    $break_index = 0;
-	    foreach my $index ( 0..$#$columns ) {
-		if ( $$columns[ $index ] =~ /borrower/ ) {
-		    $break_index = $index;
-		}
-	    }
-	}
+    my $sort_func = sub {
+        $$a{'sort'} <=> $$b{'sort'};
+    };
+    @big_loop = sort $sort_func @big_loop;
+    my $break = 'break';
+    my $break_value = '';
+    my $first = '';
+    my $last = '';
 
 	foreach my $data ( @big_loop ) {
-	    my %row;
-	    my @mapped_values;
-	    my @values = @$data;
-
-	    if ( $break && $break ne $values[ $break_index ] ) {
-		$break = $values[ $break_index ];
-		if ( $break ne 'break' ) {
-		    $row{ 'break' } = 1;
-		}
+	    if ( $break eq 'break' || $break + 1 != $data->{'sort'} ) {
+            my $val = '';
+            if ( $break eq 'break' ) {
+                $first = $data->{'barcode'};
+            }
+            else {
+                $last = $break_value;
+                $val = "$first - $last";
+                $first = $data->{'barcode'};
+                push @looprow, { values => [ { value => $val } ] };
+            }
 	    }
-
-	    foreach ( @values[ 0 .. $#$column_titles ] ) {
-		push @mapped_values, { value => $_ };
-	    }
-	    $row{ 'values' } = \@mapped_values;
-	    push @looprow, \%row;
-	    $grantotal++;
+        $break = $data->{'sort'};
+        $break_value = $data->{'barcode'};
 	}
+
+    # get the last row
+    $last = $break_value;
+    push @looprow, { values => [ { value => "$first - $last" } ] };
 
 	foreach ( @$column_titles ) {
 	    push @{ $loopheader[0]->{ 'values' } }, { 'coltitle' => $_ };
