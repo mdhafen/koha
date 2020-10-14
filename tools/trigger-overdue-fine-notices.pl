@@ -118,7 +118,13 @@ if ( $op eq 'Trigger' ) {
             my $fines_content = '';
             $fines_sth->execute( $row->{'borrowernumber'} );
             while ( my $fine = $fines_sth->fetchrow_hashref() ) {
-                my @line_info = map { $_ =~ /^date|date$/ ? format_date($fine->{$_}) : $fine->{$_} || '' } @account_columns;
+                my @line_info;
+                foreach my $key ( @account_columns ) {
+                    my $val = $fine->{$key};
+                    $val = format_date($fine->{$_}) if ( $key =~ /^date|date$/ );
+                    $val = sprintf( '$%.2f', $val ) if ( $key =~ /^amount/ );
+                    push @line_info, $val;
+                }
                 $fines_content .= join("\t", @line_info) ."\n";
             }
 
