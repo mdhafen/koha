@@ -31,6 +31,9 @@
                     ><a href="/cgi-bin/koha/tools/import_borrowers.pl" title="Import patrons"><i class="fa-solid fa-file-import fa-fw" aria-hidden="true"></i><span class="menu-label">Import patrons</span></a></li
                 >
             [% END %]
+            [% IF ( CAN_user_tools_import_patrons ) %]
+                <li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></li>
+            [% END %]
             [% IF ( CAN_user_tools_edit_notices ) %]
                 <li
                     ><a href="/cgi-bin/koha/tools/letter.pl" title="Notices and slips"><i class="fa-solid fa-envelope fa-fw" aria-hidden="true"></i><span class="menu-label">Notices and slips</span></a></li
