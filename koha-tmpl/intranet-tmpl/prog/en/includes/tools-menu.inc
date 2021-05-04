@@ -20,6 +20,9 @@
     [% IF ( CAN_user_tools_import_patrons ) %]
 	<li><a href="/cgi-bin/koha/tools/import_borrowers.pl">Import patrons</a></li>
     [% END %]
+    [% IF ( CAN_user_tools_import_patrons ) %]
+	<li><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></li>
+    [% END %]
     [% IF ( CAN_user_tools_edit_notices ) %]
     <li><a href="/cgi-bin/koha/tools/letter.pl">Notices and slips</a></li>
     [% END %]
