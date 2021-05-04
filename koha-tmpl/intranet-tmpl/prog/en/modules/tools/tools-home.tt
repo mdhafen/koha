@@ -54,6 +54,11 @@
                 [% END %]
 
                 [% IF ( CAN_user_tools_import_patrons ) %]
+                    <dt><a href="/cgi-bin/koha/tools/external-member-sync.pl">Synchronize External Patrons</a></dt>
+                    <dd>Synchronize patron information with information from another database or directory</dd>
+                [% END %]
+
+                [% IF ( CAN_user_tools_import_patrons ) %]
                     <dt><a href="/cgi-bin/koha/tools/import_borrowers.pl">Import patrons</a></dt>
                     <dd>Import patron data</dd>
                 [% END %]
