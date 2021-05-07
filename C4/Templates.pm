@@ -81,7 +81,7 @@ sub new {
     bless $self, $class;
     $self->theme($theme);
     $self->lang($lang);
-    $self->activethemes($activethemes);
+    $self->{VARS}->{"activethemes"} = $activethemes;
     $self->preferredtheme($activethemes->[0]);
     $self->filename($filename);
     $self->htdocs($htdocs);
