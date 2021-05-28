@@ -186,7 +186,9 @@ CALC_MAIN_LOOP:
 	    my $year;
 	    # FIXME this needs to be updated every year.
 	    for ( $date ) {
-		if    ( $_ gt '2020-05-21' ) { $year = '2020-2021' }
+		if    ( $_ gt '2022-05-26' ) { $year = '2022-2023' }
+		elsif ( $_ gt '2021-05-26' ) { $year = '2021-2022' }
+		elsif ( $_ gt '2020-05-21' ) { $year = '2020-2021' }
 		elsif ( $_ gt '2019-05-23' ) { $year = '2019-2020' }
 		elsif ( $_ gt '2018-05-24' ) { $year = '2018-2019' }
 		elsif ( $_ gt '2017-05-24' ) { $year = '2017-2018' }
