@@ -26,12 +26,16 @@ BEGIN {
     eval { require "$FindBin::Bin/../kohalib.pl" };
 }
 
-use Koha::Script;
 use C4::Context;
 use C4::Members::Messaging;
 use Getopt::Long;
 use Pod::Usage;
 
+C4::Context->_new_userenv(1);
+C4::Context->set_userenv(
+    undef, undef, undef, 'CLI', 'CLI',
+    undef, undef, undef, undef, undef
+);
 
 sub usage {
     pod2usage( -verbose => 2 );
