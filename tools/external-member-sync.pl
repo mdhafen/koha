@@ -372,6 +372,9 @@ if ( $op eq 'Sync' and @categories ) {
 		if ( $password ) {
 		    changepassword( $$attribs{ 'userid' }, $borrno, $password );
 		}
+		if (C4::Context->preference('EnhancedMessagingPreferences')) {
+			SetMessagingPreferencesFromDefaults({ borrowernumber => $borrno, categorycode => $category });
+		}
 	    }
 
 	    push @report, {
