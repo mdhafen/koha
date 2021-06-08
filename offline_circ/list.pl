@@ -42,7 +42,11 @@ my ($template, $loggedinuser, $cookie) = get_template_and_user({
 my $operations = GetOfflineOperations;
 
 for (@$operations) {
-    my $item = $_->{barcode} ? Koha::Items->find({ barcode => $_->{barcode} }) : undef;
+    my $item_filter = { barcode => $_->{barcode} };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = $_->{barcode} ? Koha::Items->find($item_filter) : undef;
     if ($item) {
         my $biblio = $item->biblio;
         $_->{'bibliotitle'}    = $biblio->title;

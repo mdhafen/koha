@@ -54,7 +54,11 @@ my ( $soonest_renew_date, $latest_auto_renew_date );
 
 if ($barcode) {
     $barcode = barcodedecode($barcode) if $barcode;
-    $item = $schema->resultset("Item")->single( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    $item = $schema->resultset("Item")->single($item_filter);
 
     if ($item) {
 
