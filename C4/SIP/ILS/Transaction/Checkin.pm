@@ -77,7 +77,11 @@ sub do_checkin {
 
     my ( $return, $messages, $issue, $borrower );
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
 
     my $human_required = 0;
     if (   C4::Context->preference("CircConfirmItemParts")
