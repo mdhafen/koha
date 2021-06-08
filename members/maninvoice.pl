@@ -111,12 +111,12 @@ if ($add) {
     my $olditem; # FIXME: When items and deleted_items are merged, we can remove this
     my $issue_id;
     if ($barcode) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
         if ($item) {
             $item_id = $item->itemnumber;
         }
         else {
-            $item = Koha::Old::Items->search( { barcode => $barcode },
+            $item = Koha::Old::Items->search( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} },
                 { order_by => { -desc => 'timestamp' }, rows => 1 } );
             if ($item->count) {
                 $item_id = $item->next->itemnumber;

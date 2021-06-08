@@ -766,7 +766,7 @@ sub BatchCommitItems {
 
         my $item = TransformMarcToKoha( $item_marc );
 
-        my $duplicate_barcode = exists( $item->{'barcode'} ) && Koha::Items->find({ barcode => $item->{'barcode'} });
+        my $duplicate_barcode = exists( $item->{'barcode'} ) && Koha::Items->find({ barcode => $item->{'barcode'}, homebranch => C4::Context->userenv->{'branch'} });
         my $duplicate_itemnumber = exists( $item->{'itemnumber'} );
 
         my $updsth = $dbh->prepare("UPDATE import_items SET status = ?, itemnumber = ? WHERE import_items_id = ?");

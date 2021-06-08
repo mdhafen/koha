@@ -156,7 +156,7 @@ if ( $op eq 'add_form' ) {
                 foreach my $barcode (@barcodes){
                     $barcode =~ s/\r$//; # strip any naughty return chars
                     next if $barcode eq '';
-                    my $item = Koha::Items->find({barcode => $barcode});
+                    my $item = Koha::Items->find({barcode => $barcode, homebranch => C4::Context->userenv->{'branch'}});
                     if ( $item ) {
                         my $added = eval { $shelf->add_biblio( $item->biblionumber, $loggedinuser ); };
                         if ($@) {

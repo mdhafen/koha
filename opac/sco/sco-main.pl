@@ -144,7 +144,7 @@ if ( $patron && $op eq "returnbook" && $allowselfcheckreturns ) {
     my $success = 1;
 
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
     if ( $success && C4::Context->preference("CircConfirmItemParts") ) {
         if ( defined($item)
             && $item->materials )
@@ -167,7 +167,7 @@ if ( $patron && $op eq "returnbook" && $allowselfcheckreturns ) {
 }
 elsif ( $patron && ( $op eq 'checkout' ) ) {
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
     my $impossible  = {};
     my $needconfirm = {};
     ( $impossible, $needconfirm ) = CanBookBeIssued(
@@ -232,7 +232,7 @@ elsif ( $patron && ( $op eq 'checkout' ) ) {
             if ( C4::Context->preference('HoldFeeMode') eq 'any_time_is_collected' ) {
                 # There is no easy way to know if the patron has been charged for this item.
                 # So we check if a hold existed for this item before the check in
-                $item = Koha::Items->find({ barcode => $barcode });
+                $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
                 $hold_existed = Koha::Holds->search(
                     {
                         -and => {
@@ -277,7 +277,7 @@ elsif ( $patron && ( $op eq 'checkout' ) ) {
 } # $op
 
 if ( $patron && ( $op eq 'renew' ) ) {
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
 
     if ( $patron->checkouts->find( { itemnumber => $item->itemnumber } ) ) {
         my ($status,$renewerror) = CanBookBeRenewed( $patron->borrowernumber, $item->itemnumber );

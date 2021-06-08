@@ -40,6 +40,7 @@ my $item;
 my $sql = "SELECT * FROM biblio, biblioitems, items 
           WHERE biblio.biblionumber = items.biblionumber 
           AND biblioitems.biblioitemnumber = items.biblioitemnumber 
+          AND items.homebranch = '". C4::Context->userenv->{'branch'} ."'
           AND items.barcode = ?";
 $sth = $dbh->prepare($sql);
 $sth->execute($barcode);

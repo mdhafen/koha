@@ -53,7 +53,7 @@ $template->param(biblionumber => $biblionumber);
 if ( $barcode && $biblionumber ) {
 
     my $itemnumber;
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
 
     if ($item) {
 

@@ -44,7 +44,7 @@ if ( defined $query->param('action') and
     my $colId      = $query->param('colId');
     my $barcode    = $query->param('barcode');
     my $removeItem = $query->param('removeItem');
-    my $item       = Koha::Items->find({barcode => $barcode});
+    my $item       = Koha::Items->find({barcode => $barcode, homebranch => C4::Context->userenv->{'branch'}});
     my $itemnumber = $item ? $item->itemnumber : undef;
 
     my ( $success, $errorCode, $errorMessage );

@@ -181,7 +181,7 @@ sub _get_borrowernumber_from_barcode {
 
     return unless $barcode;
 
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
     return unless $item;
 
     my $issue = Koha::Checkouts->find( { itemnumber => $item->itemnumber } );

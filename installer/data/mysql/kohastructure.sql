@@ -3086,7 +3086,7 @@ CREATE TABLE `items` (
   `new_status` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '''new'' value, you can put whatever free-text information. This field is intented to be managed by the automatic_item_modification_by_age cronjob.',
   `exclude_from_local_holds_priority` tinyint(1) DEFAULT NULL COMMENT 'Exclude this item from local holds priority',
   PRIMARY KEY (`itemnumber`),
-  UNIQUE KEY `itembarcodeidx` (`barcode`),
+  UNIQUE KEY `itembarcodeidx` (`barcode`,`homebranch`),
   KEY `itemstocknumberidx` (`stocknumber`),
   KEY `itembinoidx` (`biblioitemnumber`),
   KEY `itembibnoidx` (`biblionumber`),

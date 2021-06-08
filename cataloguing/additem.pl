@@ -197,7 +197,7 @@ if ($op eq "additem") {
 
         # check for item barcode # being unique
         if ( defined $item->barcode
-            && Koha::Items->search( { barcode => $item->barcode } )->count )
+            && Koha::Items->search( { barcode => $item->barcode, homebranch => C4::Context->userenv->{'branch'} } )->count )
         {
             # if barcode exists, don't create, but report The problem.
             push @errors, "barcode_not_unique";
@@ -300,7 +300,7 @@ if ($op eq "additem") {
                     }
 
                     # Checking if the barcode already exists
-                    $exist_itemnumber = Koha::Items->search({ barcode => $barcodevalue })->count;
+                    $exist_itemnumber = Koha::Items->search({ barcode => $barcodevalue, homebranch => C4::Context->userenv->{'branch'} })->count;
                 }
 
                 # Updating record with the new copynumber
@@ -457,6 +457,7 @@ if ($op eq "additem") {
         && Koha::Items->search(
             {
                 barcode    => $item->barcode,
+                homebranch => C4::Context->userenv->{'branch'},
                 itemnumber => { '!=' => $item->itemnumber }
             }
         )->count

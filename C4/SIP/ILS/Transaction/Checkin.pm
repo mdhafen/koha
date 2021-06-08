@@ -76,7 +76,7 @@ sub do_checkin {
 
     my ( $return, $messages, $issue, $borrower );
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
 
     my $human_required = 0;
     if (   C4::Context->preference("CircConfirmItemParts")

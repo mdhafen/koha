@@ -49,7 +49,7 @@ my ( $item, $biblio );
 
 if ( $barcode || $itemnumber ) {
     # adding an item to course items
-    $item = $itemnumber ? Koha::Items->find( $itemnumber ) : Koha::Items->find({ barcode => $barcode });
+    $item = $itemnumber ? Koha::Items->find( $itemnumber ) : Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
     if ( $item ) {
         $itemnumber = $item->id;
         $biblio = $item->biblio;

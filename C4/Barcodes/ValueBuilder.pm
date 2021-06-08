@@ -26,7 +26,7 @@ sub get_barcode {
     my ($args) = @_;
     my $nextnum;
     # not the best, two catalogers could add the same barcode easily this way :/
-    my $query = "select max(cast(barcode as unsigned)) from items";
+    my $query = "select max(cast(barcode as unsigned)) from items where homebranch = '". C4::Context->userenv->{'branch'} ."'";
     my $sth = C4::Context->dbh->prepare($query);
     $sth->execute();
     while (my ($count)= $sth->fetchrow_array) {
@@ -46,7 +46,7 @@ sub get_barcode {
     my $nextnum = 0;
     my $year = substr($args->{year}, -2);
     my $month = $args->{mon};
-    my $query = "SELECT MAX(CAST(SUBSTRING(barcode,-4) AS signed)) AS number FROM items WHERE barcode REGEXP ?";
+    my $query = "SELECT MAX(CAST(SUBSTRING(barcode,-4) AS signed)) AS number FROM items WHERE barcode REGEXP ? AND homebranch = '". C4::Context->userenv->{'branch'} ."'";
     my $sth = C4::Context->dbh->prepare($query);
     $sth->execute("^[-a-zA-Z]{1,}$year$month");
     while (my ($count)= $sth->fetchrow_array) {
@@ -77,7 +77,7 @@ use C4::Context;
 sub get_barcode {
     my ($args) = @_;
     my $nextnum;
-    my $query = "select max(cast( substring_index(barcode, '-',-1) as signed)) from items where barcode like ?";
+    my $query = "select max(cast( substring_index(barcode, '-',-1) as signed)) from items where barcode like ? and homebranch = '". C4::Context->userenv->{'branch'} ."'";
     my $sth=C4::Context->dbh->prepare($query);
     $sth->execute($args->{year} . '-%');
     while (my ($count)= $sth->fetchrow_array) {

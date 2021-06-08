@@ -55,7 +55,7 @@ $template->param(biblionumber => $biblionumber);
 
 if ( $barcode && $biblionumber ) {
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
 
     if ($item) {
         my $field = PrepHostMarcField( $item->biblio->biblionumber, $item->itemnumber, $marcflavour );

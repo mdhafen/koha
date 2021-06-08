@@ -73,7 +73,7 @@ if ( $course_id && $course ) {
             my @items;
             my @invalid_barcodes;
             for my $b (@barcodes) {
-                my $item = Koha::Items->find( { barcode => $b } );
+                my $item = Koha::Items->find( { barcode => $b, homebranch => C4::Context->userenv->{'branch'} } );
 
                 if ($item) {
                     push( @items, $item );

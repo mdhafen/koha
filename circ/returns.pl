@@ -245,7 +245,7 @@ my $returnbranch;
 if ($barcode) {
     $barcode =~ s/^\s*|\s*$//g; # remove leading/trailing whitespace
     $barcode = barcodedecode($barcode) if $barcode;
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
 
     if ( $item ) {
         $itemnumber = $item->itemnumber;
@@ -592,7 +592,7 @@ foreach ( sort { $a <=> $b } keys %returneditems ) {
             $ri{borrowernumber} = $riborrowernumber{$_};
         }
 
-        my $item = Koha::Items->find({ barcode => $bar_code });
+        my $item = Koha::Items->find({ barcode => $bar_code, homebranch => C4::Context->userenv->{'branch'} });
         next unless $item; # FIXME The item has been deleted in the meantime,
                            # we could handle that better displaying a message in the template
 
@@ -641,7 +641,7 @@ $template->param(
 );
 
 if ( $barcode ) {
-    my $item_from_barcode = Koha::Items->find({barcode => $barcode }); # How many times do we fetch this item?!?
+    my $item_from_barcode = Koha::Items->find({barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} }); # How many times do we fetch this item?!?
     if ( $item_from_barcode ) {
         $itemnumber = $item_from_barcode->itemnumber;
         my ( $holdingBranch, $collectionBranch ) = GetCollectionItemBranches( $itemnumber );

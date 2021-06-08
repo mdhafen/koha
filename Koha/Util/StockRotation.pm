@@ -165,7 +165,8 @@ sub get_barcodes_status {
     # Get the items associated with these barcodes
     my $items = Koha::Items->search(
         {
-            barcode => { '-in' => $barcodes }
+            barcode => { '-in' => $barcodes },
+            homebranch => C4::Context->userenv->{'branch'}
         },
         {
             prefetch => 'stockrotationitem'

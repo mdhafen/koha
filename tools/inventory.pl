@@ -161,9 +161,9 @@ if ( ($uploadbarcodes && length($uploadbarcodes) > 0) || ($barcodelist && length
     my $date = $input->param('setdate');
     my $date_dt = dt_from_string($date);
 
-    my $strsth  = "select * from issues, items where items.itemnumber=issues.itemnumber and items.barcode =?";
+    my $strsth  = "select * from issues, items where items.itemnumber=issues.itemnumber and items.barcode =? and homebranch = '". C4::Context->userenv->{'branch'} ."'";
     my $qonloan = $dbh->prepare($strsth);
-    $strsth="select * from items where items.barcode =? and items.withdrawn = 1";
+    $strsth="select * from items where items.barcode =? and homebranch = '". C4::Context->userenv->{'branch'} ."' and items.withdrawn = 1";
     my $qwithdrawn = $dbh->prepare($strsth);
 
     my @barcodes;
@@ -216,7 +216,7 @@ if ( ($uploadbarcodes && length($uploadbarcodes) > 0) || ($barcodelist && length
         if ( $qwithdrawn->execute($barcode) && $qwithdrawn->rows ) {
             push @errorloop, { 'barcode' => $barcode, 'ERR_WTHDRAWN' => 1 };
         } else {
-            my $item = Koha::Items->find({barcode => $barcode});
+            my $item = Koha::Items->find({barcode => $barcode, homebranch => C4::Context->userenv->{'branch'}});
             if ( $item ) {
                 # Modify date last seen for scanned items, remove lost status
                 $item->set({ itemlost => 0, datelastseen => $date_dt })->store;

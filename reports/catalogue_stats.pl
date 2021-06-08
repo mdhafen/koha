@@ -280,7 +280,7 @@ sub calculate {
                     LEFT JOIN biblioitems USING (biblioitemnumber)
                     LEFT JOIN biblio ON (biblioitems.biblionumber = biblio.biblionumber)
                   WHERE 1 ";
-    $strsth .= " AND barcode $not LIKE ? " if ($barcodefilter);
+    $strsth .= " AND ( barcode $not LIKE ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' ) " if ($barcodefilter);
     if (@linefilter) {
         if ( $linefilter[1] ) {
             $strsth .= " AND $line >= ? ";
@@ -346,7 +346,7 @@ sub calculate {
         LEFT JOIN biblio
             ON (biblioitems.biblionumber = biblio.biblionumber)
         WHERE 1 ";
-    $strsth2 .= " AND barcode $not LIKE ?" if $barcodefilter;
+    $strsth2 .= " AND ( barcode $not LIKE ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' ) " if $barcodefilter;
 
     if ( (@colfilter) and ( $colfilter[1] ) ) {
         $strsth2 .= " AND $column >= ? AND $column <= ?";
@@ -415,7 +415,7 @@ sub calculate {
     my @sqlargs;
 
     if ($barcodefilter) {
-        $strcalc .= "AND barcode $not like ? ";
+        $strcalc .= "AND ( barcode $not like ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' ) ";
         push @sqlargs, $barcodefilter;
     }
 

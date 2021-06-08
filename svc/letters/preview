@@ -147,7 +147,7 @@ my ( $rendered_message, $rendered_tt_message ) = (q||) x 2;
 my $messages_are_similar;
 my $letter_params = {};
 if ( $code eq 'CHECKIN' ) {
-    my $item = Koha::Items->find( { barcode => $data_preview } );
+    my $item = Koha::Items->find( { barcode => $data_preview, homebranch => C4::Context->userenv->{'branch'} } );
     my $checkout = Koha::Checkouts->find( { itemnumber => $item->itemnumber } );
     if ($checkout) {
         my $patron = Koha::Patrons->find( $checkout->borrowernumber );
@@ -173,7 +173,7 @@ if ( $code eq 'CHECKIN' ) {
 }
 elsif ( $code eq 'CHECKOUT' ) {
     my ( $barcode, $borrowernumber ) = split '\|', $data_preview;
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
     my $patron = Koha::Patrons->find( $borrowernumber );
     if ($item and $patron) {
         my $branchcode =

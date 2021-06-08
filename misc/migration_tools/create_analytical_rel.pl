@@ -91,7 +91,7 @@ sub process_bib {
     my $analyticfield = '773';
 	foreach my $hostfield ( $bib->field($analyticfield) ) {
 		if(my $barcode = $hostfield->subfield('o')){
-            my $item = Koha::Items->find({ barcode => $barcode });
+            my $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
             if ($item) {
                 my $modif;
                 if ( $hostfield->subfield('0') ne $biblionumber ) {

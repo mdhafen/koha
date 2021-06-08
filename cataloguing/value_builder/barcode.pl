@@ -56,7 +56,7 @@ my $builder = sub {
     }
     elsif ($autoBarcodeType eq 'EAN13') {
         # not the best, two catalogers could add the same barcode easily this way :/
-        my $query = "select max(abs(barcode)) from items";
+        my $query = "select max(abs(barcode)) from items where homebranch = '". C4::Context->userenv->{'branch'} ."'";
     my $dbh = $params->{dbh};
         my $sth = $dbh->prepare($query);
         $sth->execute();

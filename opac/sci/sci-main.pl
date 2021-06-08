@@ -66,7 +66,7 @@ if ( $op eq 'check_in' ) {
     foreach my $barcode (@barcodes) {
         try {
             my ( $success, $messages, $checkout, $patron );
-            my $item = Koha::Items->find( { barcode => $barcode } );
+            my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
             my $human_required = 0;
             if (   C4::Context->preference("CircConfirmItemParts")
                 && defined($item)
