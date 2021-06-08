@@ -52,7 +52,7 @@ elsif ( $action eq 'batch_rm' ) {
     my @item_and_count;
 
     foreach my $bar (@barcodes) {
-        my $item = Koha::Items->find( { barcode => $bar } );
+        my $item = Koha::Items->find( { barcode => $bar, homebranch => C4::Context->userenv->{'branch'} } );
         if($item) {
             my $courseitem = GetCourseItem(itemnumber => $item->id);
             if($courseitem) {

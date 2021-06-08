@@ -75,6 +75,17 @@ if( CheckVersion( $DBversion ) ) {
     NewVersion( $DBversion, "", "Adding WCSD Fork of Koha database update support" );
 }
 
+$DBversion = '5.002';
+if ( CheckVersion($DBversion) ) {
+    $dbh->do(q{
+        ALTER TABLE items
+        DROP KEY `itembarcodeidx`,
+        ADD UNIQUE KEY `itembarcodeidx` (`barcode`,`homebranch`)
+    });
+
+    NewVersion( $DBversion, "", "Change unique key on items.barcode to include items.homebranch" );
+}
+
 #$DBversion = '5.XXX';
 #if ( CheckVersion($DBversion) ) {
 #    $dbh->do(q{

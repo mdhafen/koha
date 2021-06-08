@@ -100,14 +100,6 @@ the branch the transfer was going to
 
 any comments related to the transfer
 
-=head2 reason
-
-  data_type: 'enum'
-  extra: {list => ["Manual","StockrotationAdvance","StockrotationRepatriation","ReturnToHome","ReturnToHolding","RotatingCollection","Reserve","LostReserve","CancelReserve","TransferCancellation"]}
-  is_nullable: 1
-
-what triggered the transfer
-
 =head2 cancellation_reason
 
   data_type: 'enum'
@@ -171,25 +163,6 @@ __PACKAGE__->add_columns(
   },
   "comments",
   { data_type => "longtext", is_nullable => 1 },
-  "reason",
-  {
-    data_type => "enum",
-    extra => {
-      list => [
-        "Manual",
-        "StockrotationAdvance",
-        "StockrotationRepatriation",
-        "ReturnToHome",
-        "ReturnToHolding",
-        "RotatingCollection",
-        "Reserve",
-        "LostReserve",
-        "CancelReserve",
-        "TransferCancellation",
-      ],
-    },
-    is_nullable => 1,
-  },
   "cancellation_reason",
   {
     data_type => "enum",

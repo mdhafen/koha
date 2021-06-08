@@ -83,7 +83,7 @@ if ($add) {
     my $barcode = $input->param('barcode');
     my $item_id;
     if ($barcode) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
         $item_id = $item->itemnumber if $item;
     }
     my $description = $input->param('desc');

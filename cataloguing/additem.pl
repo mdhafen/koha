@@ -68,7 +68,7 @@ sub get_item_from_barcode {
     my ($barcode)=@_;
     my $dbh=C4::Context->dbh;
     my $result;
-    my $rq=$dbh->prepare("SELECT itemnumber from items where items.barcode=?");
+    my $rq=$dbh->prepare("SELECT itemnumber from items where items.barcode=? and homebranch = '". C4::Context->userenv->{'branch'} ."'");
     $rq->execute($barcode);
     ($result)=$rq->fetchrow;
     return($result);
@@ -80,7 +80,7 @@ sub _increment_barcode {
     my ($record, $frameworkcode) = @_;
     my ($tagfield,$tagsubfield) = &GetMarcFromKohaField( "items.barcode" );
     unless ($record->field($tagfield)->subfield($tagsubfield)) {
-        my $sth_barcode = $dbh->prepare("select max(abs(barcode)) from items");
+        my $sth_barcode = $dbh->prepare("select max(abs(barcode)) from items where homebranch = '". C4::Context->userenv->{'branch'} ."'");
         $sth_barcode->execute;
         my ($newbarcode) = $sth_barcode->fetchrow;
         $newbarcode++;

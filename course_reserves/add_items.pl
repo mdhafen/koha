@@ -44,7 +44,7 @@ my $is_edit      = $cgi->param('is_edit')      || '';
 
 $barcode =~ s/^\s*|\s*$//g; #remove leading/trailing whitespace
 
-my $item = Koha::Items->find( { ( $itemnumber ? ( itemnumber => $itemnumber ) : ( barcode => $barcode ) ) } );
+my $item = Koha::Items->find( { ( $itemnumber ? ( itemnumber => $itemnumber ) : ( barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} ) ) } );
 $itemnumber = $item->id if $item;
 
 my $title = ($item) ? $item->biblio->title : undef;

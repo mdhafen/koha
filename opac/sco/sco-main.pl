@@ -112,7 +112,7 @@ my ($op, $patronid, $patronlogin, $patronpw, $barcode, $confirmed, $newissues) =
 my @newissueslist = split /,/, $newissues;
 my $issuenoconfirm = 1; #don't need to confirm on issue.
 my $issuer   = Koha::Patrons->find( $issuerid )->unblessed;
-my $item     = Koha::Items->find({ barcode => $barcode });
+my $item     = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
 if (C4::Context->preference('SelfCheckoutByLogin') && !$patronid) {
     my $dbh = C4::Context->dbh;
     my $resval;
@@ -138,7 +138,7 @@ elsif ( $op eq "returnbook" && $allowselfcheckreturns ) {
     my $success        = 0;
     my $human_required = 0;
     if ( C4::Context->preference("CircConfirmItemParts") ) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item = Koha::Items->find( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
         if ( defined($item)
             && $item->materials )
         {
@@ -218,7 +218,7 @@ elsif ( $patron && ( $op eq 'checkout' ) ) {
             if ( C4::Context->preference('HoldFeeMode') eq 'any_time_is_collected' ) {
                 # There is no easy way to know if the patron has been charged for this item.
                 # So we check if a hold existed for this item before the check in
-                $item = Koha::Items->find({ barcode => $barcode });
+                $item = Koha::Items->find({ barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} });
                 $hold_existed = Koha::Holds->search(
                     {
                         -and => {

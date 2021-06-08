@@ -520,7 +520,7 @@ __PACKAGE__->set_primary_key("itemnumber");
 
 =cut
 
-__PACKAGE__->add_unique_constraint("itembarcodeidx", ["barcode"]);
+__PACKAGE__->add_unique_constraint("itembarcodeidx", ["barcode","homebranch"]);
 
 =head1 RELATIONS
 

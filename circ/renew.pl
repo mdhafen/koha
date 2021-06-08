@@ -56,7 +56,7 @@ my ( $soonest_renew_date, $latest_auto_renew_date );
 
 if ($barcode) {
     $barcode =~ s/^\s*|\s*$//g; # remove leading/trailing whitespace
-    $item = $schema->resultset("Item")->single( { barcode => $barcode } );
+    $item = $schema->resultset("Item")->single( { barcode => $barcode, homebranch => C4::Context->userenv->{'branch'} } );
 
     if ($item) {
 

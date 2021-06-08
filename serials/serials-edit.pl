@@ -363,7 +363,7 @@ if ( $op and $op eq 'serialchangestatus' ) {
                           )
                         {
                             my $sth_barcode = $dbh->prepare(
-                                'select max(abs(barcode)) from items');
+                                'select max(abs(barcode)) from items where homebranch = \''. C4::Context->userenv->{'branch'} .'\'');
                             $sth_barcode->execute;
                             my ($newbarcode) = $sth_barcode->fetchrow;
 
@@ -385,7 +385,7 @@ if ( $op and $op eq 'serialchangestatus' ) {
                             $bib_record->field($barcodetagfield)->update($barcodetagsubfield => $barcode);
                         }
 
-                        $exists = Koha::Items->find({barcode => $barcode});
+                        $exists = Koha::Items->find({barcode => $barcode, homebranch => C4::Context->userenv->{'branch'}});
                     }
 
                     #           push @errors,"barcode_not_unique" if($exists);
