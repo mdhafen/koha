@@ -47,7 +47,11 @@ if ( defined $op
     my $barcode = $query->param('barcode');
     $barcode = barcodedecode($barcode);
     my $removeItem = $query->param('removeItem');
-    my $item       = Koha::Items->find( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item       = Koha::Items->find($item_filter);
     my $itemnumber = $item ? $item->itemnumber : undef;
 
     my ( $success, $errorCode, $errorMessage );

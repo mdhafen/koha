@@ -160,7 +160,11 @@ if ( $patron && $op eq "cud-returnbook" && $allowselfcheckreturns ) {
     my $success = 1;
 
     foreach my $barcode (@$barcodes) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item = Koha::Items->find( $item_filter );
         if ( $success && C4::Context->preference("CircConfirmItemParts") ) {
             if ( defined($item)
                 && $item->materials )
@@ -190,7 +194,11 @@ if ( $patron && $op eq "cud-returnbook" && $allowselfcheckreturns ) {
     my @failed_checkouts;
     my @confirm_checkouts;
     foreach my $barcode (@$barcodes) {
-        my $item        = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item        = Koha::Items->find( $item_filter );
         my $impossible  = {};
         my $needconfirm = {};
         ( $impossible, $needconfirm ) = CanBookBeIssued(
@@ -267,7 +275,7 @@ if ( $patron && $op eq "cud-returnbook" && $allowselfcheckreturns ) {
 
                     # There is no easy way to know if the patron has been charged for this item.
                     # So we check if a hold existed for this item before the check in
-                    $item         = Koha::Items->find( { barcode => $barcode } );
+                    $item         = Koha::Items->find( $item_filter );
                     $hold_existed = Koha::Holds->search(
                         {
                             -and => {
@@ -329,7 +337,11 @@ if ( $patron && $op eq "cud-returnbook" && $allowselfcheckreturns ) {
 
 if ( $patron && ( $op eq 'cud-renew' ) ) {
     foreach my $barcode (@$barcodes) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item = Koha::Items->find( $item_filter );
 
         if ( $patron->checkouts->find( { itemnumber => $item->itemnumber } ) ) {
             my ( $status, $renewerror ) = CanBookBeRenewed( $patron, $item->checkout );
