@@ -73,9 +73,14 @@ if ( $course_id && $course ) {
         if (@barcodes > 0) {
             my @items;
             my @invalid_barcodes;
+            my $item_filter;
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
             for my $b (@barcodes) {
                 $b = barcodedecode($b) if $b;
-                my $item = Koha::Items->find( { barcode => $b } );
+                $item_filter->{barcode} = $b;
+                my $item = Koha::Items->find( $item_filter );
 
                 if ($item) {
                     push( @items, $item );
