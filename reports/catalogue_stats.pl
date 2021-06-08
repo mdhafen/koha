@@ -290,7 +290,14 @@ sub calculate {
                     LEFT JOIN biblioitems USING (biblioitemnumber)
                     LEFT JOIN biblio ON (biblioitems.biblionumber = biblio.biblionumber)
                   WHERE 1 ";
-    $strsth .= " AND barcode $not LIKE ? " if ($barcodefilter);
+    if ( $barcodefilter ) {
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $strsth .= " AND ( barcode $not LIKE ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' ) ";
+        }
+        else {
+            $strsth .= " AND barcode $not LIKE ? "
+        }
+    }
     if (@linefilter) {
         if ( $linefilter[1] ) {
             $strsth .= " AND $line >= ? ";
@@ -356,7 +363,15 @@ sub calculate {
         LEFT JOIN biblio
             ON (biblioitems.biblionumber = biblio.biblionumber)
         WHERE 1 ";
-    $strsth2 .= " AND barcode $not LIKE ?" if $barcodefilter;
+
+    if ( $barcodefilter ) {
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $strsth2 .= " AND ( barcode $not LIKE ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' )";
+        }
+        else {
+            $strsth2 .= " AND barcode $not LIKE ?"
+        }
+    }
 
     if ( (@colfilter) and ( $colfilter[1] ) ) {
         $strsth2 .= " AND $column >= ? AND $column <= ?";
@@ -427,7 +442,12 @@ sub calculate {
     my @sqlargs;
 
     if ($barcodefilter) {
-        $strcalc .= "AND barcode $not like ? ";
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $strcalc .= "AND ( barcode $not like ? AND homebranch = '". C4::Context->userenv->{'branch'} ."' ) ";
+        }
+        else {
+            $strcalc .= "AND barcode $not like ? ";
+        }
         push @sqlargs, $barcodefilter;
     }
 
