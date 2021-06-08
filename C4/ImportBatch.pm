@@ -760,6 +760,10 @@ sub _batchCommitItems {
         my $item = TransformMarcToKoha({ record => $item_marc, kohafields => ['items.barcode','items.itemnumber'] });
 
         my $item_match;
+        my $item_barcode_filter = { barcode => $item->{barcode} };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_barcode_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
         my $duplicate_barcode = exists( $item->{'barcode'} );
         my $duplicate_itemnumber = exists( $item->{'itemnumber'} );
 
@@ -783,7 +787,7 @@ sub _batchCommitItems {
         } elsif (
             $action eq "replace" &&
             $duplicate_barcode &&
-            ( $item_match = Koha::Items->find({ barcode => $item->{'barcode'} }) )
+            ( $item_match = Koha::Items->find($item_barcode_filter) )
         ) {
             ModItemFromMarc( $item_marc, $item_match->biblionumber, $item_match->itemnumber, { skip_record_index => 1 } );
             $updsth->bind_param( 1, 'imported' );
@@ -796,7 +800,7 @@ sub _batchCommitItems {
         } elsif (
             # We aren't replacing, but the incoming file has a barcode, we need to check if it exists
             $duplicate_barcode &&
-            ( $item_match = Koha::Items->find({ barcode => $item->{'barcode'} }) )
+            ( $item_match = Koha::Items->find($item_barcode_filter) )
         ) {
             $updsth->bind_param( 1, 'error' );
             $updsth->bind_param( 2, undef );

@@ -306,7 +306,7 @@ sub GetWaitingHolds {
     my $patron_branchcode_filter = $patron_branchcode ? "AND borrowers.branchcode = '$patron_branchcode'" : q{};
 
     my $query = "SELECT borrowers.borrowernumber, borrowers.cardnumber, borrowers.title as patron_title, borrowers.firstname, borrowers.surname, borrowers.categorycode,
-                borrowers.phone, borrowers.email, borrowers.branchcode, biblio.biblionumber, biblio.title, items.barcode, reserves.waitingdate,
+                borrowers.phone, borrowers.email, borrowers.branchcode, biblio.biblionumber, biblio.title, items.barcode, items.itemnumber, reserves.waitingdate,
                 reserves.branchcode AS site, branches.branchname AS site_name,
                 TO_DAYS(NOW())-TO_DAYS(reserves.waitingdate) AS days_since_waiting,
                 reserves.expirationdate
@@ -326,7 +326,7 @@ sub GetWaitingHolds {
     $sth->execute();
     my @results;
     while ( my $issue = $sth->fetchrow_hashref() ) {
-        my $item = Koha::Items->find({ barcode => $issue->{barcode} });
+        my $item = Koha::Items->find({ itemnumber => $issue->{itemnumber} });
         my $daysmode = Koha::CirculationRules->get_effective_daysmode(
             {
                 categorycode => $issue->{categorycode},
