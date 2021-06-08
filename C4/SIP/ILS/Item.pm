@@ -75,7 +75,11 @@ use Koha::Patrons;
 sub new {
     my ($class, $item_id) = @_;
     my $type = ref($class) || $class;
-    my $item = Koha::Items->find( { barcode => barcodedecode( $item_id ) } );
+    my $item_filter = { barcode => barcodedecode( $item_id ) };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
     unless ( $item ) {
         siplog("LOG_DEBUG", "new ILS::Item('%s'): not found", $item_id);
         warn "new ILS::Item($item_id) : No item '$item_id'.";
