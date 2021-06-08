@@ -51,10 +51,15 @@ elsif ( $action eq 'batch_rm' ) {
     my @barcodes = uniq( split (/\s\n/, $barcodes ) );
     my @invalid_barcodes;
     my @item_and_count;
+    my $item_filter;
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
 
     foreach my $bar (@barcodes) {
         $bar = barcodedecode($bar) if $bar;
-        my $item = Koha::Items->find( { barcode => $bar } );
+        $item_filter->{barcode} = $bar;
+        my $item = Koha::Items->find( $item_filter );
         if($item) {
             my $courseitem = GetCourseItem(itemnumber => $item->id);
             if($courseitem) {

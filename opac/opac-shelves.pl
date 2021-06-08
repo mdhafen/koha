@@ -205,7 +205,11 @@ if ( $op eq 'add_form' ) {
     $shelf = Koha::Virtualshelves->find($shelfnumber);
     if ($shelf) {
         if( my $barcode = $query->param('barcode') ) {
-            my $item = Koha::Items->find({ barcode => $barcode });
+            my $item_filter = { barcode => $barcode };
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
+            my $item = Koha::Items->find($item_filter);
             if ( $item ) {
                 if ( $shelf->can_biblios_be_added( $loggedinuser ) ) {
                     my $added = eval { $shelf->add_biblio( $item->biblionumber, $loggedinuser ); };

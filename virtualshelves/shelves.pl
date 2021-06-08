@@ -157,10 +157,15 @@ if ( $op eq 'add_form' ) {
         if( my $barcodes = $query->param('barcodes') ) {
             if ( $shelf->can_biblios_be_added( $loggedinuser ) ) {
                 my @barcodes = split /\n/, $barcodes; # Entries are effectively passed in as a <cr> separated list
+                my $item_filter;
+                if ( C4::Context->preference('IndependentBranches') ) {
+                    $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+                }
                 foreach my $barcode (@barcodes){
                     $barcode = barcodedecode( $barcode ) if $barcode;
                     next if $barcode eq '';
-                    my $item = Koha::Items->find({barcode => $barcode});
+                    $item_filter->{barcode} = $barcode;
+                    my $item = Koha::Items->find($item_filter);
                     if ( $item ) {
                         my $added = eval { $shelf->add_biblio( $item->biblionumber, $loggedinuser ); };
                         if ($@) {

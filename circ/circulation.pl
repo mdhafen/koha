@@ -319,7 +319,11 @@ if (@$barcodes) {
     $template_params->{alert} = $alerts;
     $template_params->{messages} = $messages;
 
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
 
     my $biblio;
     if ( $item ) {
@@ -351,7 +355,11 @@ if (@$barcodes) {
                     push @barcodes, sort split(/\s*\|\s*/, $chosen->{barcode});
                 }
             }
-            my $items = Koha::Items->search({ barcode => {-in => \@barcodes}});
+            my $item_filter = { barcode => {-in => \@barcodes} };
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
+            my $items = Koha::Items->search($item_filter);
             $template_params->{options} = $items;
         }
     }

@@ -198,9 +198,13 @@ if ($op eq "additem") {
     # If we have to add or add & duplicate, we add the item
     if ( $add_submit || $add_duplicate_submit || $prefillitem) {
 
+        my $item_filter = { barcode => $item->barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
         # check for item barcode # being unique
         if ( defined $item->barcode
-            && Koha::Items->search( { barcode => $item->barcode } )->count )
+            && Koha::Items->search( $item_filter )->count )
         {
             # if barcode exists, don't create, but report The problem.
             push @errors, "barcode_not_unique";
@@ -304,7 +308,11 @@ if ($op eq "additem") {
                     }
 
                     # Checking if the barcode already exists
-                    $exist_itemnumber = Koha::Items->search({ barcode => $barcodevalue })->count;
+                    my $item_filter = { barcode => $barcodevalue };
+                    if ( C4::Context->preference('IndependentBranches') ) {
+                        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+                    }
+                    $exist_itemnumber = Koha::Items->search($item_filter)->count;
                 }
 
                 # Updating record with the new copynumber
@@ -460,15 +468,14 @@ if ($op eq "additem") {
     }
     $item = $item->set_or_blank($new_values);
 
+    my $item_filter = { barcode => $item->barcode, itemnumber => { '!=' => $item->itemnumber } };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
     # check that the barcode don't exist already
     if (
         defined $item->barcode
-        && Koha::Items->search(
-            {
-                barcode    => $item->barcode,
-                itemnumber => { '!=' => $item->itemnumber }
-            }
-        )->count
+        && Koha::Items->search($item_filter)->count
       )
     {
         # FIXME We shouldn't need that, ->store would explode as there is a unique constraint on items.barcode

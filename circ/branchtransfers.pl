@@ -133,7 +133,11 @@ if ($barcode) {
             ignore_reserves => $ignoreRs,
             trigger => $trigger
         });
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
     $found = $messages->{'ResFound'} unless $settransit;
     if ($transferred) {
         my %trsfitem;
@@ -157,7 +161,11 @@ foreach ( $query->param ) {
     $trsfitem{counter}  = $counter;
     $trsfitem{frombrcd} = $frbcd;
     $trsfitem{tobrcd}   = $tobcd;
-    my $item = Koha::Items->find({ barcode => $bc });
+    my $item_filter = { barcode => $bc };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
     $trsfitem{item}     = $item;
     push( @trsfitemloop, \%trsfitem );
 }

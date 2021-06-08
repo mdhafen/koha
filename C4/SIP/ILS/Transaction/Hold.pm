@@ -43,7 +43,11 @@ sub do_hold {
         $self->ok(0);
         return $self;
     }
-    my $item = Koha::Items->find({ barcode => $self->{item}->id });
+    my $item_filter = { barcode => $self->{item}->id };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
     unless ($item) {
         $self->screen_msg( 'No biblio record matches barcode "' . $self->{item}->id . '".' );
         $self->ok(0);
@@ -90,7 +94,11 @@ sub drop_hold {
         return $self;
     }
 
-    my $item = Koha::Items->find({ barcode => $self->{item}->id });
+    my $item_filter = { barcode => $self->{item}->id };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
     my $holds = $item->holds->search({ borrowernumber => $patron->borrowernumber });
 
     return $self unless $holds->count;
@@ -109,7 +117,11 @@ sub change_hold {
         $self->ok(0);
         return $self;
     }
-    my $item = Koha::Items->find({ barcode => $self->{item}->id });
+    my $item_filter = { barcode => $self->{item}->id };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find($item_filter);
     unless ($item) {
 		$self->screen_msg('No biblio record matches barcode "' . $self->{item}->id . '".');
 		$self->ok(0);

@@ -85,7 +85,11 @@ sub process_bib {
     my $analyticfield = '773';
 	foreach my $hostfield ( $bib->field($analyticfield) ) {
 		if(my $barcode = $hostfield->subfield('o')){
-            my $item = Koha::Items->find({ barcode => $barcode });
+            my $item_filter = { barcode => $barcode };
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
+            my $item = Koha::Items->find($item_filter);
             if ($item) {
                 my $modif;
                 if ( $hostfield->subfield('0') ne $biblionumber ) {

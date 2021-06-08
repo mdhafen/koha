@@ -330,7 +330,11 @@ sub transferbook {
     my $trigger  = $params->{trigger};
     my $messages;
     my $dotransfer      = 1;
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
 
     Koha::Exceptions::MissingParameter->throw(
         "Missing mandatory parameter: from_branch")
@@ -777,7 +781,11 @@ sub CanBookBeIssued {
     my $onsite_checkout     = $params->{onsite_checkout}     || 0;
     my $override_high_holds = $params->{override_high_holds} || 0;
 
-    my $item_object = Koha::Items->find({barcode => $barcode });
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item_object = Koha::Items->find( $item_filter );
 
     # MANDATORY CHECKS - unless item exists, nothing else matters
     unless ( $item_object ) {
@@ -1538,7 +1546,11 @@ sub AddIssue {
     # Stop here if the patron or barcode doesn't exist
     if ( $borrower && $barcode && $barcodecheck ) {
         # find which item we issue
-        my $item_object = Koha::Items->find({ barcode => $barcode })
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item_object = Koha::Items->find( $item_filter )
           or return;    # if we don't get an Item, abort.
         my $item_unblessed = $item_object->unblessed;
 
@@ -2068,7 +2080,11 @@ sub AddReturn {
     my $stat_type = 'return';
 
     # get information on item
-    my $item = Koha::Items->find({ barcode => $barcode });
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
     unless ($item) {
         return ( 0, { BadBarcode => $barcode } );    # no barcode means no item or borrower.  bail out.
     }
@@ -3816,6 +3832,10 @@ my $query=qq|SELECT count(*)
 	     FROM items 
              WHERE barcode=?
 	    |;
+if ( C4::Context->preference('IndependentBranches') ) {
+    $query .= qq|
+               AND homebranch = '| . C4::Context->userenv->{'branch'} . qq|'|;
+}
 my $sth = $dbh->prepare($query);
 $sth->execute($barcode);
 my $exist=$sth->fetchrow ;
@@ -4026,7 +4046,11 @@ sub ProcessOfflineOperation {
 sub ProcessOfflineReturn {
     my $operation = shift;
 
-    my $item = Koha::Items->find({barcode => $operation->{barcode}});
+    my $item_filter = { barcode => $operation->{barcode} };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
 
     if ( $item ) {
         my $itemnumber = $item->itemnumber;
@@ -4057,7 +4081,7 @@ sub ProcessOfflineIssue {
     my $patron = Koha::Patrons->find( { cardnumber => $operation->{cardnumber} } );
 
     if ( $patron ) {
-        my $item = Koha::Items->find({ barcode => $operation->{barcode} });
+        my $item = Koha::Items->find( { barcode => $operation->{barcode}, homebranch => C4::Context->userenv->{'branch'} } );
         unless ($item) {
             return "Barcode not found.";
         }
@@ -4112,10 +4136,14 @@ sub ProcessOfflinePayment {
 sub TransferSlip {
     my ($branch, $itemnumber, $barcode, $to_branch) = @_;
 
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
     my $item =
       $itemnumber
       ? Koha::Items->find($itemnumber)
-      : Koha::Items->find( { barcode => $barcode } );
+      : Koha::Items->find( $item_filter );
 
     $item or return;
 
