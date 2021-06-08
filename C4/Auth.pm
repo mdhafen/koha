@@ -31,6 +31,7 @@ use C4::Context;
 use C4::Templates;    # to get the template
 use C4::Languages;
 use C4::Search::History;
+use C4::WCSDVersion;  # fork version tracking
 use Koha;
 use Koha::Logger;
 use Koha::Caches;
@@ -782,6 +783,19 @@ sub _version_check {
         if ( $type ne 'opac' ) {
             warn sprintf( $warning, 'Installer' );
             print $query->redirect("/cgi-bin/koha/installer/install.pl?step=1&op=updatestructure");
+        } else {
+            warn sprintf( "OPAC: " . $warning, 'maintenance' );
+            print $query->redirect("/cgi-bin/koha/maintenance.pl");
+        }
+        safe_exit;
+    }
+    $version = C4::Context->preference('WCSDVersion');
+    $kohaversion = WCSDVersion::version();
+    if ( $version < $kohaversion ) {
+        my $warning = "Database update needed, redirecting to %s. Database is $version and Koha is $kohaversion";
+        if ( $type ne 'opac' ) {
+            warn sprintf( $warning, 'Installer' );
+            print $query->redirect("/cgi-bin/koha/installer/wcsd_update.pl");
         } else {
             warn sprintf( "OPAC: " . $warning, 'maintenance' );
             print $query->redirect("/cgi-bin/koha/maintenance.pl");
