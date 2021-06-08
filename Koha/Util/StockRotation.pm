@@ -163,10 +163,12 @@ sub get_barcodes_status {
     my ($rota_id, $barcodes, $status) = @_;
 
     # Get the items associated with these barcodes
+    my $item_filter = { barcode => { '-in' => $barcodes } };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
     my $items = Koha::Items->search(
-        {
-            barcode => { '-in' => $barcodes }
-        },
+        $item_filter,
         {
             prefetch => 'stockrotationitem'
         }
