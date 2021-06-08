@@ -245,7 +245,11 @@ if ( $op eq 'cud-inventory'
             err_data   => $err_data
         );
     }
-    my @items = Koha::Items->search( { barcode => { -in => \@barcodes } } )->as_list;
+    my $items_filter = { barcode => { -in => \@barcodes } };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $items_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my @items = Koha::Items->search($items_filter)->as_list;
     my %items = map { lc( $_->barcode ) => $_ } @items;
     foreach my $barcode (@barcodes) {
         my $item = $items{ lc($barcode) };
