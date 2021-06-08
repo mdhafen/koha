@@ -107,12 +107,16 @@ if ( $op eq 'cud-add' ) {
     my $olditem;    # FIXME: When items and deleted_items are merged, we can remove this
     my $issue_id;
     if ($barcode) {
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item = Koha::Items->find($item_filter);
         if ($item) {
             $item_id = $item->itemnumber;
         } else {
             $item = Koha::Old::Items->search(
-                { barcode  => $barcode },
+                $item_filter,
                 { order_by => { -desc => 'timestamp' }, rows => 1 }
             );
             if ( $item->count ) {

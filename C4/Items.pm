@@ -507,7 +507,11 @@ sub CheckItemPreSave {
     # check for duplicate barcode
     if ( exists $item_ref->{'barcode'} and defined $item_ref->{'barcode'} ) {
         my $barcode       = C4::Circulation::barcodedecode( $item_ref->{'barcode'} );
-        my $existing_item = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $existing_item = Koha::Items->find( $item_filter );
         if ($existing_item) {
             if (
                 !exists $item_ref->{'itemnumber'}    # new item

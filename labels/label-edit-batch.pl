@@ -88,7 +88,11 @@ if ( $op eq 'cud-delete' ) {
             } elsif ( $number_type eq "barcode" )
             {    # we must test in case an invalid barcode is passed in; we effectively disgard them atm
                 $number = barcodedecode($number);
-                my $item = Koha::Items->find( { barcode => $number } );
+                my $item_filter = { barcode => $number };
+                if ( C4::Context->preference('IndependentBranches') ) {
+                    $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+                }
+                my $item = Koha::Items->find($item_filter);
                 push @item_numbers, $item->itemnumber if $item;
             }
         }

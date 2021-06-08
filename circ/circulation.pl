@@ -368,7 +368,11 @@ if ( @$barcodes && $op eq 'cud-checkout' ) {
         $template_params->{alert}    = $alerts;
         $template_params->{messages} = $messages;
 
-        my $item = Koha::Items->find( { barcode => $barcode } );
+        my $item_filter = { barcode => $barcode };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
+        my $item = Koha::Items->find( $item_filter );
 
         my $biblio;
         if ($item) {
@@ -406,6 +410,9 @@ if ( @$barcodes && $op eq 'cud-checkout' ) {
 
             my $searcher = Koha::SearchEngine::Search->new( { index => $Koha::SearchEngine::BIBLIOS_INDEX } );
             my $query    = "kw=" . $barcode;
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $query  .= "&limit=homebranch:". C4::Context->userenv->{'branch'};
+            }
             my ( $searcherror, $results, $total_hits ) = $searcher->simple_search_compat( $query, 0, 10 );
 
             # if multiple hits, offer options to librarian
@@ -420,7 +427,11 @@ if ( @$barcodes && $op eq 'cud-checkout' ) {
                         push @barcodes, sort split( /\s*\|\s*/, $chosen->{barcode} );
                     }
                 }
-                my $items = Koha::Items->search( { barcode => { -in => \@barcodes } } );
+                my $item_filter = { barcode => {-in => \@barcodes} };
+                if ( C4::Context->preference('IndependentBranches') ) {
+                    $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+                }
+                my $items = Koha::Items->search( $item_filter );
                 $template_params->{options} = $items;
             }
         }
