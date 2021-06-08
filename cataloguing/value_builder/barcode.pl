@@ -67,6 +67,9 @@ my $builder = sub {
 
         # not the best, two catalogers could add the same barcode easily this way :/
         my $query = "select max(abs(barcode)) from items";
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $query .= " WHERE homebranch = '". C4::Context->userenv->{'branch'} ."'";
+        }
         my $dbh   = $params->{dbh};
         my $sth   = $dbh->prepare($query);
         $sth->execute();

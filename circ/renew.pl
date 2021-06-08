@@ -56,7 +56,11 @@ my ( $soonest_renew_date, $latest_auto_renew_date );
 
 if ( $op eq 'cud-renew' && $barcode ) {
     $barcode = barcodedecode($barcode) if $barcode;
-    $item    = Koha::Items->find( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    $item    = Koha::Items->find($item_filter);
 
     if ($item) {
 

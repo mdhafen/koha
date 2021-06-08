@@ -56,7 +56,11 @@ $template->param( biblionumber => $biblionumber );
 
 if ( $op eq 'cud-linkitem' && $barcode && $biblionumber ) {
 
-    my $item = Koha::Items->find( { barcode => $barcode } );
+    my $item_filter = { barcode => $barcode };
+    if ( C4::Context->preference('IndependentBranches') ) {
+        $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+    }
+    my $item = Koha::Items->find( $item_filter );
 
     if ($item) {
         my $field = PrepHostMarcField( $item->biblio->biblionumber, $item->itemnumber, $marcflavour );
