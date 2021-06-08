@@ -792,6 +792,10 @@ sub _batchCommitItems {
         my $item_match;
         my $duplicate_barcode    = exists( $item->{'barcode'} );
         my $duplicate_itemnumber = exists( $item->{'itemnumber'} );
+        my $item_barcode_filter = { barcode => $item->{barcode} };
+        if ( C4::Context->preference('IndependentBranches') ) {
+            $item_barcode_filter->{homebranch} = C4::Context->userenv->{'branch'};
+        }
 
         # We assume that when replacing items we do not want to move them - the onus is on the importer to
         # ensure the correct items/records are being updated
@@ -812,7 +816,7 @@ sub _batchCommitItems {
             $num_items_replaced++;
         } elsif ( $action eq "replace"
             && $duplicate_barcode
-            && ( $item_match = Koha::Items->find( { barcode => $item->{'barcode'} } ) ) )
+            && ( $item_match = Koha::Items->find($item_barcode_filter) ) )
         {
             ModItemFromMarc(
                 $item_marc, $item_match->biblionumber, $item_match->itemnumber,
@@ -828,7 +832,7 @@ sub _batchCommitItems {
         } elsif (
 
             # We aren't replacing, but the incoming file has a barcode, we need to check if it exists
-            $duplicate_barcode && ( $item_match = Koha::Items->find( { barcode => $item->{'barcode'} } ) )
+            $duplicate_barcode && ( $item_match = Koha::Items->find($item_barcode_filter) )
             )
         {
             $updsth->bind_param( 1, 'error' );
