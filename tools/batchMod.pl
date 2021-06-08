@@ -240,8 +240,12 @@ if ( $op eq "cud-show" || $op eq "show" ) {
             @contentlist = map { barcodedecode($_) } @contentlist;
 
             # Note: adding lc for case insensitivity
+            my $item_filter = { barcode => { -in => \@contentlist } };
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
             my %itemdata = map { lc( $_->{barcode} ) => $_->{itemnumber} } @{ Koha::Items->search(
-                    { barcode => { -in => \@contentlist } }, { columns => [ 'itemnumber', 'barcode' ] }
+                    $item_filter, { columns => [ 'itemnumber', 'barcode' ] }
                 )->unblessed
             };
             @itemnumbers      = map  { exists $itemdata{ lc $_ } ? $itemdata{ lc $_ } : () } @contentlist;
@@ -267,8 +271,12 @@ if ( $op eq "cud-show" || $op eq "show" ) {
             @barcodelist = map { barcodedecode($_) } @barcodelist;
 
             # Note: adding lc for case insensitivity
+            my $item_filter = { barcode => { -in => \@barcodelist } };
+            if ( C4::Context->preference('IndependentBranches') ) {
+                $item_filter->{homebranch} = C4::Context->userenv->{'branch'};
+            }
             my %itemdata = map { lc( $_->{barcode} ) => $_->{itemnumber} } @{ Koha::Items->search(
-                    { barcode => { -in => \@barcodelist } }, { columns => [ 'itemnumber', 'barcode' ] }
+                    $item_filter, { columns => [ 'itemnumber', 'barcode' ] }
                 )->unblessed
             };
             @itemnumbers      = map  { exists $itemdata{ lc $_ } ? $itemdata{ lc $_ } : () } @barcodelist;
