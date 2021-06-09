@@ -33,6 +33,7 @@ use C4::Output;
 use C4::Branch;  # GetBranchesLoop GetBranchesWithProperty GetBranches
 use C4::Reserves;  # GetReservesFromBorrowernumber
 use C4::Members;  # MoveMemberToDeleted DelMember AddMember ModMember GetMemberIssuesAndFines
+use C4::Members::Messaging;  # SetMessagingPreferencesFromDefaults
 
 our $debug;
 my $cgi = new CGI;
@@ -96,6 +97,13 @@ my $op     = $cgi->param( 'op' ) || '';
 my $confirmed = $cgi->param( 'confirmed' ) || '';
 my $branch = $cgi->param( 'branch' );
 my $category = $cgi->param('category');
+
+my $no_msg_branches = GetBranchesWithProperty( 'NOMSG' );
+{   # reverse array into a hash for quick lookups
+    my %tmp = map { $_ => 1 } @$no_msg_branches;
+    $no_msg_branches = \%tmp;
+}
+my $clear_msg_prefs_sth = $dbh->prepare('DELETE FROM borrower_message_preferences WHERE borrowernumber = ?');
 
 if ( $op eq 'Sync' and @categories ) {
 #warn "Getting lists...";
@@ -242,9 +250,20 @@ if ( $op eq 'Sync' and @categories ) {
 		$allow_delete = 0;
 		if ( $confirmed ) {
 		    if ( $historical_branch && ! $$branches{$$bordata{'branchcode'}} ) {
-			$branch_update->execute( $$historical_branch{'branchcode'}, $cardnumber );
+                $branch_update->execute( $$historical_branch{'branchcode'}, $cardnumber );
+                if (C4::Context->preference('EnhancedMessagingPreferences')) {
+                    $clear_msg_prefs_sth->execute($$dbhash{$cardnumber}{'borrowernumber'});
+                }
 		    } else {
-			$branch_update->execute( $$bordata{'branchcode'}, $cardnumber )
+                $branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
+                if (C4::Context->preference('EnhancedMessagingPreferences')) {
+                    if ( $no_msg_branches->{$$dbhash{$cardnumber}{'branchcode'}} && ! $no_msg_branches->{$$bordata{'branchcode'}} ) {
+                        SetMessagingPreferencesFromDefaults({ borrowernumber => $$dbhash{$cardnumber}{'borrowernumber'}, categorycode => $category });
+                    }
+                    elsif ( $no_msg_branches->{$$bordata{'branchcode'}} ) {
+                        $clear_msg_prefs_sth->execute($$dbhash{$cardnumber}{'borrowernumber'});
+                    }
+                }
 		    }
 		}
 		#warn "Trying to change branch of $cardnumber to $$bordata{branchcode}";
@@ -307,6 +326,9 @@ if ( $op eq 'Sync' and @categories ) {
 	if ( $confirmed ) {
 	    if ( $historical_branch ) {
 		$branch_update->execute( $$historical_branch{'branchcode'}, $cardnumber );
+		if (C4::Context->preference('EnhancedMessagingPreferences')) {
+		    $clear_msg_prefs_sth->execute( $fields[0] );
+		}
 	    } else {
 		MoveMemberToDeleted( $fields[0] );
 		DelMember( $fields[0] );
@@ -438,6 +460,14 @@ if ( $op eq 'Sync' and @categories ) {
 	    if ( $confirmed ) {
 		ModMember( %$attribs );
 #warn "Updated $$attribs{cardnumber}";
+		if ( $$attribs{'branchcode'} && C4::Context->preference('EnhancedMessagingPreferences') ) {
+            if ( $no_msg_branches->{$$values{'branchcode'}} && ! $no_msg_branches->{$$attribs{'branchcode'}} ) {
+                SetMessagingPreferencesFromDefaults({ borrowernumber => $$values{'borrowernumber'}, categorycode => $category });
+            }
+            elsif ( $no_msg_branches->{$$attribs{'branchcode'}} ) {
+                $clear_msg_prefs_sth->execute($$values{'borrowernumber'});
+            }
+		}
 	    }
 
 	    push @report, {
