@@ -53,7 +53,7 @@ my $itype = C4::Context->preference('item-level_itypes') ? 'items.itype' : 'bibl
 
 my $reportname = "cat_titles_by_various";  # ie "collection_itemnums"
 my $reporttitle = "Titles By Various Criteria";  # ie "Item Number by Branch"
-my @column_titles = ( "Title", "Author", "Library", "Call Number", "Barcode", "Item Type", "Copy Notes" );
+my @column_titles = ( "Title", "Author", "Series Title", "Volume", "Copyright", "Library", "Call Number", "Barcode", "Item Type", "Copy Notes" );
 
 #FIXME build queryfilter
 $CGI::LIST_CONTEXT_WARN=0;
@@ -112,15 +112,21 @@ if ( $options[0] ) {
 	$group = "biblioitems.biblioitemnumber,biblio.biblionumber";
 	$query =
     "SELECT CONCAT_WS(' ', biblio.title,biblio.remainderoftitle) AS title,
-            biblio.author, GROUP_CONCAT( DISTINCT $hbranch) AS branch, GROUP_CONCAT(DISTINCT items.itemcallnumber) AS itemcallnumber, GROUP_CONCAT(DISTINCT items.barcode) AS barcode,
-            GROUP_CONCAT(DISTINCT $itype) AS itype, GROUP_CONCAT(DISTINCT items.itemnotes) AS itemnotes, MAX(items.itemnumber) AS itemnumber, items.biblionumber
+            biblio.author, biblio.seriestitle, biblioitems.volume,
+            biblio.copyrightdate, GROUP_CONCAT( DISTINCT $hbranch) AS branch,
+            GROUP_CONCAT(DISTINCT items.itemcallnumber) AS itemcallnumber,
+            GROUP_CONCAT(DISTINCT items.barcode) AS barcode,
+            GROUP_CONCAT(DISTINCT $itype) AS itype,
+            GROUP_CONCAT(DISTINCT items.itemnotes) AS itemnotes,
+            MAX(items.itemnumber) AS itemnumber, items.biblionumber
        FROM items
  CROSS JOIN biblio USING (biblionumber)
  CROSS JOIN biblioitems USING (biblioitemnumber)";
 } else {
 	$query =
     "SELECT CONCAT_WS(' ',biblio.title,biblio.remainderoftitle) AS title,
-            biblio.author, $hbranch, items.itemcallnumber, items.barcode,
+            biblio.author, biblio.seriestitle, biblioitems.volume,
+            biblio.copyrightdate, $hbranch, items.itemcallnumber, items.barcode,
             $itype, items.itemnotes, items.itemnumber, items.biblionumber
        FROM items
  CROSS JOIN biblio USING (biblionumber)
@@ -360,7 +366,7 @@ CALC_MAIN_LOOP:
 	    foreach ( @values[ 0 .. $#$column_titles ] ) {
 		push @mapped_values, { value => $_ };
 	    }
-	    $mapped_values[4]->{ 'link' } = "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7];
+	    $mapped_values[7]->{ 'link' } = "/cgi-bin/koha/cataloguing/additem.pl?op=edititem&biblionumber=". $values[8] ."&itemnumber=". $values[7];
 	    $row{ 'values' } = \@mapped_values;
 	    push @looprow, \%row;
 	    $grantotal++;
