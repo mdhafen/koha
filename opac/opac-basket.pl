@@ -110,9 +110,14 @@ foreach my $biblionumber (@bibs) {
         $dat->{'even'} = 1;
     }
 
+    my $items_filter = {};
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+    }
+
     $num++;
     $dat->{biblionumber} = $biblionumber;
-    $dat->{ITEM_RESULTS} = $biblio->items->filter_by_visible_in_opac( { patron => $logged_in_user } );
+    $dat->{ITEM_RESULTS} = $biblio->items->search($items_filter)->filter_by_visible_in_opac( { patron => $logged_in_user } );
     $dat->{MARCNOTES}    = $marcnotesarray;
     $dat->{MARCSUBJCTS}  = $marcsubjctsarray;
     $dat->{MARCAUTHORS}  = $marcauthorsarray;

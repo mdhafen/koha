@@ -279,8 +279,12 @@
                             <td><input type="radio" name="Column" value="branch" /></td>
                             <td
                                 ><select name="Filter" id="branch">
-                                    <option value=""> </option>
-                                    [% PROCESS options_for_libraries libraries => Branches.all() %]
+                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                        [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+                                    [% ELSE %]
+                                        <option value=""> </option>
+                                        [% PROCESS options_for_libraries libraries => Branches.all() %]
+                                    [% END %]
                                 </select>
                             </td>
                         </tr>
@@ -352,8 +356,12 @@
                             <td><input type="radio" name="Column" value="items.homebranch" /></td>
                             <td
                                 ><select name="Filter" id="homebranch">
-                                    <option value=""> </option>
-                                    [% PROCESS options_for_libraries libraries => Branches.all({ selected => "" }) %]
+                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                        [% PROCESS options_for_libraries libraries => Branches.all({ search_params => { branchcode => Branches.GetLoggedInBranchcode() } }) %]
+                                    [% ELSE %]
+                                        <option value=""> </option>
+                                        [% PROCESS options_for_libraries libraries => Branches.all({ selected => "" }) %]
+                                    [% END %]
                                 </select>
                             </td>
                         </tr>
@@ -364,8 +372,12 @@
                             <td><input type="radio" name="Column" value="items.holdingbranch" /></td>
                             <td
                                 ><select name="Filter" id="holdingbranch">
-                                    <option value=""> </option>
-                                    [% PROCESS options_for_libraries libraries => Branches.all({ selected => "" }) %]
+                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                        [% PROCESS options_for_libraries libraries => Branches.all({ search_params => { branchcode => Branches.GetLoggedInBranchcode() } }) %]
+                                    [% ELSE %]
+                                        <option value=""> </option>
+                                        [% PROCESS options_for_libraries libraries => Branches.all({ selected => "" }) %]
+                                    [% END %]
                                 </select>
                             </td>
                         </tr>
