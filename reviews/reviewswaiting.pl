@@ -40,7 +40,12 @@ my $status       = $query->param('status') || 0;
 my $reviewid     = $query->param('reviewid');
 my $page         = $query->param('page')                       || 1;
 my $count        = C4::Context->preference('numSearchResults') || 20;
-my $total        = Koha::Reviews->search_limited( { approved => $status } )->count;
+my $review_filter = { approved => $status };
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    # search_limited supplies the borrowernumber relation
+    $review_filter->{'borrowernumber.branchcode'} = C4::Context->userenv->{branch};
+}
+my $total        = Koha::Reviews->search_limited($review_filter)->count;
 my $biblionumber = $query->param('biblionumber');
 
 if ( $op eq 'cud-approve' ) {
@@ -60,7 +65,7 @@ if ( $op && $biblionumber ) {
 }
 
 my $reviews = Koha::Reviews->search_limited(
-    { approved => $status },
+    $review_filter,
     {
         rows     => $count,
         page     => $page,
