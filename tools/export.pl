@@ -71,6 +71,9 @@ my ( $template, $loggedinuser, $cookie, $flags ) = get_template_and_user(
 );
 
 my @branch = $query->multi_param("branch");
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    @branch = (C4::Context->userenv->{branch});
+}
 
 my @messages;
 if ( $op eq 'export' ) {
@@ -91,6 +94,7 @@ if ( $op eq "export" ) {
     my @biblionumbers      = $query->multi_param("biblionumbers");
     my @itemnumbers        = $query->multi_param("itemnumbers");
     my $strip_items_not_from_libraries =  $query->param('strip_items_not_from_libraries');
+    $strip_items_not_from_libraries = 1 if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') );
 
     my $libraries = Koha::Libraries->search_filtered->unblessed;
     my $only_export_items_for_branches = $strip_items_not_from_libraries ? \@branch : undef;
@@ -271,7 +275,11 @@ else {
 
     my $authority_types = Koha::Authority::Types->search( {}, { order_by => ['authtypecode'] } );
 
-    my $libraries = Koha::Libraries->search_filtered({}, { order_by => ['branchname'] })->unblessed;
+    my $library_filter = {};
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $library_filter->{'branchcode'} = C4::Context->userenv->{branch};
+    }
+    my $libraries = Koha::Libraries->search_filtered($library_filter, { order_by => ['branchname'] })->unblessed;
     for my $library ( @$libraries ) {
         $library->{selected} = 1 if grep { $library->{branchcode} eq $_ } @branch;
     }

@@ -781,6 +781,8 @@ sub GetItemsInfo {
     my $userenv = C4::Context->userenv;
     my $want_not_same_branch = C4::Context->preference("IndependentBranches") && !C4::Context->IsSuperLibrarian();
     while ( my $data = $sth->fetchrow_hashref ) {
+        next if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $data->{homebranch} ne $userenv->{branch} );
+
         if ( $data->{borrowernumber} && $want_not_same_branch) {
             $data->{'NOTSAMEBRANCH'} = $data->{'bcode'} ne $userenv->{branch};
         }
@@ -878,7 +880,12 @@ sub GetItemsLocationInfo {
 			    location, itemcallnumber, cn_sort
 		     FROM items, branches as a, branches as b
 		     WHERE homebranch = a.branchcode AND holdingbranch = b.branchcode 
-		     AND biblionumber = ?
+		     AND biblionumber = ?";
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') &&( my $mybranch = C4::Context->userenv->{branch} ) ) {
+        $query .= "
+             AND homebranch = '$mybranch'";
+    }
+    $query .= "
 		     ORDER BY cn_sort ASC";
 	my $sth = $dbh->prepare($query);
         $sth->execute($biblionumber);

@@ -523,6 +523,7 @@ if ($op) {
 
 my @items;
 for my $item ( $biblio->items->as_list, $biblio->host_items->as_list ) {
+    next if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $item->homebranch ne C4::Context->userenv->{branch} );
     push @items, $item->columns_to_str;
 }
 

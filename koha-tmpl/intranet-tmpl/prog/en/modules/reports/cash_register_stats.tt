@@ -108,7 +108,9 @@
                 <li>
                     <label>Transaction library</label>
                     <select name="branch" id="branch">
+                        [% UNLESS Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
                         <option value="ALL">All</option>
+                        [% END %]
                         [% FOREACH branchloo IN branchloop %]
                             [% IF ( branchloo.selected ) %]
                             <option value="[% branchloo.branchcode | html %]" selected="selected">[% branchloo.branchname | html %]</option>

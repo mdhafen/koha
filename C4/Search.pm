@@ -1824,6 +1824,12 @@ sub searchResults {
                     next;
                 }
             }
+            if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                if ( $item->{homebranch} ne $userenv->{branch} ) {
+                    $items_count--;
+                    next;
+                }
+            }
 
             my $hbranch     = C4::Context->preference('StaffSearchResultsDisplayBranch');
             my $otherbranch = $hbranch eq 'homebranch' ? 'holdingbranch' : 'homebranch';

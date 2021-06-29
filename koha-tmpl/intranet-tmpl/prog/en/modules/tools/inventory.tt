@@ -99,8 +99,12 @@
             <input type="radio" name="branch" value="holdingbranch"> Current library</input>
         </li><li>
         <label for="branchloop">Library: </label><select id="branchloop" name="branchcode" style="width:12em;">
+        [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchcode, unfiltered => 1, ) %]
+        [% ELSE %]
             <option value="">All libraries</option>
             [% PROCESS options_for_libraries libraries => Branches.all( selected => branchcode, unfiltered => 1, ) %]
+        [% END %]
         </select>
         </li>
         [% IF (authorised_values) %]

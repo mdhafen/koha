@@ -905,7 +905,11 @@ legend:hover {
                                             <li>
                                                 <label for="libraries" class="required">Library:</label>
                                                 <select name="branchcode" id="libraries">
+                                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                                    [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => userbranch, only_from_group => 1 ) %]
+                                                    [% ELSE %]
                                                     [% PROCESS options_for_libraries libraries => Branches.all( selected => userbranch, only_from_group => 1 ) %]
+                                                    [% END %]
                                                 </select>
                                                 <span class="required">Required</span>
                                             </li>

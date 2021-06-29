@@ -193,6 +193,10 @@ my ($template, $borrowernumber, $cookie) = get_template_and_user({
     }
 );
 
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && ! grep { /^(multi|home|holding)?branch/ } @limits ) {
+    push @limits, 'homebranch: '. C4::Context->userenv->{branch};
+}
+
 my $lang = C4::Languages::getlanguage($cgi);
 
 if (C4::Context->preference("marcflavour") eq "UNIMARC" ) {

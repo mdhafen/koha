@@ -337,6 +337,10 @@ sub buildKohaItemsNamespace {
         $items_rs = Koha::Items->new;
     }
 
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $query->{'me.homebranch'} = C4::Context->userenv->{branch};
+    }
+
     my $items = $items_rs->search( $query, { prefetch => [ 'branchtransfers', 'reserves' ] } );
 
     my $shelflocations =

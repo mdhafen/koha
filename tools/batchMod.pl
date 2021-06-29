@@ -236,6 +236,9 @@ if ($op eq "show"){
         if (defined $biblionumber && !@itemnumbers){
             my $biblio = Koha::Biblios->find($biblionumber);
             @itemnumbers = $biblio ? $biblio->items->get_column('itemnumber') : ();
+            if ( $biblio && C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                @itemnumbers = $biblio->items->search({ homebranch => C4::Context->userenv->{branch} })->get_column('itemnumber');
+            }
         }
         if ( my $list = $input->param('barcodelist') ) {
             my @barcodelist = grep /\S/, ( split /[$split_chars]/, $list );

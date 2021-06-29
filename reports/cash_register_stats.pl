@@ -192,11 +192,15 @@ if ($do_it) {
 
 }
 
+my $libraries_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $libraries_filter->{branchcode} = C4::Context->userenv->{branch};
+}
 $template->param(
     beginDate        => $fromDate,
     endDate          => $toDate,
     transaction_type => $transaction_type,
-    branchloop       => Koha::Libraries->search({}, { order_by => ['branchname'] })->unblessed,
+    branchloop       => Koha::Libraries->search($libraries_filter, { order_by => ['branchname'] })->unblessed,
     debit_types      => \@debit_types,
     credit_types     => \@credit_types,
     registerid       => $registerid,

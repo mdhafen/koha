@@ -478,8 +478,12 @@ sub edit_form {
     my $default_branches_empty = $params->{default_branches_empty};
     my $ignore_invisible_subfields = $params->{ignore_invisible_subfields} || 0;
 
+    my $libraries_filter = {};
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $libraries_filter->{branchcode} = C4::Context->userenv->{branch};
+    }
     my $libraries =
-      Koha::Libraries->search( {}, { order_by => ['branchname'] } )->unblessed;
+      Koha::Libraries->search( $libraries_filter, { order_by => ['branchname'] } )->unblessed;
     for my $library (@$libraries) {
         $library->{selected} = 1 if $branchcode && $library->{branchcode} eq $branchcode;
     }

@@ -377,9 +377,13 @@
                             <li>
                                 <label for="branch">Library:</label>
                                 <select id="branch" name="branch">
+                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                    [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branch, unfiltered => 1 ) %]
+                                    [% ELSE %]
                                     <option value="">All</option>
                                     [%# FIXME Should not we filter the libraries %]
                                     [% PROCESS options_for_libraries libraries => Branches.all( selected => branch, unfiltered => 1 ) %]
+                                    [% END %]
                                 </select>
                             </li>
                         </ol>

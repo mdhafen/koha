@@ -244,8 +244,12 @@
                 <li>
                     <label for="branchlimit">Library: </label>
                     <select name="branchlimit" id="branchlimit">
+                        [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                        [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, only_from_group => 1 ) %]
+                        [% ELSE %]
                         <option value="">All</option>
                         [% PROCESS options_for_libraries libraries => Branches.all( selected => branchlimit, only_from_group => 1 ) %]
+                        [% END %]
                     </select>
                 </li>
                 <li>

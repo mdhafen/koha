@@ -252,10 +252,16 @@
                         <li>
                             <label class="description" for="branchcode">[% borrower_fields.$borrower_db_column | html %]: </label>
                             <select id="branchcode" name="branchcode">
+                            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                [% FOREACH library IN Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+                                    <option value="[% library.branchcode | html %]">[% library.branchname | html %]</option>
+                                [% END %]
+                            [% ELSE %]
                                 <option value="" selected="selected"></option>
                                 [% FOREACH library IN Branches.all() %]
                                     <option value="[% library.branchcode | html %]">[% library.branchname | html %]</option>
                                 [% END %]
+                            [% END %]
                             </select>
                             <span class="field_hint">[% borrower_db_column | html %]</span>
                         </li>

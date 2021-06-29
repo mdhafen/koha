@@ -208,8 +208,12 @@
             <td><input type="radio" name="Line" value="reserves.branchcode" checked="checked" /></td>
             <td><input type="radio" name="Column" value="reserves.branchcode" /></td>
             <td><select name="filter_reserves.branchcode" id="resbranchcode">
+               [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+               [% ELSE %]
                <option value=""> </option>
                 [% PROCESS options_for_libraries libraries => Branches.all() %]
+               [% END %]
                </select>
              </td> 
         </tr>
@@ -218,8 +222,12 @@
             <td><input type="radio" name="Line" value="items.holdingbranch" /></td>
             <td><input type="radio" name="Column" value="items.holdingbranch" /></td>
             <td><select name="filter_items.holdingbranch" id="holdingbranch">
+               [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+               [% ELSE %]
                <option value=""> </option>
                 [% PROCESS options_for_libraries libraries => Branches.all() %]
+               [% END %]
                </select>
              </td> 
         </tr>
@@ -228,8 +236,12 @@
             <td><input type="radio" name="Line" value="items.homebranch" /></td>
             <td><input type="radio" name="Column" value="items.homebranch" /></td>
             <td><select name="filter_items.homebranch" id="homebranch">
+               [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+               [% ELSE %]
                 <option value=""> </option>
                 [% PROCESS options_for_libraries libraries => Branches.all() %]
+               [% END %]
                </select>
              </td> 
         </tr>
