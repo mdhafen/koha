@@ -106,8 +106,12 @@ my $record = $biblio ? $biblio->metadata->record : undef;
 output_and_exit( $query, $cookie, $template, 'unknown_biblio' )
     unless $biblio && $record;
 
-my $fw        = GetFrameworkCode($biblionumber);
-my $all_items = $biblio->items->search_ordered;
+my $fw           = GetFrameworkCode($biblionumber);
+my $items_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+}
+my $all_items    = $biblio->items->search_ordered($items_filter);
 
 my @items;
 my $patron = Koha::Patrons->find($loggedinuser);
