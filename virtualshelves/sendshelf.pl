@@ -82,7 +82,11 @@ if ($to_address) {
         my $marcauthorsarray = $biblio->get_marc_contributors;
         my $marcsubjctsarray = GetMarcSubjects( $record, $marcflavour );
 
-        my $items = $biblio->items->search_ordered;
+        my $items_filter = {};
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
+        my $items = $biblio->items->search_ordered($items_filter);
 
         $dat->{ISBN}           = GetMarcISBN($record, $marcflavour);
         $dat->{MARCSUBJCTS}    = $marcsubjctsarray;

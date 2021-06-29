@@ -85,7 +85,11 @@ if ( $email_add ) {
         my $marcauthorsarray = $biblio->get_marc_contributors;
         my $marcsubjctsarray = GetMarcSubjects( $record, $marcflavour );
 
-        my $items = $biblio->items->search_ordered->filter_by_visible_in_opac({ patron => $patron });
+        my $items_filter = {};
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
+        my $items = $biblio->items->search_ordered($items_filter)->filter_by_visible_in_opac({ patron => $patron });
 
         my $hasauthors = 0;
         if($dat->{'author'} || @$marcauthorsarray) {

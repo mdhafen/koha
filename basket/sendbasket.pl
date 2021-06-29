@@ -81,11 +81,15 @@ if ( $email_add ) {
         }
 	
 
+        my $items_filter = {};
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
         $dat->{MARCSUBJCTS}    = $marcsubjctsarray;
         $dat->{MARCAUTHORS}    = $marcauthorsarray;
         $dat->{HASAUTHORS}     = $hasauthors;
         $dat->{'biblionumber'} = $biblionumber;
-        $dat->{ITEM_RESULTS}   = $biblio->items->search_ordered;
+        $dat->{ITEM_RESULTS}   = $biblio->items->search_ordered($items_filter);
         my ( $host, $relatedparts ) = $biblio->get_marc_host;
         $dat->{HOSTITEMENTRIES} = $host;
         $dat->{RELATEDPARTS} = $relatedparts;

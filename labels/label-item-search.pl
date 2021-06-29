@@ -74,6 +74,10 @@ if ( $op eq "do_search" ) {
         $ccl_query .= ' AND ' if ( $ccl_textbox || $datefrom );
         $ccl_query .= "acqdate,le,st-date-normalized=" . $dateto;
     }
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $ccl_query .= ' AND ' if ( $ccl_textbox || $dateto || $datefrom );
+        $ccl_query .= "homebranch=" . C4::Context->userenv->{branch};
+    }
 
     my $offset = $startfrom > 1 ? $startfrom - 1 : 0;
     my $searcher = Koha::SearchEngine::Search->new({index => 'biblios'});
@@ -103,7 +107,11 @@ if ($show_results) {
         push (@results_set, $biblio);
         my $biblionumber = $biblio->{'biblionumber'};
         #DEBUG Notes: Grab the item numbers associated with this MARC record...
-        my $items = Koha::Items->search({ biblionumber => $biblionumber }, { order_by => { -desc => 'itemnumber' }});
+        my $items_filter = { biblionumber => $biblionumber };
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
+        my $items = Koha::Items->search($items_filter, { order_by => { -desc => 'itemnumber' }});
         #DEBUG Notes: Retrieve the item data for each number...
         while ( my $item = $items->next ) {
             #DEBUG Notes: Build an array element 'item' of the correct bib (results) hash which contains item-specific data...

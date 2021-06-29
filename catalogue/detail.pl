@@ -193,6 +193,9 @@ my $itemtypes = { map { $_->itemtype => $_ } @{ Koha::ItemTypes->search_with_loc
 my $params;
 my $patron = Koha::Patrons->find( $borrowernumber );
 $params->{ itemlost } = 0 if $patron->category->hidelostitems && !$showallitems;
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $params->{'homebranch'} = C4::Context->userenv->{branch};
+}
 my @items = $biblio->items->search_ordered( $params )->as_list;
 
 # flag indicating existence of at least one item linked via a host record
