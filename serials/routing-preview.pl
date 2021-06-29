@@ -61,7 +61,11 @@ if($op eq 'cud-save_and_preview'){
     my $biblionumber = $subs->{'bibnum'};
 
     my $biblio = Koha::Biblios->find( $biblionumber );
-    my $items = $biblio->items->search_ordered;
+    my $items_filter = {};
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+    }
+    my $items = $biblio->items->search_ordered($items_filter);
     my $branch =
         $items->count
       ? $items->next->holding_branch->branchcode
