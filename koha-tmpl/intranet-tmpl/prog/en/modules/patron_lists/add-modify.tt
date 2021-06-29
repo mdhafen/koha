@@ -16,7 +16,11 @@
     [% t("Tools") | html %] &rsaquo;
     [% t("Koha") | html %]
 [% END %]</title>
+[% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+  [% SET libraries = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => Branches.GetLoggedInBranchcode() ) %]
+[% ELSE %]
   [% SET libraries = Branches.all %]
+[% END %]
 [% SET categories = Categories.all.unblessed %]
 [% INCLUDE 'doc-head-close.inc' %]
 </head>
