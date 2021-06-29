@@ -96,7 +96,11 @@ my $is_fast_add =
     $fw eq ''
     ? 0
     : Koha::BiblioFrameworks->find($fw)->is_fast_add;
-my $all_items = $biblio->items->search_ordered;
+my $items_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+}
+my $all_items = $biblio->items->search_ordered($items_filter);
 
 my @items;
 my $patron = Koha::Patrons->find($loggedinuser);

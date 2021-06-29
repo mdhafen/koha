@@ -58,8 +58,12 @@ if ( $op eq "cud-del" ) {
         for ( @{$taglist} ) {
 
             # FIXME We should use Koha::Biblio here
+            my $items_filter = { 'me.biblionumber' => $dat->{biblionumber} };
+            if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+            }
             my $dat   = &GetBiblioData( $_->{biblionumber} );
-            my $items = Koha::Items->search_ordered( { 'me.biblionumber' => $dat->{biblionumber} } );
+            my $items = Koha::Items->search_ordered($items_filter);
             $dat->{biblionumber} = $_->{biblionumber};
             $dat->{tag_id}       = $_->{tag_id};
             $dat->{items}        = $items;
