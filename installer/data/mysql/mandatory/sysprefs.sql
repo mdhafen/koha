@@ -349,6 +349,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('IncludeSeeFromInSearches','0','','Include see-from references in searches.','YesNo'),
 ('IndependentBranches','0',NULL,'If ON, increases security between libraries','YesNo'),
 ('IndependentBranchesPatronModifications','0', NULL, 'Show only modification request for the logged in branch','YesNo'),
+('IndependentBranchesHideOtherBranchesItems','0',NULL,'Hide other branches in selects.  Hide items belonging to other branches in search results, holds, biblio and item details, and exports.','YesNo'),
 ('IndependentBranchesTransfers','0', NULL, 'Allow non-superlibrarians to transfer items between libraries','YesNo'),
 ('IntranetAddMastheadLibraryPulldown','0', NULL, 'Add a library select pulldown menu on the staff header search','YesNo'),
 ('IntranetBiblioDefaultView','normal','normal|marc|isbd|labeled_marc','Choose the default detail view in the staff interface; choose between normal, labeled_marc, marc or isbd','Choice'),

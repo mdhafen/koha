@@ -198,6 +198,10 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     }
 );
 
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $template_type eq 'results' && ! grep { /^(multi|home|holding)?branch/ } @limits ) {
+    push @limits, 'branch:'. C4::Context->userenv->{branch};
+}
+
 my $lang = C4::Languages::getlanguage($cgi);
 
 my $userenv_branch = C4::Context->userenv->{'branch'} || '';
