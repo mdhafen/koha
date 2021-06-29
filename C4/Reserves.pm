@@ -1702,6 +1702,13 @@ sub _Findgroupreserve {
         AND hold_fill_targets.itemnumber = ?
         AND reservedate <= DATE_ADD(NOW(),INTERVAL ? DAY)
         AND suspend = 0
+    };
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $hold_target_query .= qq{
+        AND reserves.branchcode = } . $dbh->quote(C4::Context->userenv->{branch}) . qq{
+        };
+    }
+    $hold_target_query .= qq{
         ORDER BY priority
     };
     my $sth = $dbh->prepare($hold_target_query);
@@ -1734,6 +1741,13 @@ sub _Findgroupreserve {
           AND (reserves.itemnumber IS NULL OR reserves.itemnumber = ?)
           AND reserves.reservedate <= DATE_ADD(NOW(),INTERVAL ? DAY)
           AND suspend = 0
+    };
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $hold_target_query .= qq{
+        AND reserves.branchcode = } . $dbh->quote(C4::Context->userenv->{branch}) . qq{
+        };
+    }
+    $hold_target_query .= qq{
           ORDER BY priority
     };
     $sth = $dbh->prepare($query);
