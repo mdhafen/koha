@@ -269,7 +269,11 @@ if ($loggedinuser) {
         next unless $record;
         my @hidden_items;
         if ($should_hide) {
-            my $items           = $biblio->items->search_ordered;
+            my $items_filter = {};
+            if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+            }
+            my $items           = $biblio->items->search_ordered($items_filter);
             my @all_itemnumbers = $items->get_column('itemnumber');
             my @items_to_show   = $items->filter_by_visible_in_opac( { opac => 1, patron => $patron } )->as_list;
             @hidden_items = array_minus( @all_itemnumbers, @items_to_show );
