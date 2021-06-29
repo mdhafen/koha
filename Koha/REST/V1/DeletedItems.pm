@@ -64,7 +64,11 @@ sub list {
     my $c = shift->openapi->valid_input or return;
 
     return try {
-        my $items = $c->objects->search( Koha::Old::Items->new );
+        my $items_rs = Koha::Old::Items->new;
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_rs = $items_rs->search( { 'homebranch' => C4::Context->userenv->{'branch'} } );
+        }
+        my $items = $c->objects->search( $items_rs );
         return $c->render( status => 200, openapi => $items );
     } catch {
         $c->unhandled_exception($_);
