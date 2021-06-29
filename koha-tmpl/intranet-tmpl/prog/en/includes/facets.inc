@@ -2,7 +2,7 @@
 [% USE AuthorisedValues %]
 [% USE Branches %]
 [% USE Languages %]
-
+[% USE Branches %]
 [% IF ( opacfacets ) %]
     [% IF ( facets_loop ) %]
         <div id="search-facets">
@@ -93,6 +93,9 @@
                                     [% END %]
                                     [% IF facets_loo.label == 'Languages' %]
                                         [% SET facet.facet_label_value = Languages.GetByISOCode(lang,facet.facet_label_value) || facet.facet_label_value %]
+                                    [% END %]
+                                    [% IF ( ( facets_loo.type_label_HomeLibrary || facets_loo.type_label_HoldingLibrary ) && Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) && facet.facet_link_value != Branches.GetLoggedInBranchcode() ) %]
+                                        [% NEXT %]
                                     [% END %]
                                     [% SET li_class = '' %]
                                     [% SET li_style = '' %]

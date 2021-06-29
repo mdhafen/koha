@@ -42,7 +42,14 @@ my $op        = $query->param('op') || '';
 my $batch_id  = $query->param('batch_id');
 my @limits    = split( " AND ", $query->param('limits') || "" );
 my $startfrom = $query->param('startfrom') || 1;
-my ( $template, $loggedinuser, $cookie ) = ( undef, undef, undef );
+my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
+    {
+        template_name => "labels/search.tt",
+        query         => $query,
+        type          => "intranet",
+        flagsrequired => { catalogue => 1 },
+    }
+);
 my (
     $total_hits,  $total, $error,
     $marcresults, $idx,   $datefrom, $dateto, $ccl_textbox
@@ -71,6 +78,11 @@ if ( $op eq "do_search" ) {
         push( @limits, "acqdate,st-date-normalized=$datefrom - $dateto" );
     }
 
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        unless ( grep /^(home|holding)?branch(code)?=/, @limits ) {
+            push ( @limits, "branch:" . C4::Context->userenv->{branch} );
+        }
+    }
     my (
         $build_error, $query, $simple_query, $query_cgi,
         $query_desc,  $limit, $limit_cgi,    $limit_desc,
@@ -113,7 +125,11 @@ if ($show_results) {
         my $biblionumber = $biblio->{'biblionumber'};
 
         #DEBUG Notes: Grab the item numbers associated with this MARC record...
-        my $items = Koha::Items->search( { biblionumber => $biblionumber }, { order_by => { -desc => 'itemnumber' } } );
+        my $items_filter = { biblionumber => $biblionumber };
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
+        my $items = Koha::Items->search( $items_filter, { order_by => { -desc => 'itemnumber' } } );
 
         #DEBUG Notes: Retrieve the item data for each number...
         while ( my $item = $items->next ) {
@@ -213,14 +229,6 @@ if ($show_results) {
 #
 
 else {
-    ( $template, $loggedinuser, $cookie ) = get_template_and_user(
-        {
-            template_name => "labels/search.tt",
-            query         => $query,
-            type          => "intranet",
-            flagsrequired => { catalogue => 1 },
-        }
-    );
     my $itemtypes = Koha::ItemTypes->search;
     my @itemtypeloop;
     while ( my $itemtype = $itemtypes->next ) {

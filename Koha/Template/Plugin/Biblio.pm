@@ -32,7 +32,11 @@ sub HoldsCount {
 
     warn "HoldsCount is deprecated, you should use biblio.holds.count instead";
 
-    my $holds = Koha::Holds->search( { biblionumber => $biblionumber } );
+    my $holds_filters = { biblionumber => $biblionumber };
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $holds_filters->{'branchcode'} = C4::Context->userenv->{'branch'};
+    }
+    my $holds = Koha::Holds->search( $holds_filters );
 
     return $holds->count();
 }

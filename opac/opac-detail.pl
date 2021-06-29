@@ -110,7 +110,11 @@ unless ( $biblio && $record ) {
 # If record should be suppressed, handle it early
 redirect_if_opac_suppressed( $query, $biblio );
 
-my $items = $biblio->items->search_ordered;
+my $items_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+}
+my $items = $biblio->items->search_ordered($items_filter);
 if ($specific_item) {
     $items = $items->search( { itemnumber => scalar $query->param('itemnumber') } );
     $template->param( specific_item => 1 );
@@ -497,9 +501,13 @@ if ($OpacBrowseResults) {
     }
 }
 
+$items_filter = { 'me.biblionumber' => $biblionumber };
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_filter->{'me.homebranch'} = C4::Context->userenv->{branch};
+}
 $items = Koha::Items->search_ordered(
     [
-        'me.biblionumber' => $biblionumber,
+        $items_filter,
         'me.itemnumber'   => { -in => [ $biblio->host_items->get_column('itemnumber') ] }
     ],
     { prefetch => [ 'issue', 'homebranch', 'holdingbranch' ] }
