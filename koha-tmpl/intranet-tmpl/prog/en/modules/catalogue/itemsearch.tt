@@ -7,6 +7,8 @@
 [% USE ItemTypes %]
 [% USE TablesSettings %]
 [% PROCESS 'i18n.inc' %]
+[% USE Branches %]
+
 [%- BLOCK form_label -%]
     [%- SWITCH label -%]
 
@@ -76,7 +78,7 @@
             [% END %]
         </select>
         <select id="[% name | html %]" name="[% name | html %]" multiple="multiple" size="[% options.size < 4 ? options.size + 1 : 4 | html %]">
-            [% IF query.param(name).size == 0 %]
+            [% IF query.param(name).size == 0 && ! ( Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) && ( name == 'homebranch' || name == 'holdingbranch' ) ) %]
                 <option value="" selected="selected"> [% IF (empty_option) %][% INCLUDE form_label label=empty_option %][% ELSE %]<span>All</span>[% END %] </option>
             [% END %]
             [% FOREACH option IN options %]
