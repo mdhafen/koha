@@ -527,13 +527,17 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                 # if independent branches is on we need to check if the person can reserve
                 # for branches they aren't logged in to
                 if ( C4::Context->preference("IndependentBranches") ) {
+                    my $userenv = C4::Context->userenv;
                     if ( !C4::Context->preference("canreservefromotherbranches") ) {
 
                         # can't reserve items so need to check if item homebranch and userenv branch match if not we can't reserve
-                        my $userenv = C4::Context->userenv;
                         unless ( C4::Context->IsSuperLibrarian ) {
                             $item->{cantreserve} = 1 if ( $item->{homebranch} ne $userenv->{branch} );
                         }
+                    }
+                    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $item->{homebranch} ne $userenv->{branch} ) {
+                        $item->{hide} = 1;
+                        $hiddencount++;
                     }
                 }
 
@@ -676,9 +680,13 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
         my $show_holds_now = $input->param('show_holds_now');
 
         unless ( ( defined $always_show_holds && $always_show_holds eq 'DONT' ) && !$show_holds_now ) {
+            my $holds_filters = { 'me.biblionumber' => $biblionumber };
+            if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                $holds_filters->{'me.branchcode'} = C4::Context->userenv->{'branch'};
+            }
             my $holds_count_per_patron = {
                 map { $_->{borrowernumber} => $_->{hold_count} } @{ Koha::Holds->search(
-                        { biblionumber => $biblionumber },
+                        $holds_filters,
                         {
                             select   => [ "borrowernumber", { count => { distinct => "reserve_id" } } ],
                             as       => [qw( borrowernumber hold_count )],
@@ -687,11 +695,9 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
                     )->unblessed
                 }
             };
-            $total_holds = Koha::Holds->search( { biblionumber => $biblionumber } )->count;
+            $total_holds = Koha::Holds->search( $holds_filters )->count;
             my $branches = Koha::Holds->search(
-                {
-                    biblionumber => $biblionumber,
-                },
+                $holds_filters,
                 {
                     select => [ { distinct => 'branchcode' } ],
                     as     => [qw( branchcode )],
@@ -699,9 +705,7 @@ if (   ( $findborrower && $borrowernumber_hold || $findclub && $club_hold )
             )->unblessed;
             $hold_branches = [ map { $_->{branchcode} } @$branches ];
             my $itemtypes = Koha::Holds->search(
-                {
-                    biblionumber => $biblionumber,
-                },
+                $holds_filters,
                 {
                     select => [ { distinct => 'itemtype' } ],
                     as     => [qw( itemtype )],

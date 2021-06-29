@@ -364,6 +364,7 @@ INSERT INTO systempreferences ( `variable`, `value` ) VALUES
 ('IncludeSeeFromInSearches','0'),
 ('IndependentBranches','0'),
 ('IndependentBranchesPatronModifications','0'),
+('IndependentBranchesHideOtherBranchesItems','0'),
 ('IndependentBranchesTransfers','0'),
 ('intranet_includes','includes'),
 ('IntranetAddMastheadLibraryPulldown','0'),
