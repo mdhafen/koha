@@ -79,6 +79,7 @@
                             [% FOREACH facet IN facets_loo.facets %]
                                 [% IF facets_loo.label == 'Collections' %][% SET facet.facet_label_value = AuthorisedValues.GetDescriptionByKohaField( kohafield => 'items.ccode', authorised_value => facet.facet_label_value, opac =>1 ) || facet.facet_label_value %][% END %]
                                 [% IF facets_loo.label == 'Languages' %][% SET facet.facet_label_value = Languages.GetByISOCode(lang,facet.facet_label_value) || facet.facet_label_value %][% END %]
+                                [% IF ( facets_loo.label == 'Home Library' || facets_loo.label == 'Holding Library' ) && opac_name && Koha.Preference('IndependentBranchesHideOtherBranchesItems') && facet.facet_link_value != opac_name %][% NEXT %][% END %]
                                 [% SET li_class = '' %]
                                 [% SET li_style = '' %]
                                 [% IF loop.count > 5 && !facet.active %]
