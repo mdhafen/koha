@@ -305,10 +305,14 @@
                         <p>
                             <label for="branchloop">Individual libraries:</label>
                             <select name="limit" id="branchloop">
+                                [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                [% PROCESS options_for_libraries prefix => "branch:" libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, unfiltered => 1 ) %]
+                                [% ELSE %]
                                 <option value="">All libraries</option>
                                 [%# FIXME Should not we filter the libraries displayed? %]
                                 [% PROCESS options_for_libraries prefix => "branch:" libraries => Branches.all( unfiltered => 1, do_not_select_my_library => 1, selected => limits.branch.0 ) %]
                                 [% limits.delete('branch') %]
+                                [% END %]
                             </select> <!-- /#branchloop -->
                         </p>
                         [% IF search_groups %]
