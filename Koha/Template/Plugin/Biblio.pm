@@ -34,7 +34,11 @@ use Koha::DateUtils qw(dt_from_string);
 sub HoldsCount {
     my ( $self, $biblionumber ) = @_;
 
-    my $holds = Koha::Holds->search( { biblionumber => $biblionumber } );
+    my $holds_filters = { biblionumber => $biblionumber };
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $holds_filters->{'branchcode'} = C4::Context->userenv->{'branch'};
+    }
+    my $holds = Koha::Holds->search( $holds_filters );
 
     return $holds->count();
 }
