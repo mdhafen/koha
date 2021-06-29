@@ -37,7 +37,6 @@
                         <li>
                             <label for="branchcode_filter">Library:</label>
                             <select id="branchcode_filter">
-                                [% SET libraries = Branches.all( only_from_group => 1 ) %]
                                 [% IF libraries.size != 1 %]
                                     <option value="">Any</option>
                                 [% END %]

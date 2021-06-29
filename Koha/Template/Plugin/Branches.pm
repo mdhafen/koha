@@ -103,8 +103,9 @@ sub all {
 }
 
 sub InIndependentBranchesMode {
-    my ( $self ) = @_;
-    return ( not C4::Context->preference("IndependentBranches") or C4::Context::IsSuperLibrarian );
+    my ( $self, $params ) = @_;
+    my $pref = $params->{syspref} || 'IndependentBranches';
+    return ( C4::Context->preference($pref) and not C4::Context::IsSuperLibrarian );
 }
 
 sub pickup_locations {

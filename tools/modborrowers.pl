@@ -174,7 +174,11 @@ if ( $op eq 'show' ) {
     $template->param( useborrowernumbers => $useborrowernumbers );
 
     # Construct drop-down list values
-    my $branches = Koha::Libraries->search({}, { order_by => ['branchname'] })->unblessed;
+    my $library_filter = {};
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $library_filter->{'branchcode'} = C4::Context->userenv->{branch};
+    }
+    my $branches = Koha::Libraries->search($library_filter, { order_by => ['branchname'] })->unblessed;
     my @branches_option;
     push @branches_option, { value => $_->{branchcode}, lib => $_->{branchname} } for @$branches;
     unshift @branches_option, { value => "", lib => "" };
