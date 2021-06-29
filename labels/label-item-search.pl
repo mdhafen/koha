@@ -70,6 +70,11 @@ if ( $op eq "do_search" ) {
         push( @limits, "acqdate,st-date-normalized=$datefrom - $dateto" );
     }
 
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        unless ( grep /^(home|holding)?branch(code)?=/ @limits ) {
+            push( @limits, "homebranch=" . C4::Context->userenv->{branch} );
+        }
+    }
     my (
         $build_error, $query, $simple_query, $query_cgi,
         $query_desc,  $limit, $limit_cgi,    $limit_desc,
@@ -108,7 +113,11 @@ if ($show_results) {
         push (@results_set, $biblio);
         my $biblionumber = $biblio->{'biblionumber'};
         #DEBUG Notes: Grab the item numbers associated with this MARC record...
-        my $items = Koha::Items->search({ biblionumber => $biblionumber }, { order_by => { -desc => 'itemnumber' }});
+        my $items_filter = { biblionumber => $biblionumber };
+        if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+            $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+        }
+        my $items = Koha::Items->search($items_filter, { order_by => { -desc => 'itemnumber' }});
         #DEBUG Notes: Retrieve the item data for each number...
         while ( my $item = $items->next ) {
             #DEBUG Notes: Build an array element 'item' of the correct bib (results) hash which contains item-specific data...
