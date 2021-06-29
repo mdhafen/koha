@@ -2,6 +2,7 @@
 [% USE To %]
 [% USE Asset %]
 [% USE AuthorisedValues %]
+[% USE Branches %]
 
 [%- BLOCK form_label -%]
   [%- SWITCH label -%]
@@ -41,9 +42,11 @@
       <option value="!=" >is not</option>
     </select>
     <select id="[% name | html %]" name="[% name | html %]" multiple="multiple" size="[% options.size < 4 ? options.size + 1 : 4 | html %]">
+      [% UNLESS ( name == 'homebranch' || name == 'holdingbranch' ) && Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
       <option value="" selected="selected">
         [% IF (empty_option) %][% INCLUDE form_label label=empty_option %][% ELSE %]<span>All</span>[% END %]
       </option>
+      [% END %]
       [% FOREACH option IN options %]
         <option value="[% option.value | html %]">[% option.label | html %]</option>
       [% END %]

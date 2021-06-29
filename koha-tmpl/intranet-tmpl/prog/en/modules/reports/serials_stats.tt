@@ -95,8 +95,12 @@
 					Library:
 		    	</label>
 		    	<select name="branchcode"  id="branchcode">
+                [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+                [% ELSE %]
 				<option value="">Any library</option>
                 [% PROCESS options_for_libraries libraries => Branches.all() %]
+                [% END %]
 		    	</select>
 
 		    </li>

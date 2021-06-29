@@ -393,7 +393,11 @@ my @loop_data =();
 my $i=0;
 my $branch_limit = C4::Context->userenv ? C4::Context->userenv->{"branch"} : "";
 
-my $libraries = Koha::Libraries->search({}, { order_by => ['branchname'] })->unblessed;# build once ahead of time, instead of multiple times later.
+my $libraries_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $libraries_filter->{branchcode} = C4::Context->userenv->{branch};
+}
+my $libraries = Koha::Libraries->search($libraries_filter, { order_by => ['branchname'] })->unblessed;# build once ahead of time, instead of multiple times later.
 
 # Adding a default choice, in case the user does not want to modify the branch
 my $nochange_branch = { branchname => '', value => '', selected => 1 };

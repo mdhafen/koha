@@ -549,6 +549,10 @@ foreach my $biblionumber (@biblionumbers) {
                     unless ( C4::Context->IsSuperLibrarian ) {
                         $item->{cantreserve} = 1 if ( $item->{homebranch} ne $userenv->{branch} );
                     }
+                    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $item->{homebranch} ne $userenv->{branch} ) {
+                        $item->{hide} = 1;
+                        $hiddencount++;
+                    }
                 }
             }
 

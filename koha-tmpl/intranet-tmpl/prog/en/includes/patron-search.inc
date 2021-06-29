@@ -52,7 +52,11 @@
 
         <p>
             <label for="branchcode">Library: </label>
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% SET branches = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchcode_filter, only_from_group => 1 ) %]
+            [% ELSE %]
             [% SET branches = Branches.all( selected => branchcode_filter, only_from_group => 1 ) %]
+            [% END %]
             <select name="branchcode_filter" id="branchcode">
                 [% IF branches.size != 1 %]
                   <option value="">Any</option>

@@ -149,7 +149,14 @@ fieldset.rows table { clear: none; margin: 0; }
                                 <li>
                                     <label for="branchcode">Library:</label>
                                     <select name="branchcode" id="branchcode">
-                                        [% UNLESS ( Independentbranches ) %]
+                                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                        [% IF CAN_user_serials_superserials %]
+                                            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchcode, unfiltered => 1 ) %]
+                                        [% ELSE %]
+                                            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchcode ) %]
+                                        [% END %]
+                                    [% ELSE %]
+                                        [% UNLESS ( Koha.Preference('Independentbranches') ) %]
                                             <option value="">None</option>
                                         [% END %]
                                         [% IF CAN_user_serials_superserials %]
@@ -157,6 +164,7 @@ fieldset.rows table { clear: none; margin: 0; }
                                         [% ELSE %]
                                             [% PROCESS options_for_libraries libraries => Branches.all( selected => branchcode ) %]
                                         [% END %]
+                                    [% END %]
                                     </select>
                                 </li>
                                 <li>

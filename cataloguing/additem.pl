@@ -875,6 +875,7 @@ foreach my $field (@fields) {
         }
     }
     if (%this_row) {
+        next if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $this_row{$branchtagsubfield} ne C4::Context->userenv->{branchname} );
         push(@big_array, \%this_row);
     }
 }
@@ -935,7 +936,11 @@ my @loop_data =();
 my $i=0;
 
 my $branch = $input->param('branch') || C4::Context->userenv->{branch};
-my $libraries = Koha::Libraries->search({}, { order_by => ['branchname'] })->unblessed;# build once ahead of time, instead of multiple times later.
+my $libraries_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $libraries_filter->{branchcode} = C4::Context->userenv->{branch};
+}
+my $libraries = Koha::Libraries->search($libraries_filter, { order_by => ['branchname'] })->unblessed;# build once ahead of time, instead of multiple times later.
 for my $library ( @$libraries ) {
     $library->{selected} = 1 if $library->{branchcode} eq $branch
 }
