@@ -40,6 +40,19 @@ if ($op eq "export") {
                 }
             }
 
+            if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+                my $mybranch = C4::Context->userenv->{branch};
+                my ($homebrtagf,$homebrtagsubf) = &GetMarcFromKohaField( "items.homebranch" );
+                my @fields = $marc->field($homebrtagf);
+                my @delete;
+                foreach my $field (@fields) {
+                    if ( $field->subfield($homebrtagsubf) ne $mybranch ) {
+                        push @delete, $field;
+                    }
+                }
+                $marc->delete_fields(@delete) if ( @delete );
+            }
+
             if ($format =~ /endnote/) {
                 $marc = marc2endnote($marc);
                 $format = 'endnote';

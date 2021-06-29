@@ -266,6 +266,7 @@ INSERT INTO systempreferences ( `variable`, `value`, `options`, `explanation`, `
 ('IncludeSeeFromInSearches','0','','Include see-from references in searches.','YesNo'),
 ('IndependentBranches','0',NULL,'If ON, increases security between libraries','YesNo'),
 ('IndependentBranchesPatronModifications','0', NULL, 'Show only modification request for the logged in branch','YesNo'),
+('IndependentBranchesHideOtherBranchesItems','0',NULL,'Hide other branches in selects.  Hide items belonging to other branches in search results, holds, biblio and item details, and exports.','YesNo'),
 ('IndependentBranchesTransfers','0', NULL, 'Allow non-superlibrarians to transfer items between libraries','YesNo'),
 ('IntranetCatalogSearchPulldown','0', NULL, 'Show a search field pulldown for \"Search the catalog\" boxes','YesNo'),
 ('RecordedBooksClientSecret','','30','Client key for RecordedBooks integration','Free'),

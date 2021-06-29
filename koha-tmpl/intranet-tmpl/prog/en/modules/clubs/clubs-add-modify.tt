@@ -84,8 +84,12 @@
                         <li>
                             <label for="club-template-branchcode">Library:</label>
                             <select name="branchcode" id="club-template-branchcode">
+                            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => club.branch.branchcode ) %]
+                            [% ELSE %]
                                 <option value=""></option>
                                 [% PROCESS options_for_libraries libraries => Branches.all( selected => club.branch.branchcode ) %]
+                            [% END %]
                             </select>
                         </li>
 

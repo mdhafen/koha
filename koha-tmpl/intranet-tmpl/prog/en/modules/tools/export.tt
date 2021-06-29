@@ -137,7 +137,11 @@
         </li>
         <li>
         <label for="strip_items_not_from_libraries">Remove items not owned by selected libraries:</label>
+	[% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+        <input id="strip_items_not_from_libraries" type="checkbox" name="strip_items_not_from_libraries" checked="checked" />
+	[% ELSE %]
         <input id="strip_items_not_from_libraries" type="checkbox" name="strip_items_not_from_libraries" />
+	[% END %]
         </li>
         <li>
         <label for="export_remove_fields">Don't export fields:</label>

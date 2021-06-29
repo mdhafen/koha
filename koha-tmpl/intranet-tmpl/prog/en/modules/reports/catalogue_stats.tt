@@ -156,8 +156,12 @@
                 <td><input type="radio" checked="checked" name="Line" value="items.homebranch" /></td>
 				<td><input type="radio" name="Column" value="items.homebranch" /></td>
 				<td><select name="Filter" id="branch">
+                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                    [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+                    [% ELSE %]
                     <option value=""> </option>
                     [% PROCESS options_for_libraries libraries => Branches.all() %]
+                    [% END %]
                     </select>
 				</td>
 			</tr>

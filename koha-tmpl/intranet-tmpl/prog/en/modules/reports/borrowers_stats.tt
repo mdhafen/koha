@@ -169,9 +169,15 @@
 			<td><input type="radio" name="Column" value="branchcode" /></td>
 			<td>
                 <select name="Filter" id="branch">
+                [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% FOREACH l IN Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, unfiltered => 1 ) %]
+                    <option value="[% l.branchcode | html %]">[% l.branchcode | html %] - [% l.branchname || 'UNKNOWN' | html %]</option>
+                [% END %]
+                [% ELSE %]
                 <option value=""></option>
                 [% FOREACH l IN Branches.all( unfiltered => 1 ) %]
                     <option value="[% l.branchcode | html %]">[% l.branchcode | html %] - [% l.branchname || 'UNKNOWN' | html %]</option>
+                [% END %]
                 [% END %]
                 </select>
 			</td>

@@ -579,8 +579,12 @@
                         <li>
                             <label for="branchcode">Library:</label>
                             <select name="branchcode" id="branchcode">
+                            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchfilter || branchcode ) %]
+                            [% ELSE %]
                                 <option value="">Any</option>
                                 [% PROCESS options_for_libraries libraries => Branches.all( selected => branchcode ) %]
+                            [% END %]
                             </select>
                         </li>
                         <li>
@@ -666,8 +670,12 @@
             [% IF ( displayby != "branchcode" ) %]
                 <label for="branchcode">Viewing suggestions for library:</label>
                 <select name="branchcode" id="branchcode">
+                [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                    [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchfilter || branchcode ) %]
+                [% ELSE %]
                     <option value="__ANY__">Any</option>
                     [% PROCESS options_for_libraries libraries => Branches.all( selected => branchfilter || branchcode ) %]
+                [% END %]
                 </select>
             [% END %]
 

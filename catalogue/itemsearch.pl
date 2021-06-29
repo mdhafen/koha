@@ -113,9 +113,13 @@ if ( defined $format ) {
         filters => [],
     };
 
+    # IndependentBranchesHideOtherBranchesItems forces homebranch filter
+    #  if it isn't already set
+    my $got_branch = 0;
     foreach my $p (qw(homebranch holdingbranch location itype ccode issues datelastborrowed notforloan itemlost withdrawn)) {
         if (my @q = $cgi->multi_param($p)) {
             if ($q[0] ne '') {
+                if ( $p eq 'homebranch' ) { $got_branch = 1; }
                 my $f = {
                     field => $p,
                     query => \@q,
@@ -126,6 +130,9 @@ if ( defined $format ) {
                 push @{ $filter->{filters} }, $f;
             }
         }
+    }
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && ! $got_branch ) {
+        push @{ $filter->{filters} }, { field => 'homebranch', query => [ C4::Context->userenv->{branch} ] };
     }
 
     my @c = $cgi->multi_param('c');
@@ -259,7 +266,11 @@ if ( defined $format ) {
 
 # Display the search form
 
-my @branches = map { value => $_->branchcode, label => $_->branchname }, Koha::Libraries->search( {}, { order_by => 'branchname' } );
+my $library_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $library_filter->{'branchcode'} = C4::Context->userenv->{branch};
+}
+my @branches = map { value => $_->branchcode, label => $_->branchname }, Koha::Libraries->search( $library_filter, { order_by => 'branchname' } );
 my @itemtypes;
 foreach my $itemtype ( Koha::ItemTypes->search_with_localization ) {
     push @itemtypes, {

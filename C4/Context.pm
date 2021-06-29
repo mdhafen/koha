@@ -899,8 +899,10 @@ sub mybranch {
 =cut
 
 sub only_my_library {
+    my ( $class, $pref ) = @_;
+    $pref //= 'IndependentBranches';
     return
-         C4::Context->preference('IndependentBranches')
+         C4::Context->preference($pref)
       && C4::Context->userenv
       && !C4::Context->IsSuperLibrarian()
       && C4::Context->userenv->{branch};

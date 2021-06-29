@@ -47,8 +47,12 @@
         [% IF can_change_library %]
         <li><label for="branch">Library:</label>
         <select id="branch" name="branch">
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branch ) %]
+            [% ELSE %]
             <option value="">All</option>
             [% PROCESS options_for_libraries libraries => Branches.all( selected => branch ) %]
+            [% END %]
         </select>
         </li>
         [% END %]

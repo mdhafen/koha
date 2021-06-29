@@ -228,16 +228,24 @@
     <li>
         <label>Item home library:</label>
         <select name="homebranch" id="homebranch">
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => filters.homebranch ) %]
+	    [% ELSE %]
             <option value="">Any</option>
             [% PROCESS options_for_libraries libraries => Branches.all( selected => filters.homebranch ) %]
+	    [% END %]
         </select>
     </li>
 
     <li>
         <label>Item holding library:</label>
         <select name="holdingbranch" id="holdingbranch">
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => filters.holdingbranch ) %]
+	    [% ELSE %]
             <option value="">Any</option>
             [% PROCESS options_for_libraries libraries => Branches.all( selected => filters.holdingbranch ) %]
+	    [% END %]
         </select>
     </li>
 
@@ -245,7 +253,11 @@
         <label>Library of the patron:</label>
         <select name="branch" id="branch">
             <option value="">Any</option>
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => filters.branch, only_from_group => 1 ) %]
+            [% ELSE %]
             [% PROCESS options_for_libraries libraries => Branches.all( selected => filters.branch, only_from_group => 1 ) %]
+            [% END %]
         </select>
     </li>
 

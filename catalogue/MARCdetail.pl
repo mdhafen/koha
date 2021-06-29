@@ -265,6 +265,7 @@ for ( my $tabloop = 0 ; $tabloop <= 10 ; $tabloop++ ) {
 # loop through each tag
 # warning : we may have differents number of columns in each row. Thus, we first build a hash, complete it if necessary
 # then construct template.
+my ($homebrtagf,$homebrtagsubf) = &GetMarcFromKohaField( "items.homebranch" );
 my @fields = $record->fields();
 my %witness
   ; #---- stores the list of subfields used at least once, with the "meaning" of the code
@@ -302,6 +303,7 @@ foreach my $field (@fields) {
           if grep { $kohafield eq $_ }
               qw( items.dateaccessioned items.onloan items.datelastseen items.datelastborrowed items.replacementpricedate );
     }
+    next if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && $item && $item->{$homebrtagsubf} ne C4::Context->userenv->{'branchname'} );
     push @item_loop, $item if $item;
 }
 

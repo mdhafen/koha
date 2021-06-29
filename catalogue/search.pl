@@ -378,6 +378,10 @@ my @nolimits = map uri_unescape($_), $cgi->multi_param('nolimit');
 my %is_nolimit = map { $_ => 1 } @nolimits;
 @limits = grep { not $is_nolimit{$_} } @limits;
 
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && ! grep { /^(multi|home|holding)?branch/ } @limits ) {
+    push @limits, 'homebranch: '. C4::Context->userenv->{branch};
+}
+
 my $available;
 foreach my $limit(@limits) {
     if ($limit =~/available/) {

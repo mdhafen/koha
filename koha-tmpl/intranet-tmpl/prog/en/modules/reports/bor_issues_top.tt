@@ -136,10 +136,17 @@
             </li>
 			<li> 
 				<label for="branch">Library: </label>
-<select name="Filter" id="branch"><option value="" > Any library</option>
+<select name="Filter" id="branch">
+    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+    [% FOREACH l IN Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, unfiltered => 1 ) %]
+        <option value="[% l.branchcode | html %]" >[% l.branchname | html %] </option>
+     [% END %]
+    [% ELSE %]
+        <option value="" > Any library</option>
     [% FOREACH l IN Branches.all( unfiltered => 1 ) %]
         <option value="[% l.branchcode | html %]" >[% l.branchname | html %] </option>
-     [% END %] 
+     [% END %]
+    [% END %]
     </select>			</li>
 			<li> 
                 <label for="documenttype">Item type: </label><select name="Filter" id="documenttype"><option value="" > Any item type</option>

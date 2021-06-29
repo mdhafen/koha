@@ -41,15 +41,19 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
 
 my $biblionumber = $query->param('biblionumber');
 
+my $issue_filter = { biblionumber => $biblionumber };
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $issue_filter->{'item.homebranch'} = C4::Context->userenv->{branch};
+}
 my @checkouts = Koha::Checkouts->search(
-    { biblionumber => $biblionumber },
+    $issue_filter,
     {
         join       => 'item',
         order_by   => 'timestamp',
     }
 );
 my @old_checkouts = Koha::Old::Checkouts->search(
-    { biblionumber => $biblionumber },
+    $issue_filter,
     {
         join       => 'item',
         order_by   => 'timestamp',
