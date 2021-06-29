@@ -8,7 +8,11 @@
 [% PROCESS 'i18n.inc' %]
 [% SET footerjs = 1 %]
 [% PROCESS 'patronfields.inc' %]
-[% SET libraries = Branches.all %]
+[% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+  [% SET libraries = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+[% ELSE %]
+  [% SET libraries = Branches.all %]
+[% END %]
 [% SET categories = Categories.all.unblessed %]
 [% SET columns = ['cardnumber', 'name-address', 'phone', 'dateofbirth', 'branch', 'category', 'dateexpiry', 'checkouts', 'account_balance', 'borrowernotes', 'sort1', 'sort2', 'action'] %]
 [% SET searchtype = searchtype || Koha.Preference('DefaultPatronSearchMethod') %]
@@ -137,7 +141,11 @@
         <!-- /.col-md-10.order-md-2 -->
 
         <div class="col-md-2 order-sm-2 order-md-1">
-            [% PROCESS patron_search_filters categories => categories, libraries => libraries, filters => ['search_field', 'search_type', 'category', 'branch'], search_filter => searchmember %]
+            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                [% PROCESS patron_search_filters categories => categories, libraries => libraries, branchcode_filter => Branches.GetLoggedInBranchcode(), patron_search_unfiltered => 1, filters => ['search_field', 'search_type', 'category', 'branch'], search_filter => searchmember %]
+            [% ELSE %]
+                [% PROCESS patron_search_filters categories => categories, libraries => libraries, patron_search_unfiltered => 1, filters => ['search_field', 'search_type', 'category', 'branch'], search_filter => searchmember %]
+            [% END %]
         </div>
         <!-- /.col-md-2 order-sm-2 order-md-1 -->
     </div>

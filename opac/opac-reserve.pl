@@ -345,9 +345,13 @@ foreach my $biblioNumber (@biblionumbers) {
     my $biblio = Koha::Biblios->find($biblioNumber);
     next unless $biblio;
 
+    my $items_filter = { 'me.biblionumber' => $biblioNumber };
+    if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+        $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+    }
     my $items = Koha::Items->search_ordered(
         [
-            'me.biblionumber' => $biblioNumber,
+            $items_filter,
             'me.itemnumber'   => { -in => [ $biblio->host_items->get_column('itemnumber') ] }
         ],
         { prefetch => [ 'issue', 'homebranch', 'holdingbranch' ] }

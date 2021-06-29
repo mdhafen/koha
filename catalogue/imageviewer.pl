@@ -38,12 +38,17 @@ my ( $template, $borrowernumber, $cookie ) = get_template_and_user(
     }
 );
 
+my $items_filter = {};
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_filter->{'homebranch'} = C4::Context->userenv->{branch};
+}
+
 my $itemnumber = $query->param('itemnumber');
 my $biblionumber =
     $query->param('biblionumber') || $query->param('bib') || Koha::Items->find($itemnumber)->biblionumber;
 my $imagenumber = $query->param('imagenumber');
-my $biblio      = Koha::Biblios->find($biblionumber);
-my $itemcount   = $biblio ? $biblio->items->count : 0;
+my $biblio      = Koha::Biblios->find( $biblionumber );
+my $itemcount   = $biblio ? $biblio->items->search($items_filter)->count : 0;
 
 if ( $query->cookie("holdfor") ) {
     my $holdfor_patron = Koha::Patrons->find( $query->cookie("holdfor") );

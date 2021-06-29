@@ -3361,8 +3361,13 @@ sub CanBookBeRenewed {
 
     # There is an item level hold on this item, no other item can fill the hold
     # The flag skip_future_holds may be removed in the future. See bug 40435.
+    my $only_my_library_hide_others = C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ? C4::Context->userenv->{branch} : '';
+    my $holds_filter = { non_priority => 0 };
+    if ( $only_my_library_hide_others ) {
+        $holds_filter->{branchcode} = $only_my_library_hide_others;
+    }
     return ( 0, "on_reserve" )
-        if ( $item->current_holds( { skip_future_holds => 1 } )->search( { non_priority => 0 } )->count );
+        if ( $item->current_holds( { skip_future_holds => 1 } )->search( $holds_filter )->count );
 
     my ( $status, $matched_reserve, $possible_holds ) = C4::Reserves::CheckReserves($item);
     my @fillable_holds = ();
@@ -3374,14 +3379,16 @@ sub CanBookBeRenewed {
 
             # Get all other items that could possibly fill reserves
             # FIXME We could join reserves (or more tables) here to eliminate some checks later
-            my @other_items = Koha::Items->search(
-                {
-                    biblionumber => $item->biblionumber,
-                    onloan       => undef,
-                    notforloan   => 0,
-                    -not         => { itemnumber => $item->itemnumber }
-                }
-            )->as_list;
+            my $items_filter = {
+                biblionumber => $item->biblionumber,
+                onloan       => undef,
+                notforloan   => 0,
+                -not         => { itemnumber => $item->itemnumber }
+            };
+            if ( $only_my_library_hide_others ) {
+                $items_filter->{homebranch} = $only_my_library_hide_others;
+            }
+            my @other_items = Koha::Items->search($items_filter)->as_list;
 
             return ( 0, "on_reserve" ) if @fillable_holds && ( scalar @other_items < scalar @fillable_holds );
 
