@@ -196,6 +196,9 @@ $params->{ itemlost } = 0 if $patron->category->hidelostitems && !$showallitems;
 my $items_params = {
     ( $invalid_marc_record ? () : ( host_items => 1 ) ),
 };
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_params->{'homebranch'} = C4::Context->userenv->{branch};
+}
 my $items = $biblio->items($items_params)->search_ordered( $params, { prefetch => ['issue','current_branchtransfers'] } );
 
 # flag indicating existence of at least one item linked via a host record
