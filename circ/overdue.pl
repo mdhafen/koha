@@ -80,6 +80,13 @@ our $logged_in_user = Koha::Patrons->find( $loggedinuser );
 
 my $dbh = C4::Context->dbh;
 
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') && (my $mybranch = C4::Context->userenv->{branch}) ) {
+    $homebranchfilter = $mybranch;
+    $holdingbranchfilter = '';
+    $filters->{homebranch} = $mybranch;
+    $filters->{holdingbranch} = $mybranch;
+}
+
 my $req;
 $req = $dbh->prepare( "select categorycode, description from categories order by description");
 $req->execute;
