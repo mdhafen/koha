@@ -81,8 +81,12 @@
                     <li>
                         <label for="value">Select a library:</label>
                         <select name="value" id="value">
-                            <option value=""></option>
-                            [% PROCESS options_for_libraries libraries => Branches.all() %]
+                            [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                                [% PROCESS options_for_libraries libraries => Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+                            [% ELSE %]
+                                <option value=""></option>
+                                [% PROCESS options_for_libraries libraries => Branches.all() %]
+                            [% END %]
                         </select>
                         <div class="hint">Select none to see all libraries</div>
                     </li>

@@ -1,6 +1,7 @@
 [% USE raw %]
 [% USE Koha %]
 [% PROCESS 'i18n.inc' %]
+[% USE Branches %]
 [% SET footerjs = 1 %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title
@@ -195,7 +196,9 @@
                             <td><input type="radio" name="Column" value="items.homebranch" /></td>
                             <td>
                                 <select name="Filter">
+                                    [% UNLESS Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
                                     <option value="" selected="selected">All libraries</option>
+                                    [% END %]
                                     [% FOREACH branch IN branches %]
                                         <option value="[% branch.branchcode | html %]">[% branch.branchname | html %]</option>
                                     [% END %]

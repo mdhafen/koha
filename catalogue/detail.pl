@@ -203,6 +203,9 @@ my $include_lost_items = !$patron->category->hidelostitems || $showallitems;
 my $items_params       = {
     ( $invalid_marc_record ? () : ( host_items => 1 ) ),
 };
+if ( C4::Context->only_my_library('IndependentBranchesHideOtherBranchesItems') ) {
+    $items_params->{'homebranch'} = C4::Context->userenv->{branch};
+}
 my $all_items        = $biblio->items($items_params);
 my $items_to_display = $all_items->search( { $include_lost_items ? () : ( itemlost => 0 ) } );
 
