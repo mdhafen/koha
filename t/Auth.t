@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 use Test::NoWarnings;
-use Test::More tests => 13;
+use Test::More tests => 14;
 use Test::Warn;
 
 use C4::Auth qw( in_iprange );
@@ -36,9 +36,13 @@ ok(
     'multiple ips and ranges, including the remote ip'
 );
 ok(
+    in_iprange("127.0.0.1 192.168.*.* 192.168.2.10-192.168.2.25"),
+    'multiple ips and ranges, including a "*" from old settings'
+);
+ok(
     !in_iprange("127.0.0.1 8.8.8.8 192.168.2.1/24 192.168.3.1/24 192.168.1.1-192.168.1.29"),
     "multiple ip and ip ranges, with the remote ip in none of them"
 );
-ok( in_iprange(""),               "blank list given, no preference set - implies everything goes through." );
-ok( in_iprange(),                 "no list given, no preference set - implies everything goes through." );
-ok( in_iprange("192.168.1.1/36"), 'simple invalid ip range/36 with remote ip in it' );
+ok( !in_iprange(""),               "blank list given, no preference set - default to not in range." );
+ok( !in_iprange(),                 "no list given, no preference set - default to not in range." );
+ok( !in_iprange("192.168.1.1/36"), 'simple invalid ip range/36 with remote ip in it' );
