@@ -1231,8 +1231,8 @@ sub checkauth {
 
                         # we have to check they are coming from the right ip range
                         my $domain = $branches->{$branchcode}->{'branchip'};
-                        $domain =~ s|\.\*||g;
-                        if ( $ip !~ /^$domain/ ) {
+                        next unless ( $domain );
+                        if ( ! in_iprange($domain) ) {
                             $loggedin = 0;
                             $cookie = $cookie_mgr->replace_in_list( $cookie, $query->cookie(
                                 -name     => 'CGISESSID',
@@ -1249,7 +1249,8 @@ sub checkauth {
 
                         #     now we work with the treatment of ip
                         my $domain = $branches->{$br}->{'branchip'};
-                        if ( $domain && $ip =~ /^$domain/ ) {
+                        next unless ( $domain );
+                        if ( in_iprange($domain) ) {
                             $branchcode = $branches->{$br}->{'branchcode'};
 
                             # new op dev : add the branchname to the cookie
@@ -1684,7 +1685,8 @@ sub check_api_auth {
 
                     #     now we work with the treatment of ip
                     my $domain = $branches->{$br}->{'branchip'};
-                    if ( $domain && $ip =~ /^$domain/ ) {
+                    next unless ( $domain );
+                    if ( in_iprange($domain) ) {
                         $branchcode = $branches->{$br}->{'branchcode'};
 
                         # new op dev : add the branchname to the cookie
@@ -2257,9 +2259,11 @@ Returns 1 if the remote address is in the provided iprange, or 0 otherwise.
 
 sub in_iprange {
     my ($iprange) = @_;
-    my $result = 1;
+    my $result = 0;
+    # FIXME remove '*' for backwards compatibility in branchip settings
+    $iprange =~ s|\*||g;
     my @allowedipranges = $iprange ? split(' ', $iprange) : ();
-    if (scalar @allowedipranges > 0) {
+    if (@allowedipranges) {
         my @rangelist;
         eval { @rangelist = Net::CIDR::range2cidr(@allowedipranges); }; return 0 if $@;
         eval { $result = Net::CIDR::cidrlookup($ENV{'REMOTE_ADDR'}, @rangelist) } || Koha::Logger->get->warn('cidrlookup failed for ' . join(' ',@rangelist) );
