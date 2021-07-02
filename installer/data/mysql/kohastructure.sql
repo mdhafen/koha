@@ -1672,7 +1672,7 @@ CREATE TABLE `branches` (
   `branchreturnpath` longtext DEFAULT NULL COMMENT 'the email to be used as Return-Path',
   `branchurl` longtext DEFAULT NULL COMMENT 'the URL for your library or branch''s website',
   `issuing` tinyint(4) DEFAULT NULL COMMENT 'unused in Koha',
-  `branchip` varchar(15) DEFAULT NULL COMMENT 'the IP address for your library or branch',
+  `branchip` mediumtext DEFAULT NULL COMMENT 'the IP address(s) for your library or branch',
   `branchnotes` longtext DEFAULT NULL COMMENT 'notes related to your library or branch',
   `geolocation` varchar(255) DEFAULT NULL COMMENT 'geolocation of your library',
   `marcorgcode` varchar(16) DEFAULT NULL COMMENT 'MARC Organization Code, see http://www.loc.gov/marc/organizations/orgshome.html, when empty defaults to syspref MARCOrgCode',

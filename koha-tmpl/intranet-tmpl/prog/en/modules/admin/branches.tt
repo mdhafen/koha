@@ -342,9 +342,9 @@
                         <label for="branchip">IP: </label>
                     </div>
                     <div class="fg-input">
-                        <input type="text" name="branchip" id="branchip" size="15" maxlength="15" value="[% library.branchip | html %]" />
+                        <input type="text" name="branchip" id="branchip" size="60" maxlength="120" value="[% library.branchip | html %]" />
                     </div>
-                    <div class="hint">Enter as a single IP address, or a subnet such as 192.168.1.*</div>
+                    <div class="hint">Enter as a single IP address, an IP range such as 192.168.1. or 192.168.1.10-192.168.1.50 or 192.168.1.0/24, or multiple space separated IP addresses or ranges.</div>
                 </div>
                 <div class="fg-row">
                     <div class="fg-label">
