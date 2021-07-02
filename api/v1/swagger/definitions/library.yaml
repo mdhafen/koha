@@ -85,7 +85,7 @@ properties:
       - string
       - "null"
     description: the IP address for your library or branch
-    maxLength: 15
+    maxLength: 120
   notes:
     type:
       - string
