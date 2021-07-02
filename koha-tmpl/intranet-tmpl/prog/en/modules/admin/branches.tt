@@ -238,8 +238,8 @@ Libraries &rsaquo; Administration &rsaquo; Koha
                 <li><label for="opac_info">OPAC info: </label><textarea name="opac_info" id="opac_info">[% library.opac_info | $raw %]</textarea></li>
                 <li>
                     <label for="branchip">IP: </label>
-                    <input type="text" name="branchip" id="branchip"  size="15" maxlength="15" value="[% library.branchip | html %]" />
-                    <div class="hint">Can be entered as a single IP, or a subnet such as 192.168.1.*</div>
+                    <input type="text" name="branchip" id="branchip"  size="60" maxlength="60" value="[% library.branchip | html %]" />
+                    <div class="hint">Can be entered as a single IP, an IP range such as 192.168.1. or 192.168.1.10-192.168.1.50 or 192.168.1.0/24, or multiple space separated IP addresses or ranges.</div>
                 </li>
                 <li>
                     <label for="marcorgcode">MARC organization code</label>
