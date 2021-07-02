@@ -652,6 +652,46 @@ sub get_template_and_user {
         );
 
         $template->param( OpacPublic => '1' ) if ( $user || C4::Context->preference("OpacPublic") );
+
+        # guess the branch by ip if it isn't set already
+        my ($branchcode,$branchname);
+        my $branches = { map { $_->branchcode => $_->unblessed } Koha::Libraries->search->as_list };
+        my $ip = $ENV{'REMOTE_ADDR'};
+        if ( C4::Context->userenv && C4::Context->userenv->{'branch'} ) {
+            $branchcode = C4::Context->userenv->{'branch'};
+            $branchname = $branches->{$branchcode}->{'branchname'};
+        }
+        else {
+            foreach my $br ( keys %$branches ) {
+                my $domain = $branches->{$br}->{'branchip'};
+                next unless ( $domain );
+                if ( in_iprange($domain) ) {
+                    $branchcode = $branches->{$br}->{'branchcode'};
+                    $branchname = $branches->{$br}->{'branchname'};
+                    last;
+                }
+            }
+        }
+        if ( C4::Context->preference('IndependentBranchesHideOtherBranchesItems') && $branchcode ) {
+            $template->param( mylibraryfirst => $branchcode );
+            $template->param( opac_name => $branchcode );
+            unless ( C4::Context->userenv && C4::Context->userenv->{'branch'} ) {
+                my $env = C4::Context->userenv;
+                C4::Context->set_userenv(
+                    $env->{'number'},       $env->{'id'},
+                    $env->{'cardnumber'},   $env->{'firstname'},
+                    $env->{'surname'},      $branchcode,
+                    $branchname,            $env->{'flags'},
+                    $env->{'emailaddress'}, $env->{'shibboleth'},
+                    $env->{'desk_id'},      $env->{'desk_name'},
+                    $env->{'register_id'},  $env->{'register_name'}
+                );
+            }
+        }
+        elsif ( C4::Context->preference("SearchMyLibraryFirst") && ! $template->param('mylibraryfirst') && $branchcode ) {
+            $template->param( mylibraryfirst => $branchcode );
+            $template->param( opac_name => $branchcode );
+        }
     }
 
     # Check if we were asked using parameters to force a specific language
