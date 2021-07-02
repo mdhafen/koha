@@ -1516,7 +1516,7 @@ CREATE TABLE `branches` (
   `branchreturnpath` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'the email to be used as Return-Path',
   `branchurl` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'the URL for your library or branch''s website',
   `issuing` tinyint(4) DEFAULT NULL COMMENT 'unused in Koha',
-  `branchip` varchar(15) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'the IP address for your library or branch',
+  `branchip` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'the IP address(s) for your library or branch',
   `branchnotes` longtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'notes related to your library or branch',
   `opac_info` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'HTML that displays in OPAC',
   `geolocation` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'geolocation of your library',
