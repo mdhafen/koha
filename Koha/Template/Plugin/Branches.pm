@@ -25,6 +25,7 @@ use base qw( Template::Plugin );
 
 use C4::Koha;
 use C4::Context;
+use C4::Auth qw(in_iprange);
 use Koha::Cache::Memory::Lite;
 use Koha::Libraries;
 
@@ -91,13 +92,10 @@ sub all {
         : Koha::Libraries->search_filtered( $search_params, { order_by => ['branchname'] } )->unblessed;
 
     if ($ip_limit) {
-        my $ip           = $ENV{'REMOTE_ADDR'};
         my @ip_libraries = ();
         for my $l (@$libraries) {
             my $domain = $l->{branchip} // '';
-            $domain =~ s|\.\*||g;
-            $domain =~ s/\s+//g;
-            unless ( $domain && $ip !~ /^$domain/ ) {
+            unless ( $domain && ! in_iprange($domain) ) {
                 push @ip_libraries, $l;
             }
         }
