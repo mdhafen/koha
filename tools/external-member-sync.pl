@@ -258,7 +258,7 @@ if ( $op eq 'Sync' and @categories ) {
                 $branch_update->execute( $$bordata{'branchcode'}, $cardnumber );
                 if (C4::Context->preference('EnhancedMessagingPreferences')) {
                     if ( $no_msg_branches->{$$dbhash{$cardnumber}{'branchcode'}} && ! $no_msg_branches->{$$bordata{'branchcode'}} ) {
-                        SetMessagingPreferencesFromDefaults({ borrowernumber => $$dbhash{$cardnumber}{'borrowernumber'}, categorycode => $category });
+                        C4::Members::Messaging::SetMessagingPreferencesFromDefaults({ borrowernumber => $$dbhash{$cardnumber}{'borrowernumber'}, categorycode => $category });
                     }
                     elsif ( $no_msg_branches->{$$bordata{'branchcode'}} ) {
                         $clear_msg_prefs_sth->execute($$dbhash{$cardnumber}{'borrowernumber'});
@@ -395,7 +395,7 @@ if ( $op eq 'Sync' and @categories ) {
 		    changepassword( $$attribs{ 'userid' }, $borrno, $password );
 		}
 		if (C4::Context->preference('EnhancedMessagingPreferences')) {
-			SetMessagingPreferencesFromDefaults({ borrowernumber => $borrno, categorycode => $category });
+			C4::Members::Messaging::SetMessagingPreferencesFromDefaults({ borrowernumber => $borrno, categorycode => $category });
 		}
 	    }
 
@@ -462,7 +462,7 @@ if ( $op eq 'Sync' and @categories ) {
 #warn "Updated $$attribs{cardnumber}";
 		if ( $$attribs{'branchcode'} && C4::Context->preference('EnhancedMessagingPreferences') ) {
             if ( $no_msg_branches->{$$values{'branchcode'}} && ! $no_msg_branches->{$$attribs{'branchcode'}} ) {
-                SetMessagingPreferencesFromDefaults({ borrowernumber => $$values{'borrowernumber'}, categorycode => $category });
+                C4::Members::Messaging::SetMessagingPreferencesFromDefaults({ borrowernumber => $$values{'borrowernumber'}, categorycode => $category });
             }
             elsif ( $no_msg_branches->{$$attribs{'branchcode'}} ) {
                 $clear_msg_prefs_sth->execute($$values{'borrowernumber'});
