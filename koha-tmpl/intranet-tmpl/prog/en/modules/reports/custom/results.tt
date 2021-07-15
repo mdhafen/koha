@@ -1,0 +1,114 @@
+[% USE raw %]
+[% USE Asset %]
+[% USE KohaDates %]
+[% SET footerjs = 1 %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title>[% report_title | html %] &rsaquo; Reports &rsaquo; Koha</title>
+[% INCLUDE 'doc-head-close.inc' %]
+<style>
+.custom-page-break {
+  page-break-inside: avoid;
+  page-break-before: always;
+  position: relative;
+}
+.custom-no-break-inside {
+  page-break-inside: avoid;
+  position: relative;
+}
+</style>
+</head>
+
+<body id="rep_cust_[% report_file |html %]" class="rep">
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'cat-search.inc' %]
+[% END %]
+
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/reports/reports-home.pl">Reports</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/reports/custom/[% report_file %].pl">[% report_title | html %]</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item bc_active=1 %]
+            <span>Results</span>
+        [% END %]
+    [% END %]
+[% END %]
+
+[% WRAPPER 'main-container.inc' aside='reports-menu' %]
+	[%- IF ( report_desc ) %]
+        <h1>[% report_desc | html %]</h1>
+	[%- END %]
+	[%- IF ( filters ) %]
+	<fieldset id="filters">
+		<legend>Filtered on</legend>
+		<a class="filters_toggle togglechildren_on" href="#"><i class="fa fa-minus-square-o"></i>Hide details</a>
+		<a class="filters_toggle togglechildren_off" href="#"><i class="fa fa-plus-square-o"></i>Show details</a>
+		<ul>
+		[%- FOREACH filter IN filters %]
+		<li>[% filter.label | html %] [% filter.op | html %] [% filter.value | html %]</li>
+		[%- END %]
+		</ul>
+	</fieldset>
+	[%- END %]
+	[%- FOREACH mainloop IN breakingloop %]
+	<table class="[% UNLESS mainloop.nodata %][% report_file | html %]_table[% END %][% IF mainloop.break %] custom-page-break[% END %][% IF mainloop.nobreak %] custom-no-break-inside[% END %]">
+		<thead>
+		<tr>
+		[%- FOREACH column IN headers %]
+			<th>[% column.title | html %]</th>[% IF column.colspan %][% SET Iter = 1 %][% WHILE Iter < column.colspan %]<th></th>[% SET Iter = Iter + 1 %][% END %][% END %]
+		[%- END %]
+		</tr>
+		</thead>
+		[%- IF mainloop.footer %]
+		<tfoot>
+			[%- FOREACH row IN mainloop.footer %]
+			<tr>
+			[%- FOREACH column IN row %]
+				<th>[% column.value | html %]</th>[% IF column.colspan %][% SET Iter = 1 %][% WHILE Iter < column.colspan %]<th></th>[% SET Iter = Iter + 1 %][% END %][% END %]
+			[%- END %]
+			</tr>
+			[%- END %]
+		</tfoot>
+		[%- END %]
+		<tbody>
+			[%- FOREACH row IN mainloop.results %]
+				<tr>
+				[%- FOREACH column IN row %]
+					<td[% IF column.order_by %] data-order="[% column.value | html %]"[% END %]>[% IF column.link %]<a href="[% column.link | html %]">[% END %][% IF column.is_date %][% IF column.with_hours %][% column.value | $KohaDates with_hours => 1 %][% ELSE %][% column.value | $KohaDates %][% END %][% ELSE %][% column.value | html_line_break %][% END %][% IF column.link %]</a>[% END %]</td>
+					[% IF column.colspan %][% SET Iter = 1 %][% WHILE Iter < column.colspan %]<td></td>[% SET Iter = Iter + 1 %][% END %][% END %]
+				[%- END %]
+				</tr>
+			[%- END %]
+		</tbody>
+	</table>
+	[%- END %]
+
+[% END %]
+
+[% MACRO jsinclude BLOCK %]
+        [% INCLUDE 'datatables.inc' %]
+        <script>
+            function showHideFilters(){
+	        $("#filters").find('legend').nextAll().toggle();
+	    }
+
+            $(document).ready(function(){
+	        showHideFilters();
+		$("#filters .filters_toggle").click(function(e){
+		    e.preventDefault();
+	            $("#filters").find('legend').nextAll().toggle();
+		});
+
+                $(".[% report_file | html %]_table").dataTable($.extend(true, {}, dataTablesDefaults, {
+                    "sDom": 't',
+                    "bPaginate": false,
+                    "aaSorting":[]
+                }));
+            });
+        </script>
+[% END %]
+
+[% INCLUDE 'intranet-bottom.inc' %]
