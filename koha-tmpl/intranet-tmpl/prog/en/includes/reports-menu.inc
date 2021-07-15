@@ -1,5 +1,39 @@
 [% USE Koha %]
 <div id="reports-menu" class="sidebar_menu icon-collapse">
+    <h4>Custom reports</h4>
+
+    <h5>Catalog</h5>
+    <ul>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_titles_by_various.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Titles by various criteria</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_lost.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Copies by status</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_reserves.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Titles on hold</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_items_noitype.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Items with no item type</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_nocallnumber.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Copies without a call number</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_newcopies.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">New copies</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_age.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Collection age</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_inventory.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Catalog Inventory</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_usedbarcodes.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Used barcodes</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/cat_unusedbarcodes.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Unused barcodes</span></a></li>
+    </ul>
+
+    <h5>Circulation</h5>
+    <ul>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_issued.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Checked out copies</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/account_overdues_fines.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Overdue copies and fines</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_stats_issues.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Titles with check out information</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_all_issues.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">All check outs</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_yearly_total.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Yearly circulation totals</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/circ_monthly_total.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Monthly circulation totals</span></a></li>
+    </ul>
+
+    <h5>Patrons</h5>
+    <ul>
+        <li><a href="/cgi-bin/koha/reports/custom/account_fines.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Fines</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/account_payments.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Payments</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/borrowers_messages.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">Patron messages</span></a></li>
+        <li><a href="/cgi-bin/koha/reports/custom/borrowers_by_status.pl" title="Guided reports"><i class="fa-solid  fa-fw" aria-hidden="true"></i><span class="menu-label">List patrons by status</span></a></li>
+    </ul>
+
     <h5>Guided reports</h5>
     <ul>
         <li
