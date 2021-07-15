@@ -1,0 +1,145 @@
+[% USE raw %]
+[% USE Asset %]
+[% USE KohaDates %]
+[% USE Branches %]
+[% USE ItemTypes %]
+[% SET footerjs = 1 %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title>[% report_title | html %] &rsaquo; Reports &rsaquo; Koha</title>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+
+<body id="rep_cust_[% report_file | html %]" class="rep">
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+
+<nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumb">
+    <ol>
+        <li>
+            <a href="/cgi-bin/koha/mainpage.pl">Home</a>
+        </li>
+        <li>
+            <a href="/cgi-bin/koha/reports/reports-home.pl">Reports</a>
+        </li>
+            <li>
+                <a href="#" aria-current="page">
+                    [% report_title | html %]
+                </a>
+            </li>
+    </ol>
+</nav>
+
+<div class="main container-fluid">
+    <div class="row">
+        <div class="col-sm-10 col-sm-push-2">
+            <main>
+
+	[%- IF ( report_desc ) -%]
+        <h3>[% report_desc | html %]</h3>
+	[%- END -%]
+        <form method="post" action="/cgi-bin/koha/reports/custom/[% report_file | html %].pl">
+          <fieldset class="rows">
+            <legend>Parameters</legend>
+            <ol>
+	      [% FOREACH param IN parameters %]
+	      <li>
+          [% IF param.input_box || param.check_box || param.select_box %]
+	          <label for="[% param.input_id | html %]">[% param.label | html %]</label>
+          [% ELSE %]
+              [% param.label | html %]
+          [% END %]
+		  [%- IF param.input_box -%]
+		  <input type="text" id="[% param.input_id | html %]" name="[% param.input_name | html %]" value="[% (param.value ? param.value : '') | html %]">
+
+		  [%- ELSIF param.check_box -%]
+		  <input type="checkbox" id="[% param.input_id | html %]" name="[% param.input_name | html %]" [%- param.checked ? ' checked="checked"' : '' %]>
+
+		  [%- ELSIF param.select_box -%]
+		  <select id="[% param.input_id | html %]" name="[% param.input_name | html %]" [%- param.multiple ? ' multiple="multiple"' : '' %]>
+		  [%- IF param.first_blank -%]
+		  <option>[% param.blank_label | html %]</option>
+		  [%- END -%]
+		  [%- FOREACH opt IN param.select_loop -%]
+		  <option value="[% opt.value | html %]" [%- opt.selected || opt.value == param.value ? ' selected="selected"' : '' %]>[% opt.label | html %]</option>
+		  [%- END -%]
+		  </select>
+
+		  [%- ELSIF param.radio_group -%]
+          <div class="form-group">
+		  [%- IF param.first_blank -%]
+		  <div class="radio clearfix">
+		      <label for="[% param.input_id | html %]">[% param.blank_label | html %]</label>
+		      <input type="radio" id="[% param.input_id | html %]" name="[% param.input_name | html %]" value="">
+		  </div>
+		  [%- END -%]
+		  [%- FOREACH opt IN param.radio_loop -%]
+		  <div class="radio clearfix">
+		      <label for="[% param.input_id | html %]_[% opt.value | html %]">[% opt.label | html %]</label>
+		      <input type="radio" id="[% param.input_id | html %]_[% opt.value | html %]" name="[% param.input_name | html %]" value="[% opt.value | html %]"[% IF opt.selected %] checked="checked"[% END %]>
+		  </div>
+		  [%- END -%]
+          </div>
+
+		  [%- ELSIF param.calendar -%]
+		  <label for="[% param.input_id | html %]">[% param.input_label | html %]</label>
+		  <input type="text" class="flatpickr" [% IF param.to_id %]data-date_to="[% param.to_id %]" [% END %] size="10" id="[% param.input_id | html %]" name="[% param.input_name | html %]" value="[% param.value | $KohaDates %]">
+		  <span class="hint">[% INCLUDE 'date-format.inc' %]</span>
+
+		  [%- END -%]
+	      </li>
+	      [% END %]
+              [% UNLESS Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+              <li>
+                <label for="branch">Select a library:</label>
+                <select name="branch" id="branch">
+                  <option value=""></option>
+                  [% PROCESS options_for_libraries libraries => Branches.all() %]
+                </select>
+                <span class="tip">Select none to see all libraries</span>
+              </li>
+	      [% END %]
+            </ol>
+          </fieldset>
+          <fieldset class="rows">
+            <legend>Output</legend>
+            <ol>
+              <li>
+                <label for="outputscreen">To screen into the browser: </label>
+                <input type="radio" checked="checked" name="output" id="outputscreen" value="screen" />
+              </li>
+              <li>
+                <label for="outputfile">To a file:</label>
+                <input type="radio" name="output" value="file" id="outputfile" />
+                <label class="inline" for="basename">Named: </label><input type="text" name="basename" id="basename" value="Export" />
+                <select name="sep" id="sep">
+                [% FOREACH value IN CGIsepChoice.values.sort() %]
+                  [% IF ( value == CGIsepChoice.default ) %]
+                    <option value="[% value | html %]" selected="selected">[% value | html %]</option>
+                  [% ELSE %]
+                    <option value="[% value | html %]">[% value | html %]</option>
+                  [% END %]
+                [% END %]
+                </select>
+              </li>
+            </ol>
+          </fieldset>
+          <fieldset class="action"><input type="submit" value="Submit" />
+            <input type="hidden" name="do_it" value="1" />
+          </fieldset>
+        </form>
+
+            </main>
+        </div> <!-- /.col-sm-10.col-sm-push-2 -->
+
+        <div class="col-sm-2 col-sm-pull-10">
+            <aside>
+                [% INCLUDE 'reports-menu.inc' %]
+            </aside>
+        </div> <!-- /.col-sm-2.col-sm-pull-10 -->
+     </div> <!-- /.row -->
+
+[% MACRO jsinclude BLOCK %]
+    [% INCLUDE 'calendar.inc' %]
+[% END %]
+
+[% INCLUDE 'intranet-bottom.inc' %]
