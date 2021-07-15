@@ -1,0 +1,36 @@
+options for output:
+link => 'href'
+is_date => 1 and with_hours => 1
+colspan => 5 # span 5 columns
+
+options for parameters:
+
+input_id => 'cr_notgone',  # input id, used for label tag, reserved: from,to
+input_name => 'not_gone', # required, reserved: do_id,output,basename,sep,branch
+label => 'Exclude patrons who are not Gone',
+value => '',  # default value
+crit => 'borrowers.gonenoaddress',  # database column to filter on
+op => '=',  # op for filter comparison
+filter => '0',  # value to filter on if different from input
+display => 'Not Gone',  # text to show in the results page if there is a filter
+  # filter and display go together
+
+specific kinds of inputs:
+
+input_box => 1,
+
+check_box => 1,
+checked => 0,  # for checkboxes
+
+select_box => 1,
+select_loop => \@select_loop,
+first_blank => 1,
+blank_label => 'All',
+multiple => 1,
+
+radio_group => 1,
+radio_loop => \@radio_loop,
+first_blank => 1,
+
+calendar => 1,
+to_id => 'cr_cal_to',   # input_id of the parameter which is a calendar field
