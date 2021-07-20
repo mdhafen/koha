@@ -42,6 +42,24 @@
                             [% END %]
                         </select>
                     </li>
+                    <li>
+                        <label for="sort1_filter">Sort1:</label>
+                        <select id="sort1_filter">
+                            <option value="">Any</option>
+                            [% FOREACH sor IN sort1 %]
+                                <option value="[% sor | html %]">[% sor | html %]</option>
+                            [% END %]
+                        </select>
+                    </li>
+                    <li>
+                        <label for="sort2_filter">Sort2:</label>
+                        <select id="sort2_filter">
+                            <option value="">Any</option>
+                            [% FOREACH sor IN sort2 %]
+                                <option value="[% sor | html %]">[% sor | html %]</option>
+                            [% END %]
+                        </select>
+                    </li>
                 </ol>
                 <fieldset class="action">
                     <input type="submit" value="Search" />
@@ -69,11 +87,21 @@
 
         <input type="hidden" id="firstletter_filter" value="" />
         <div id="searchresults">
+            <div class="searchheader fh-fixedHeader" id="searchheader">
+                <div>
+                    <a href="#" id="select_all"><i class="fa fa-check"></i> Select all</a>
+                    |
+                    <a href="#" id="clear_all"><i class="fa fa-remove"></i> Clear all</a>
+                    |
+                    <a href="#" class="btn btn-default btn-xs" id="add-selected">Add selected patrons</a>
+                </div>
+            </div>
             <table id="memberresultst">
                 <thead>
                     <tr>
                         [% FOR column IN columns %]
                             [% SWITCH column %]
+                                [% CASE 'select' %]<th>&nbsp;</th>
                                 [% CASE 'cardnumber' %]<th>Card</th>
                                 [% CASE 'dateofbirth' %]<th>Date of birth</th>
                                 [% CASE 'address' %]<th>Address</th>
@@ -151,6 +179,12 @@
                         'name': 'branchcode',
                         'value': $("#branchcode_filter").val()
                     },{
+                        'name': 'sort1',
+                        'value': $("#sort1_filter").val()
+                    },{
+                        'name': 'sort2',
+                        'value': $("#sort2_filter").val()
+                    },{
                         'name': 'name_sorton',
                         'value': 'borrowers.surname borrowers.firstname'
                     },{
@@ -204,6 +238,8 @@
                     [% FOR column IN columns %]
                         [% IF column == 'action' %]
                             { 'mDataProp': 'dt_action', 'bSortable': false, 'sClass': 'actions' }
+                        [% ELSIF column == 'select' %]
+                            { 'mDataProp': 'dt_select', 'bSortable': false, 'sClass': 'selections' }
                         [% ELSIF column == 'address' %]
                             { 'mDataProp': 'dt_address', 'bSortable': false }
                         [% ELSE %]
@@ -224,6 +260,22 @@
             $(".filterByLetter").on("click",function(e){
                 e.preventDefault();
                 filterByFirstLetterSurname($(this).text());
+            });
+            $("#select_all").on("click",function(e){
+                e.preventDefault();
+                $("#searchresults .selection").prop("checked", true).change();
+            });
+            $("#clear_all").on("click",function(e){
+                e.preventDefault();
+                $("#searchresults .selection").prop("checked", false).change();
+            });
+            $("#add-selected").on('click', function(e){
+                $("#searchresults .selection:checked").each(function(){
+                    var borrowernumber = $(this).data("borrowernumber");
+                    var firstname = $(this).data("firstname");
+                    var surname = $(this).data("surname");
+                    add_user( borrowernumber, firstname + " " + surname );
+                });
             });
             $("body").on("click",".add_user",function(e){
                 e.preventDefault();

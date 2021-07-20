@@ -11,6 +11,8 @@ sub search {
     my $firstletter = $params->{firstletter};
     my $categorycode = $params->{categorycode};
     my $branchcode = $params->{branchcode};
+    my $sort1 = $params->{sort1};
+    my $sort2 = $params->{sort2};
     my $searchtype = $params->{searchtype} || 'contain';
     my $searchfieldstype = $params->{searchfieldstype} || 'standard';
     my $has_permission = $params->{has_permission};
@@ -110,6 +112,14 @@ sub search {
     if(@restricted_branchcodes ) {
         push @where_strs, "borrowers.branchcode IN (" . join( ',', ('?') x @restricted_branchcodes ) . ")";
         push @where_args, @restricted_branchcodes;
+    }
+    if(defined $sort1 and $sort1 ne '') {
+        push @where_strs, "borrowers.sort1 = ?";
+        push @where_args, $sort1;
+    }
+    if(defined $sort2 and $sort2 ne '') {
+        push @where_strs, "borrowers.sort2 = ?";
+        push @where_args, $sort2;
     }
 
     my $searchfields = {
