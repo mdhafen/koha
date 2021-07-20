@@ -55,6 +55,26 @@
                                 [% END %]
                             </select>
                         </li>
+                    [% CASE 'sort1' %]
+                        <li>
+                            <label for="sort1_filter">Sort1:</label>
+                            <select class="select2" id="sort1_filter">
+                                <option value="">Any</option>
+                                [% FOREACH s1 IN sort1 %]
+                                    <option value="[% s1 | html %]">[% s1 | html %]</option>
+                                [% END %]
+                            </select>
+                        </li>
+                    [% CASE 'sort2' %]
+                        <li>
+                            <label for="sort2_filter">Sort2:</label>
+                            <select class="select2" id="sort2_filter">
+                                <option value="">Any</option>
+                                [% FOREACH s2 IN sort2 %]
+                                    <option value="[% s2 | html %]">[% s2 | html %]</option>
+                                [% END %]
+                            </select>
+                        </li>
                     [% CASE 'search_field' %]
                         <li>
                             <label for="searchfieldstype_filter">Search field:</label>
@@ -208,6 +228,8 @@
     [% IF redirect_if_one_result && !redirect_url %]
         <script>console.log("Wrong call of patron_searh_js - missing redirect_url");</script>
     [% END %]
+
+    [% INCLUDE 'select2.inc' %]
     <script>
         let categories = [% To.json(categories) | $raw %].map(e => {
             e['_id'] = e.categorycode;
@@ -232,6 +254,10 @@
             let extended_attribute_types = [% To.json(extended_attribute_types || []) | $raw %];
         [% END %]
 
+        $(document).ready(function() {
+            $('sort1_filter').select2({allowClear:true});
+            $('sort2_filter').select2({allowClear:true});
+        });
     </script>
 
     [% INCLUDE 'datatables.inc' %]
@@ -308,11 +334,31 @@
                     return { "like": start_with + "%" }
                 },
                 "-and": function(){
+                    let filters = [];
+                    let f_sort1 = $("#sort1_filter").val();
+                    if ( f_sort1 ) {
+                        filters.push({
+                            "me.sort1": f_sort1
+                        });
+                    }
+                    let f_sort2 = $("#sort2_filter").val();
+                    if ( f_sort2 ) {
+                        filters.push({
+                            "me.sort2": f_sort2
+                        });
+                    }
+
                     let pattern = $("#search_patron_filter").val();
-                    if (!pattern) return "";
+                    if (!pattern) {
+                        if ( filters.length == 0 ) {
+                            return "";
+                        }
+                        else {
+                            return filters;
+                        }
+                    }
                     let patterns = pattern.split(' ').filter(function(s){ return s.length });
 
-                    let filters = [];
                     let search_type = $("#searchtype_filter").val() || "contain";
                     let search_fields = $("#searchfieldstype_filter").val();
                     if ( !search_fields ) {
@@ -728,6 +774,12 @@
             if ( $("#branchcode_filter").val() ) {
                 searched += _(" in library ") + $("#branchcode_filter").find("option:selected").text();
             }
+            if ( $("#sort1_filter").val() ) {
+                searched += _(" with sort1 ") + $("#sort1_filter").find("option:selected").text();
+            }
+            if ( $("#sort2_filter").val() ) {
+                searched += _(" with sort2 ") + $("#sort2_filter").find("option:selected").text();
+            }
             $("#searchpattern").text(searched);
             $("#searchpattern").parent().show();
         }
@@ -785,6 +837,8 @@
             $("#searchtype_filter option[value='contain']").prop("selected", true);
             $("#categorycode_filter option:first").prop("selected", true);
             $("#branchcode_filter option:first").prop("selected", true);
+            $("#sort1_filter option:first").prop("selected", true);
+            $("#sort2_filter option:first").prop("selected", true);
             $("#firstletter_filter").val('');
             $("#search_patron_filter").val('');
             /* remove any search string added by firstletter search */
