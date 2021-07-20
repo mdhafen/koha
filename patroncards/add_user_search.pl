@@ -20,6 +20,7 @@
 use Modern::Perl;
 
 use CGI qw ( -utf8 );
+use List::MoreUtils qw(uniq);
 use C4::Auth qw( get_template_and_user );
 use C4::Output qw( output_html_with_http_headers );
 use C4::Members;
@@ -44,13 +45,18 @@ my $op = $input->param('op') || '';
 my $referer = $input->referer();
 
 my $patron_categories = Koha::Patron::Categories->search_with_library_limits;
+my $sort_filter = { ( C4::Context->only_my_library ? (branchcode => C4::Context->userenv->{branch}) : () ) };
+my @sort1 = sort {$a cmp $b} uniq( Koha::Patrons->search($sort_filter)->get_column('sort1') );
+my @sort2 = sort {$a cmp $b} uniq( Koha::Patrons->search($sort_filter)->get_column('sort2') );
 $template->param(
     view            => ( $input->request_method() eq "GET" ) ? "show_form" : "show_results",
-    columns         => ['cardnumber', 'name', 'category', 'branch', 'dateexpiry', 'borrowernotes', 'action'],
+    columns         => ['select', 'cardnumber', 'name', 'category', 'branch', 'dateexpiry', 'borrowernotes', 'action'],
     json_template   => 'patroncards/tables/members_results.tt',
     selection_type  => 'add',
     alphabet        => ( C4::Context->preference('alphabet') || join ' ', 'A' .. 'Z' ),
     categories      => $patron_categories,
+    sort1           => \@sort1,
+    sort2           => \@sort2,
     aaSorting       => 1,
 );
 output_html_with_http_headers( $input, $cookie, $template->output );

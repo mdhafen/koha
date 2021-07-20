@@ -6,6 +6,8 @@
     "aaData": [
         [% FOREACH data IN aaData %]
             {
+                "dt_select":
+                    "<input type=\"checkbox\" class=\"selection\" data-borrowernumber=\"[% data.borrowernumber | html %]\" data-firstname=\"[% data.firstname | html %]\" data-surname=\"[% data.surname | html %]\">",
                 "dt_cardnumber":
                     "[% data.cardnumber | html %]",
                 "dt_name":
