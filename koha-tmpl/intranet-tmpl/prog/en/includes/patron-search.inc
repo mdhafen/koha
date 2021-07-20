@@ -60,13 +60,23 @@
                         </li>
                     [% CASE 'sort1' %]
                         <li>
-                            <label for="sort1_filter">Sort 1:</label>
-                            [% PROCESS 'av-build-dropbox.inc' name="sort1_filter", category="Bsort1", empty=1, size = 20 %]
+                            <label for="sort1_filter">Sort1:</label>
+                            <select class="select2" id="sort1_filter" name="sort1_filter">
+                                <option value="">Any</option>
+                                [% FOREACH s1 IN sort1 %]
+                                    <option value="[% s1 | html %]">[% s1 | html_entity %]</option>
+                                [% END %]
+                            </select>
                         </li>
                     [% CASE 'sort2' %]
                         <li>
-                            <label for="sort2_filter">Sort 2:</label>
-                            [% PROCESS 'av-build-dropbox.inc' name="sort2_filter", category="Bsort2", empty=1, size = 20 %]
+                            <label for="sort2_filter">Sort2:</label>
+                            <select class="select2" id="sort2_filter" name="sort2_filter">
+                                <option value="">Any</option>
+                                [% FOREACH s2 IN sort2 %]
+                                    <option value="[% s2 | html %]">[% s2 | html_entity %]</option>
+                                [% END %]
+                            </select>
                         </li>
                     [% CASE 'search_field' %]
                         <li>
@@ -210,6 +220,7 @@
         <script>console.log("Wrong call of patron_search_js - missing redirect_url");</script>
     [% END %]
 
+    [% INCLUDE 'select2.inc' %]
     <script>
         let categories = [% To.json(categories) | $raw %].map(e => {
             e['_id'] = e.categorycode.toLowerCase();
