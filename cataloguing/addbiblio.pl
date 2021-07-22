@@ -540,6 +540,7 @@ if ( $op eq 'cud-change-framework' ) {
 
 my $logged_in_patron = Koha::Patrons->find($loggedinuser);
 my $biblio;
+my $block_mod = 0;
 
 if ($biblionumber) {
 
@@ -551,6 +552,12 @@ if ($biblionumber) {
         unless ( $biblio->can_be_edited($logged_in_patron) ) {
             print $input->redirect("/cgi-bin/koha/errors/403.pl");    # escape early
             exit;
+        }
+        if ( $op ne 'duplicate' && C4::Context->only_my_library() ) {
+            my $items_rs = $biblio->items->search({ "homebranch" => { '!=' => C4::Context->userenv->{branch} } });
+            if ( $items_rs->count ) {
+                $block_mod = 1;
+            }
         }
     } else {
         $biblionumber = undef;
@@ -679,6 +686,9 @@ if ($biblionumber) {
             }
         );
     }
+
+    # notify the template if we are blocking modifs
+    $template->param( block_mod => $block_mod );
 }
 
 #-------------------------------------------------------------------------------------
@@ -715,7 +725,7 @@ if ( $op eq "cud-addbiblio" ) {
                         userid       => $logged_in_patron->userid,
                     }
                 }
-            );
+            ) unless ($block_mod);
         } else {
             ( $biblionumber, $oldbibitemnum ) = AddBiblio( $record, $frameworkcode );
         }
