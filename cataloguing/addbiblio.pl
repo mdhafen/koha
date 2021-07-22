@@ -534,11 +534,20 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 );
 
 my $biblio;
+my $block_mod = 0;
 if ($biblionumber){
     $biblio = Koha::Biblios->find($biblionumber);
     unless ( $biblio ) {
         $biblionumber = undef;
         $template->param( bib_doesnt_exist => 1 );
+    }
+    else {
+        if ( $op ne 'duplicate' && C4::Context->only_my_library() ) {
+            my $items_rs = $biblio->items->search({ "homebranch" => { '!=' => C4::Context->userenv->{branch} } });
+            if ( $items_rs->count ) {
+                $block_mod = 1;
+            }
+        }
     }
 }
 
@@ -654,6 +663,9 @@ if ($biblionumber) {
             }
         );
     }
+
+    # notify the template if we are blocking modifs
+    $template->param( block_mod => $block_mod );
 }
 
 #-------------------------------------------------------------------------------------
@@ -687,7 +699,7 @@ if ( $op eq "addbiblio" ) {
                         userid       => $member->userid
                     }
                 }
-            );
+            ) unless ($block_mod);
         }
         else {
             ( $biblionumber, $oldbibitemnum ) = AddBiblio( $record, $frameworkcode );
