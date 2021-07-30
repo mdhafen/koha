@@ -1571,7 +1571,7 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
         "CREATE TABLE `user_permissions` (
                 `borrowernumber` int(11) NOT NULL DEFAULT 0,
                 `module_bit` int(11) NOT NULL DEFAULT 0,
-                `code` varchar(30) DEFAULT NULL,
+                `code` varchar(30) DEFAULT '' NOT NULL,
                 CONSTRAINT `user_permissions_ibfk_1` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`)
                     ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT `user_permissions_ibfk_2` FOREIGN KEY (`module_bit`, `code`)
@@ -3373,9 +3373,9 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
 $DBversion = "3.01.00.072";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
-    $dbh->do(
-        "INSERT INTO systempreferences (variable,value,explanation,options,type) VALUES('OpacPrivacy', '0', 'if ON, allows patrons to define their privacy rules (reading history)',NULL,'YesNo')"
-    );
+#    $dbh->do(
+#        "INSERT INTO systempreferences (variable,value,explanation,options,type) VALUES('OpacPrivacy', '0', 'if ON, allows patrons to define their privacy rules (reading history)',NULL,'YesNo')"
+#    );
 
     # create a new syspref for the 'Mr anonymous' patron
     $dbh->do(
@@ -3396,7 +3396,7 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
     $dbh->do("UPDATE systempreferences SET type='YesNo' WHERE variable='AnonSuggestions'");
 
     # borrower reading record privacy : 0 : forever, 1 : laws, 2 : don't keep at all
-    $dbh->do("ALTER TABLE `borrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
+#    $dbh->do("ALTER TABLE `borrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
     print "Upgrade to $DBversion done (add new syspref and column in borrowers)\n";
     SetVersion($DBversion);
 }
@@ -4659,7 +4659,7 @@ $DBversion = '3.03.00.006';
 if ( C4::Context->preference("Version") < TransformToNum($DBversion)
     && $original_version < TransformToNum("3.02.01.002") )
 {
-    $dbh->do("ALTER TABLE deletedborrowers ADD `privacy` int(11) AFTER smsalertnumber;");
+#    $dbh->do("ALTER TABLE deletedborrowers ADD `privacy` int(11) AFTER smsalertnumber;");
     $dbh->do("ALTER TABLE deletedborrowers CHANGE `cardnumber` `cardnumber` varchar(16);");
     print "Upgrade to $DBversion done (Fix differences between borrowers and deletedborrowers)\n";
     SetVersion($DBversion);
@@ -4781,8 +4781,8 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
     $dbh->do(
         "INSERT INTO systempreferences (variable,value,explanation,options,type) VALUES('OpacPrivacy', '0', 'if ON, allows patrons to define their privacy rules (reading history)',NULL,'YesNo')"
     );
-    $dbh->do("ALTER TABLE `borrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
-    $dbh->do("ALTER TABLE `deletedborrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
+#    $dbh->do("ALTER TABLE `borrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
+#    $dbh->do("ALTER TABLE `deletedborrowers` ADD `privacy` INTEGER NOT NULL DEFAULT 1;");
     print "Upgrade to $DBversion done (OpacPrivacy reimplementation)\n";
     SetVersion($DBversion);
 }
@@ -5502,13 +5502,23 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
 $DBversion = "3.07.00.001";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
+    sanitize_zero_date('borrowers', 'dateexpiry');
+    sanitize_zero_date('borrowers', 'dateofbirth');
+    sanitize_zero_date('borrowers', 'dateenrolled');
     my $borrowers =
         $dbh->selectcol_arrayref( "SELECT borrowernumber from borrowers where debarred =1;", { Columns => [1] } );
     $dbh->do("ALTER TABLE borrowers MODIFY debarred DATE DEFAULT NULL;");
     $dbh->do( "UPDATE borrowers set debarred='9999-12-31' where borrowernumber IN (" . join( ",", @$borrowers ) . ");" )
         if ( $borrowers and scalar(@$borrowers) > 0 );
     $dbh->do("ALTER TABLE borrowers ADD COLUMN debarredcomment VARCHAR(255) DEFAULT NULL AFTER debarred;");
+
+    sanitize_zero_date('deletedborrowers', 'dateexpiry');
+    sanitize_zero_date('deletedborrowers', 'dateofbirth');
+    sanitize_zero_date('deletedborrowers', 'dateenrolled');
+    $borrowers = $dbh->selectcol_arrayref( "SELECT borrowernumber from deletedborrowers where debarred =1;", { Columns => [1] } );
+    $dbh->do( "UPDATE deletedborrowers set debarred=NULL;" );
     $dbh->do("ALTER TABLE deletedborrowers MODIFY debarred DATE DEFAULT NULL;");
+    $dbh->do( "UPDATE deletedborrowers set debarred='9999-12-31' where borrowernumber IN (" . join( ",", @$borrowers ) . ");" ) if ($borrowers and scalar(@$borrowers)>0);
     $dbh->do("ALTER TABLE deletedborrowers ADD COLUMN debarredcomment VARCHAR(255) DEFAULT NULL AFTER debarred;");
     print "Upgrade done (Change borrowers.debarred into Date )\n";
     SetVersion($DBversion);
@@ -5557,6 +5567,7 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
 $DBversion = "3.07.00.007";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
+    sanitize_zero_date('items', 'dateaccessioned');
     $dbh->do("ALTER TABLE items MODIFY materials text;");
     print "Upgrade to $DBversion done alter items.material from varchar(10) to text \n";
     SetVersion($DBversion);
@@ -5707,10 +5718,10 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 $DBversion = "3.07.00.019";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
     $dbh->do(
-        " UPDATE `systempreferences` SET  `value` =  'none', `options` =  'none|full|first|surname|firstandinitial|username', `explanation` =  'Choose how a commenter''s identity is presented alongside comments in the OPAC', `type` =  'Choice' WHERE  `systempreferences`.`variable` =  'ShowReviewer' AND `systempreferences`.`variable` = 0"
+        " UPDATE `systempreferences` SET  `value` =  'none', `options` =  'none|full|first|surname|firstandinitial|username', `explanation` =  'Choose how a commenter''s identity is presented alongside comments in the OPAC', `type` =  'Choice' WHERE  `systempreferences`.`variable` =  'ShowReviewer' AND `systempreferences`.`value` = 0"
     );
     $dbh->do(
-        " UPDATE `systempreferences` SET  `value` =  'full', `options` =  'none|full|first|surname|firstandinitial|username', `explanation` =  'Choose how a commenter''s identity is presented alongside comments in the OPAC', `type` =  'Choice' WHERE  `systempreferences`.`variable` =  'ShowReviewer' AND `systempreferences`.`variable` = 1"
+        " UPDATE `systempreferences` SET  `value` =  'full', `options` =  'none|full|first|surname|firstandinitial|username', `explanation` =  'Choose how a commenter''s identity is presented alongside comments in the OPAC', `type` =  'Choice' WHERE  `systempreferences`.`variable` =  'ShowReviewer' AND `systempreferences`.`value` = 1"
     );
     print
         "Upgrade to $DBversion done ( Adding additional options for the display of commenter's identity in the OPAC: Full name, first name, last name, first name and last name first initial, username, or no information)\n";
@@ -5771,7 +5782,7 @@ $DBversion = "3.07.00.023";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
     $dbh->do("ALTER TABLE `message_transports` DROP FOREIGN KEY `message_transports_ibfk_3`");
     $dbh->do("ALTER TABLE `letter` DROP PRIMARY KEY");
-    $dbh->do("ALTER TABLE `letter` ADD `branchcode` varchar(10) default NULL AFTER `code`");
+    $dbh->do("ALTER TABLE `letter` ADD `branchcode` varchar(10) NOT NULL default '' AFTER `code`");
     $dbh->do("ALTER TABLE `letter` ADD PRIMARY KEY  (`module`,`code`, `branchcode`)");
     $dbh->do("ALTER TABLE `message_transports` ADD `branchcode` varchar(10) NOT NULL default ''");
     $dbh->do(
@@ -6345,7 +6356,9 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
 $DBversion = "3.09.00.001";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
-    $dbh->do("ALTER TABLE borrower_attribute_types MODIFY category_code VARCHAR( 1 ) NULL DEFAULT NULL");
+    $dbh->do("ALTER TABLE borrower_attribute_types DROP FOREIGN KEY `category_code_fk`");
+    $dbh->do("ALTER TABLE borrower_attribute_types MODIFY category_code VARCHAR( 10 ) NULL DEFAULT NULL");
+    $dbh->do("ALTER TABLE borrower_attribute_types ADD CONSTRAINT category_code_fk FOREIGN KEY (category_code) REFERENCES categories(categorycode)");
     print "Upgrade to $DBversion done. (Bug 8002: Update patron attribute types table to allow NULL category_code)\n";
     SetVersion($DBversion);
 }
@@ -6929,7 +6942,7 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
               `tobranch` varchar(10) NOT NULL,
               `cost` decimal(6,2) NOT NULL,
               `disable_transfer` tinyint(1) NOT NULL DEFAULT 0,
-              CHECK ( `frombranch` <> `tobranch` ), -- a dud check, mysql does not support that
+#              CHECK ( `frombranch` <> `tobranch` ), -- a dud check, mysql does not support that
               PRIMARY KEY (`frombranch`, `tobranch`),
               CONSTRAINT `transport_cost_ibfk_1` FOREIGN KEY (`frombranch`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE,
               CONSTRAINT `transport_cost_ibfk_2` FOREIGN KEY (`tobranch`) REFERENCES `branches` (`branchcode`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -7022,7 +7035,9 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
 $DBversion = "3.09.00.045";
 if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
+    $dbh->do("ALTER TABLE borrower_attribute_types DROP FOREIGN KEY `category_code_fk`");
     $dbh->do("ALTER TABLE borrower_attribute_types MODIFY category_code VARCHAR( 10 ) NULL DEFAULT NULL");
+    $dbh->do("ALTER TABLE borrower_attribute_types ADD CONSTRAINT category_code_fk FOREIGN KEY (category_code) REFERENCES categories(categorycode)");
     print
         "Upgrade to $DBversion done. (Bug 8002: Update patron attribute types table from varchar(1) to varchar(10) category_code)\nWarning to Koha System Administrators: If you use borrower attributes defined by borrower categories, you have to check your configuration. A bug may have removed your attribute links to borrower categories.\nPlease check, and fix it if necessary.";
     SetVersion($DBversion);
@@ -7132,13 +7147,13 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
 
     # Fill this new table with existing invoices
     my $sth = $dbh->prepare( "
-        SELECT aqorders.booksellerinvoicenumber AS invoicenumber, aqbasket.booksellerid, aqorders.datereceived
+        SELECT aqorders.booksellerinvoicenumber AS invoicenumber, aqbasket.booksellerid, max(aqorders.datereceived)
         FROM aqorders
           LEFT JOIN aqbasket ON aqorders.basketno = aqbasket.basketno
         WHERE aqorders.booksellerinvoicenumber IS NOT NULL
           AND aqorders.booksellerinvoicenumber != ''
-        GROUP BY aqorders.booksellerinvoicenumber
-    " );
+        GROUP BY aqorders.booksellerinvoicenumber,aqbasket.basketno
+    ");
     $sth->execute;
     my $results = $sth->fetchall_arrayref( {} );
     $sth = $dbh->prepare( "
@@ -9189,7 +9204,7 @@ if ( CheckVersion($DBversion) ) {
         SELECT subscriptionid, startdate
         FROM subscription
         WHERE firstacquidate IS NULL
-          OR firstacquidate = '0000-00-00'
+          OR CAST(firstacquidate AS CHAR(10)) = '0000-00-00'
     |
     );
     $get_subscriptions_sth->execute;
@@ -9431,6 +9446,7 @@ if ( CheckVersion($DBversion) ) {
 
 $DBversion = "3.15.00.002";
 if ( CheckVersion($DBversion) ) {
+    sanitize_zero_date('deleteditems','dateaccessioned');
     $dbh->do("ALTER TABLE deleteditems MODIFY materials text;");
     print "Upgrade to $DBversion done (Bug 11275: alter deleteditems.materials from varchar(10) to text)\n";
     SetVersion($DBversion);
@@ -10112,7 +10128,7 @@ if ( CheckVersion($DBversion) ) {
             name= ?
         WHERE code="OVERDUE_PHONE"
     |, {}, $name
-    );
+    ) if ($name);
 
     print "Upgrade to $DBversion done (Bug 11867: Update letters *_PHONE)\n";
     SetVersion($DBversion);
@@ -12166,6 +12182,7 @@ if ( CheckVersion($DBversion) ) {
 
 $DBversion = "3.19.00.006";
 if ( CheckVersion($DBversion) ) {
+    sanitize_zero_date('categories', 'enrolmentperioddate');
     $dbh->do(q|SET foreign_key_checks = 0|);
     my $sth = $dbh->table_info( '', '', '', 'TABLE' );
     my ( $cat, $schema, $name, $type, $remarks );
@@ -13007,7 +13024,7 @@ if ( CheckVersion($DBversion) ) {
     $dbh->do(
         q|
         ALTER TABLE virtualshelves
-        ADD COLUMN created_on DATETIME NOT NULL AFTER lastmodified
+        ADD COLUMN created_on DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER lastmodified
     |
     );
 
@@ -13668,27 +13685,29 @@ if ( CheckVersion($DBversion) ) {
 
     my $AutoSelfCheckID = C4::Context->preference('AutoSelfCheckID');
 
-    $dbh->do(
-        q|
-        UPDATE borrowers
-        SET flags=0
-        WHERE userid=?
-    |, undef, $AutoSelfCheckID
-    );
+    if ( $AutoSelfCheckID ) {
+        $dbh->do(
+            q|
+            UPDATE borrowers
+            SET flags=0
+            WHERE userid=?
+        |, undef, $AutoSelfCheckID
+        );
 
-    $dbh->do(
-        q|
-        DELETE FROM user_permissions
-        WHERE borrowernumber=(SELECT borrowernumber FROM borrowers WHERE userid=?)
-    |, undef, $AutoSelfCheckID
-    );
+        $dbh->do(
+            q|
+            DELETE FROM user_permissions
+            WHERE borrowernumber=(SELECT borrowernumber FROM borrowers WHERE userid=?)
+        |, undef, $AutoSelfCheckID
+        );
 
-    $dbh->do(
-        q|
-        INSERT INTO user_permissions(borrowernumber, module_bit, code)
-        SELECT borrowernumber, 1, 'self_checkout' FROM borrowers WHERE userid=?
-    |, undef, $AutoSelfCheckID
-    );
+        $dbh->do(
+            q|
+            INSERT INTO user_permissions(borrowernumber, module_bit, code)
+            SELECT borrowernumber, 1, 'self_checkout' FROM borrowers WHERE userid=?
+        |, undef, $AutoSelfCheckID
+        );
+    }
     print "Upgrade to $DBversion done (Bug 14298: AutoSelfCheckID user should only be able to access SCO)\n";
     SetVersion($DBversion);
 }
@@ -15094,7 +15113,7 @@ if ( C4::Context->preference("Version") < TransformToNum($DBversion) ) {
     my ($print_error) = $dbh->{PrintError};
     $dbh->{RaiseError} = 0;
     $dbh->{PrintError} = 0;
-    $dbh->do("ALTER TABLE overduerules_transport_types ADD COLUMN letternumber INT(1) NOT NULL DEFAULT 1 AFTER id");
+    eval { $dbh->do("ALTER TABLE overduerules_transport_types ADD COLUMN letternumber INT(1) NOT NULL DEFAULT 1 AFTER id"); };
     $dbh->{PrintError} = $print_error;
 
     print "Upgrade to $DBversion done (Bug 16007: Make sure overduerules_transport_types.letternumber exists)\n";
@@ -15715,11 +15734,11 @@ if ( CheckVersion($DBversion) ) {
         UPDATE letter SET branchcode='' WHERE branchcode IS NULL;
     }
     );
-    $dbh->do(
-        q{
-        ALTER TABLE letter MODIFY COLUMN branchcode varchar(10) NOT NULL DEFAULT ''
-    }
-    );
+#    $dbh->do(
+#        q{
+#        ALTER TABLE letter MODIFY COLUMN branchcode varchar(10) NOT NULL DEFAULT ''
+#    }
+#    );
     $dbh->do(
         q{
         ALTER TABLE permissions MODIFY COLUMN code varchar(64) NOT NULL DEFAULT '';
