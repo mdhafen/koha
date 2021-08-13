@@ -158,6 +158,21 @@
                 search = 0;
             [% END %]
 
+            // Prepare DataTables settings
+            var aLengthMenu = [10, 20, 50, 100, -1];
+            var aLengthMenuLabel = [10, 20, 50, 100, _("All")];
+            var patronsPerPage = [% Koha.Preference('PatronsPerPage') | html %];
+            for ( var i = 0; i < aLengthMenu.length; i++ ) {
+                if ( aLengthMenu[i] == patronsPerPage ) {
+                    break;
+                }
+                if ( aLengthMenu[i] > patronsPerPage || aLengthMenu[i] == -1 ) {
+                    aLengthMenu.splice(i, 0, patronsPerPage);
+                    aLengthMenuLabel.splice(i, 0, patronsPerPage);
+                    break;
+                }
+            }
+
             // Apply DataTables on the results table
             dtMemberResults = $("#memberresultst").dataTable($.extend(true, {}, dataTablesDefaults, {
                 'bServerSide': true,
@@ -250,7 +265,9 @@
                 ],
                 'bAutoWidth': false,
                 'sPaginationType': 'full_numbers',
-                "iDisplayLength": [% Koha.Preference('PatronsPerPage') | html %],
+                'aLengthMenu': [aLengthMenu, aLengthMenuLabel],
+                'iDisplayLength': patronsPerPage,
+                'pageLength': patronsPerPage,
                 'aaSorting': [[[% aaSorting || 0 | html %], 'asc']],
                 'bFilter': false,
                 'bProcessing': true,

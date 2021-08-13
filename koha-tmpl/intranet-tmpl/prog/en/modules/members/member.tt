@@ -358,28 +358,19 @@
             [% END %]
 
             // Build the aLengthMenu
-            var aLengthMenu = [
-                [% PatronsPerPage | html %], 10, 20, 50, 100, -1
-            ];
-            jQuery.unique(aLengthMenu);
-            aLengthMenu.sort(function( a, b ){
-                // Put "All" at the end
-                if ( a == -1 ) {
-                    return 1;
-                } else if ( b == -1 ) {
-                    return -1;
+            var aLengthMenu = [10, 20, 50, 100, -1];
+            var aLengthMenuLabel = [10, 20, 50, 100, _("All")];
+            var patronsPerPage = [% PatronsPerPage | html %];
+            for ( var i = 0; i < aLengthMenu.length; i++ ) {
+                if ( aLengthMenu[i] == patronsPerPage ) {
+                    break;
                 }
-                return parseInt(a) < parseInt(b) ? -1 : 1;}
-            );
-            var aLengthMenuLabel = [];
-            $(aLengthMenu).each(function(){
-                if ( this == -1 ) {
-                    // Label for -1 is "All"
-                    aLengthMenuLabel.push(_("All"));
-                } else {
-                    aLengthMenuLabel.push(this);
+                if ( aLengthMenu[i] > patronsPerPage || aLengthMenu[i] == -1 ) {
+                    aLengthMenu.splice(i, 0, patronsPerPage);
+                    aLengthMenuLabel.splice(i, 0, patronsPerPage);
+                    break;
                 }
-            });
+            }
 
             // Apply DataTables on the results table
             var columns_settings = [% TablesSettings.GetColumns( 'members', 'member', 'memberresultst', 'json' ) | $raw %];
@@ -493,6 +484,7 @@
                 "aLengthMenu": [aLengthMenu, aLengthMenuLabel],
                 'sPaginationType': 'full_numbers',
                 "iDisplayLength": [% PatronsPerPage | html %],
+                "pageLength": [% PatronsPerPage | html %],
                 "bProcessing": true,
                 "initComplete": function(settings, json) {
                     Sticky = $("#searchheader");
