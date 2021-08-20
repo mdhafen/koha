@@ -89,7 +89,7 @@ sub process_batch {
     my ($import_batch_id) = @_;
 
     print "... importing MARC records -- please wait\n";
-    my ( $num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored ) =
+    my ( $num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored, $num_items_ignored, $num_locked ) =
         BatchCommitRecords(
         {
             batch_id          => $import_batch_id,
@@ -108,9 +108,11 @@ Batch number:                    $import_batch_id
 Number of new records added:     $num_added
 Number of records replaced:      $num_updated
 Number of records ignored:       $num_ignored
+Number of records locked:        $num_locked
 Number of items added:           $num_items_added
 Number of items replaced:        $num_items_replaced
-Number of items ignored:         $num_items_errored
+Number of items with errors:     $num_items_errored
+Number of items ignored:         $num_items_ignored
 
 Note: an item is ignored if its barcode is a
 duplicate of one already in the database.
