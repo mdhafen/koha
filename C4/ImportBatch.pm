@@ -527,6 +527,7 @@ sub BatchCommitRecords {
     my $num_items_added = 0;
     my $num_items_replaced = 0;
     my $num_items_errored = 0;
+    my $num_items_ignored = 0;
     my $num_ignored = 0;
     # commit (i.e., save, all records in the batch)
     SetImportBatchStatus($batch_id, 'importing');
@@ -574,7 +575,19 @@ sub BatchCommitRecords {
         } else {
             $marc_type = 'USMARC';
         }
-        my $marc_record = MARC::Record->new_from_usmarc($rowref->{'marc'});
+        my $marc_record;
+        eval { $marc_record = MARC::Record->new_from_usmarc($rowref->{'marc'}); };
+        if ( $@ ) {
+            my $marcxml = GetImportRecordMarcXML($rowref->{'import_record_id'});
+            if ( $marcxml ) {
+                $marc_record = MARC::Record->new_from_xml(StripNonXmlChars($marcxml), 'UTF-8', $rowref->{'encoding'}, $marc_type);
+            }
+            else {
+                SetImportRecordStatus($rowref->{'import_record_id'}, 'error');
+                $num_ignored++;
+                next;
+            }
+        }
 
         if ($record_type eq 'biblio') {
             # remove any item tags - rely on BatchCommitItems
@@ -597,10 +610,11 @@ sub BatchCommitRecords {
                 ($recordid, $biblioitemnumber) = AddBiblio($marc_record, $framework);
                 $query = "UPDATE import_biblios SET matched_biblionumber = ? WHERE import_record_id = ?"; # FIXME call SetMatchedBiblionumber instead
                 if ($item_result eq 'create_new' || $item_result eq 'replace') {
-                    my ($bib_items_added, $bib_items_replaced, $bib_items_errored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
+                    my ($bib_items_added, $bib_items_replaced, $bib_items_errored, $bib_items_ignored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
                     $num_items_added += $bib_items_added;
                     $num_items_replaced += $bib_items_replaced;
                     $num_items_errored += $bib_items_errored;
+                    $num_items_ignored += $bib_items_ignored;
                 }
             } else {
                 $recordid = AddAuthority($marc_record, undef, GuessAuthTypeCode($marc_record));
@@ -639,10 +653,11 @@ sub BatchCommitRecords {
                 $query = "UPDATE import_biblios SET matched_biblionumber = ? WHERE import_record_id = ?"; # FIXME call SetMatchedBiblionumber instead
 
                 if ($item_result eq 'create_new' || $item_result eq 'replace') {
-                    my ($bib_items_added, $bib_items_replaced, $bib_items_errored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
+                    my ($bib_items_added, $bib_items_replaced, $bib_items_errored, $bib_items_ignored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
                     $num_items_added += $bib_items_added;
                     $num_items_replaced += $bib_items_replaced;
                     $num_items_errored += $bib_items_errored;
+                    $num_items_ignored += $bib_items_ignored;
                 }
             } else {
                 $oldxml = GetAuthorityXML($recordid);
@@ -662,10 +677,11 @@ sub BatchCommitRecords {
             $recordid = $record_match;
             $num_ignored++;
             if ($record_type eq 'biblio' and defined $recordid and ( $item_result eq 'create_new' || $item_result eq 'replace' ) ) {
-                my ($bib_items_added, $bib_items_replaced, $bib_items_errored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
+                my ($bib_items_added, $bib_items_replaced, $bib_items_errored, $bib_items_ignored) = BatchCommitItems($rowref->{'import_record_id'}, $recordid, $item_result);
                 $num_items_added += $bib_items_added;
          $num_items_replaced += $bib_items_replaced;
                 $num_items_errored += $bib_items_errored;
+                $num_items_ignored += $bib_items_ignored;
                 # still need to record the matched biblionumber so that the
                 # items can be reverted
                 my $sth2 = $dbh->prepare_cached("UPDATE import_biblios SET matched_biblionumber = ? WHERE import_record_id = ?"); # FIXME call SetMatchedBiblionumber instead
@@ -678,7 +694,7 @@ sub BatchCommitRecords {
     $schema->txn_commit; # Commit final records that may not have hit callback threshold
     $sth->finish();
     SetImportBatchStatus($batch_id, 'imported');
-    return ($num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored);
+    return ($num_added, $num_updated, $num_items_added, $num_items_replaced, $num_items_errored, $num_ignored, $num_items_ignored);
 }
 
 =head2 BatchCommitItems
@@ -696,9 +712,11 @@ sub BatchCommitItems {
     my $num_items_added = 0;
     my $num_items_errored = 0;
     my $num_items_replaced = 0;
+    my $num_items_ignored = 0;
 
     my $sth = $dbh->prepare( "
-        SELECT import_items_id, import_items.marcxml, encoding
+        SELECT import_items_id, import_items.marcxml, encoding,
+               import_items.status
         FROM import_items
         JOIN import_records USING (import_record_id)
         WHERE import_record_id = ?
@@ -708,6 +726,10 @@ sub BatchCommitItems {
     $sth->execute();
 
     while ( my $row = $sth->fetchrow_hashref() ) {
+        if ($row->{'status'} eq 'error' or $row->{'status'} eq 'imported') {
+            $num_items_ignored++;
+            next;
+        }
         my $item_marc = MARC::Record->new_from_xml( StripNonXmlChars( $row->{'marcxml'} ), 'UTF-8', $row->{'encoding'} );
 
         # Delete date_due subfield as to not accidentally delete item checkout due dates
@@ -769,7 +791,7 @@ sub BatchCommitItems {
         }
     }
 
-    return ( $num_items_added, $num_items_replaced, $num_items_errored );
+    return ( $num_items_added, $num_items_replaced, $num_items_errored, $num_items_ignored );
 }
 
 =head2 BatchRevertRecords
