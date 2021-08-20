@@ -46,7 +46,6 @@ if ($list_batches) {
 C4::Context->set_userenv(0, 'batch', 0, 'batch', 'batch', 'batch', 'batch');
 
 my $dbh = C4::Context->dbh;
-$dbh->{AutoCommit} = 0;
 if ($batch_number =~ /^\d+$/ and $batch_number > 0) {
     my $batch = GetImportBatch($batch_number);
     die "$0: import batch $batch_number does not exist in database\n" unless defined $batch;
@@ -59,7 +58,6 @@ if ($batch_number =~ /^\d+$/ and $batch_number > 0) {
             unless $batch->{'import_status'} eq "staged" or $batch->{'import_status'} eq "reverted";
         process_batch($batch_number);
     }
-    $dbh->commit();
 } else {
     die "$0: please specify a numeric batch ID\n";
 }
@@ -99,7 +97,8 @@ Number of records replaced:      $num_updated
 Number of records ignored:       $num_ignored
 Number of items added:           $num_items_added
 Number of items replaced:        $num_items_replaced
-Number of items ignored:         $num_items_errored
+Number of items with errors:     $num_items_errored
+Number of items ignored:         $num_items_ignored
 
 Note: an item is ignored if its barcode is a
 duplicate of one already in the database.
@@ -132,7 +131,6 @@ _SUMMARY_
 sub print_progress_and_commit {
     my $recs = shift;
     print "... processed $recs records\n";
-    $dbh->commit();
 }
 
 sub print_usage {
