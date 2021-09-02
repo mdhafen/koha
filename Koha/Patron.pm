@@ -1405,13 +1405,13 @@ An empty array means no restriction, the patron can see patron's infos from any 
 =cut
 
 sub libraries_where_can_see_patrons {
-    my ( $self ) = @_;
+    my ( $self, $params ) = @_;
     my $userenv = C4::Context->userenv;
 
     return () unless $userenv; # For tests, but userenv should be defined in tests...
 
     my @restricted_branchcodes;
-    if (C4::Context::only_my_library) {
+    if (! $params->{'skip_independentbranches'} && C4::Context::only_my_library) {
         push @restricted_branchcodes, $self->branchcode;
     }
     else {
