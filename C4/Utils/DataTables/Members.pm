@@ -16,6 +16,7 @@ sub search {
     my $searchtype = $params->{searchtype} || 'contain';
     my $searchfieldstype = $params->{searchfieldstype} || 'standard';
     my $has_permission = $params->{has_permission};
+    my $skip_independentbranches = $params->{skip_independentbranches};
     my $dt_params = $params->{dt_params};
 
     unless ( $searchmember ) {
@@ -26,7 +27,7 @@ sub search {
     # The search has to be only on the user branch
     my $userenv = C4::Context->userenv;
     my $logged_in_user = Koha::Patrons->find( $userenv->{number} );
-    my @restricted_branchcodes = $logged_in_user->libraries_where_can_see_patrons;
+    my @restricted_branchcodes = $logged_in_user->libraries_where_can_see_patrons({skip_independentbranches => $skip_independentbranches});
 
     my ($sth, $query, $iTotalQuery, $iTotalRecords, $iTotalDisplayRecords);
     my $dbh = C4::Context->dbh;

@@ -48,6 +48,7 @@ my $searchtype = $input->param('searchtype');
 my $searchfieldstype = $input->param('searchfieldstype') || 'standard';
 my $has_permission = $input->param('has_permission');
 my $selection_type = $input->param('selection_type');
+my $skip_independentbranches = $input->param('skip_independentbranches');
 
 # variable information for DataTables (id)
 my $sEcho = $input->param('sEcho');
@@ -91,6 +92,7 @@ $results = C4::Utils::DataTables::Members::search(
         searchfieldstype => $searchfieldstype,
         dt_params => \%dt_params,
         ( $has_permission ? ( has_permission => $has_permission ) : () ),
+        skip_independentbranches => $skip_independentbranches,
     }
 ) unless $results;
 

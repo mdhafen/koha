@@ -192,14 +192,12 @@
                       <li>
                         <label for="branchcode_filter">Library:</label>
                         [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
-                        [% SET branches = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => branchcode_filter, only_from_group => 1 ) %]
+                        [% SET branches = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => Branches.GetLoggedInBranchcode(), only_from_group => 1 ) %]
                         [% ELSE %]
                         [% SET branches = Branches.all( selected => branchcode_filter, only_from_group => 1 ) %]
                         [% END %]
                         <select id="branchcode_filter">
-                          [% IF branches.size != 1 %]
                             <option value="">Any</option>
-                          [% END %]
                           [% PROCESS options_for_libraries libraries => branches %]
                         </select>
                       </li>
@@ -433,6 +431,9 @@
                         'name': 'borrowernotes_sorton',
                         'value': 'borrowers.borrowernotes'
                     },{
+                        'name': 'skip_independentbranches',
+                        'value': '1',
+                    },{
                         'name': 'template_path',
                         'value': 'members/tables/members_results.tt',
                     });
@@ -528,6 +529,9 @@
             $("#searchform select").val('');
             $("#firstletter_filter").val('');
             $("#searchmember_filter").val('');
+            [%- IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+            $("#branchcode_filter").val('[% Branches.GetLoggedInBranchcode() %]');
+            [%- END %]
             if(redraw) {
                 search = 1;
                 $("#searchresults").show();
