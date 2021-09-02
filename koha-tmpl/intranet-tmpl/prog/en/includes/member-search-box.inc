@@ -48,7 +48,11 @@
                 </div>
 
                 <div>
+                    [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
+                    [% SET branches = Branches.all( selected => ( branchcode_filter.defined ? branchcode_filter : Branches.GetLoggedInBranchcode ), only_from_group => 1 ) %]
+                    [% ELSE %]
                     [% SET branches = Branches.all( selected => branchcode_filter, only_from_group => 1 ) %]
+                    [% END %]
                     <label for="branchcode" class="control-label">Library</label>
                     <select name="branchcode_filter" id="branchcode" class="form-control">
                         [% IF branches.size != 1 %]
