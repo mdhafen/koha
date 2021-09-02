@@ -68,5 +68,6 @@ $template->param(
     form_filters    => \@form_filters,
     sort1           => \@sort1,
     sort2           => \@sort2,
+    patron_search_unfiltered => ($input->param('unfiltered') ? "1" : "" ),
 );
 output_html_with_http_headers( $input, $cookie, $template->output );
