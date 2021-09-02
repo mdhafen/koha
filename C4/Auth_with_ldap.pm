@@ -77,6 +77,7 @@ my %config = (
     replicate => defined($ldap->{replicate}) ? $ldap->{replicate} : 1,  #    add from LDAP to Koha database for new user
     welcome   => defined($ldap->{welcome}) ? $ldap->{welcome} : 0,  #    send welcome notice when patron is added via replicate
     update    => defined($ldap->{update}) ? $ldap->{update} : 1,  # update from LDAP to Koha database for existing user
+    filter => defined($ldap->{filter}   ) ? $ldap->{filter}    : '', # additional filter for the user search
 );
 
 sub description {
@@ -90,7 +91,11 @@ sub search_method {
     my $db     = shift or return;
     my $userid = shift or return;
 	my $uid_field = $mapping{userid}->{is} or die ldapserver_error("mapping for 'userid'");
-	my $filter = Net::LDAP::Filter->new("$uid_field=$userid") or die "Failed to create new Net::LDAP::Filter";
+    my $filter_str = "$uid_field=$userid";
+    if ( $config{filter} ) {
+        $filter_str = "(&". $config{filter} ."($filter_str))";
+    }
+	my $filter = Net::LDAP::Filter->new($filter_str) or die "Failed to create new Net::LDAP::Filter";
 	my $search = $db->search(
 		  base => $base,
 	 	filter => $filter,
@@ -558,6 +563,7 @@ Example XML stanza for LDAP configuration in KOHA_CONF.
                                         Not used with anonymous_bind. -->
     <update_password>1</update_password> <!-- set to 0 if you don't want LDAP passwords
                                               synced to the local database -->
+    <filter>(employeeType=Staff)</filter> <!-- optional ldap search filter and'ed when searching for users -->
     <mapping>                  <!-- match koha SQL field names to your LDAP record field names -->
       <firstname    is="givenname"      ></firstname>
       <surname      is="sn"             ></surname>
