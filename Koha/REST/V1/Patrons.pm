@@ -53,8 +53,13 @@ sub list {
         $query->{debarred} = { '!=' => undef }
             if $restricted;
 
+        my $unfiltered = $c->param('_search_unfiltered');
+        $c->req->params->remove('_search_unfiltered');
+        $c->stash('koha.unfiltered_search' => 1) if $unfiltered;
+
         my $patrons_rs = Koha::Patrons->search($query);
         my $patrons    = $c->objects->search($patrons_rs);
+        delete $c->stash->{'koha.unfiltered_search'};
 
         return $c->render(
             status  => 200,

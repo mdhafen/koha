@@ -163,6 +163,8 @@ controller, and thus shouldn't be called twice in it.
 
             # Extract reserved params
             my ( $filtered_params, $reserved_params ) = $c->extract_reserved_params($args);
+            # Force unfiltered search?
+            my $unfiltered = $c->stash('koha.unfiltered_search');
 
             if ( exists $reserved_params->{_order_by} ) {
 
@@ -254,7 +256,7 @@ controller, and thus shouldn't be called twice in it.
 
             # If search_limited exists, use it
             $result_set = $result_set->search_limited,
-                if $result_set->can('search_limited');
+                if $result_set->can('search_limited') && ! $unfiltered;
 
             $c->stash( 'koha.pagination.base_total'   => $result_set->count );
             $c->stash( 'koha.pagination.query_params' => $args );

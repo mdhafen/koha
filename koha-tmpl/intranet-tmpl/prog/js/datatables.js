@@ -741,6 +741,10 @@ function _dt_default_ajax(params) {
                     .join(",");
             }
 
+            if(options.search_unfiltered) {
+                dataSet._search_unfiltered = true;
+            }
+
             return dataSet;
         },
     };
