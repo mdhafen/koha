@@ -9,7 +9,7 @@
 [% SET footerjs = 1 %]
 [% PROCESS 'patronfields.inc' %]
 [% IF Branches.InIndependentBranchesMode({syspref=>'IndependentBranchesHideOtherBranchesItems'}) %]
-  [% SET libraries = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() } ) %]
+  [% SET libraries = Branches.all( search_params => { branchcode => Branches.GetLoggedInBranchcode() }, selected => Branches.GetLoggedInBranchcode() ) %]
 [% ELSE %]
   [% SET libraries = Branches.all %]
 [% END %]
@@ -135,7 +135,7 @@
         </div> <!-- /.col-sm-10.col-sm-push-2 -->
 
         <div class="col-sm-2 col-sm-pull-10">
-            [% PROCESS patron_search_filters categories => categories, libraries => libraries, filters => ['search_field', 'search_type', 'category', 'branch'], search_filter => searchmember %]
+            [% PROCESS patron_search_filters categories => categories, libraries => libraries, patron_search_unfiltered => 1, filters => ['search_field', 'search_type', 'category', 'branch'], search_filter => searchmember %]
         </div> <!-- /.col-sm-2.col-sm-pull-10 -->
     </div> <!-- /.row -->
 
@@ -349,7 +349,7 @@
     [% ELSE %]
         [% SET redirect_url = '/cgi-bin/koha/members/moremember.pl' %]
     [% END %]
-    [% PROCESS patron_search_js defer_loading => defer_loading, table_id => 'memberresultst', categories => categories, libraries => libraries, columns => columns,actions => ['edit', 'checkout'], redirect_if_one_result => 1, redirect_url => redirect_url, sticky_header => "searchheader", sticky_to => "searchresults", default_sort_column => 'name-address', display_search_description => 1, remember_selections => 1, adjust_history => 1 %]
+    [% PROCESS patron_search_js defer_loading => defer_loading, table_id => 'memberresultst', categories => categories, libraries => libraries, patron_search_unfiltered => 1, columns => columns,actions => ['edit', 'checkout'], redirect_if_one_result => 1, redirect_url => redirect_url, sticky_header => "searchheader", sticky_to => "searchresults", default_sort_column => 'name-address', display_search_description => 1, remember_selections => 1, adjust_history => 1 %]
 
 [% END %]
 [% INCLUDE 'intranet-bottom.inc' %]
