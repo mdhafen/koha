@@ -46,5 +46,6 @@ $template->param(
     columns        => \@columns,
     filter         => $filter,
     selection_type => $selection_type,
+    patron_search_unfiltered => ($input->param('unfiltered') ? "1" : "" ),
 );
 output_html_with_http_headers( $input, $cookie, $template->output );
