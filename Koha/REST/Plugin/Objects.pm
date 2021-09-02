@@ -98,6 +98,8 @@ shouldn't be called twice in it.
             my $is_public = $c->stash('is_public');
             # Look for embeds
             my $embed = $c->stash('koha.embed');
+            # Force unfiltered search?
+            my $unfiltered = $c->stash('koha.unfiltered_search');
 
             # Merge sorting into query attributes
             $c->dbic_merge_sorting(
@@ -188,7 +190,7 @@ shouldn't be called twice in it.
 
             # If search_limited exists, use it
             $result_set = $result_set->search_limited,
-                if $result_set->can('search_limited');
+                if $result_set->can('search_limited') && ! $unfiltered;
 
             # Perform search
             my $objects = $result_set->search( $filtered_params, $attributes );

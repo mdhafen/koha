@@ -389,6 +389,12 @@ parameters:
     items:
       type: string
     collectionFormat: multi
+  search_unfiltered:
+    description: "Do unfiltered object searches"
+    in: query
+    name: _search_unfiltered
+    required: false
+    type: boolean
   quote_id_pp:
     description: Quote internal identifier
     in: path
