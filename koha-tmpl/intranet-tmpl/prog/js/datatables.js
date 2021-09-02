@@ -656,6 +656,10 @@ function _dt_default_ajax (params){
                 dataSet._order_by = orderArray.filter((v, i, a) => a.indexOf(v) === i).join(',');
             }
 
+            if(options.search_unfiltered) {
+                dataSet._search_unfiltered = true;
+            }
+
             return dataSet;
         }
     }
