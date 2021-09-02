@@ -49,7 +49,7 @@
                                 <label>Library:</label>
                                 <select class="branchcode_filter">
                                     [% SET libraries = Branches.all( only_from_group => 1 ) %]
-                                    [% IF libraries.size != 1 %]
+                                    [% IF libraries.size != 1 || patron_search_unfiltered %]
                                         <option value="">Any</option>
                                     [% END %]
                                     [% FOREACH l IN libraries %]
@@ -260,7 +260,13 @@
             e['_str'] = e.branchname;
             return e;
         });
-        var libraries_map = libraries.reduce((map, e) => {
+        // libraries can be filtered, but libraries_map may need all
+        var all_libraries = [% To.json(Branches.all({unfiltered=>1})) | $raw %].map(e => {
+            e['_id'] = e.branchcode;
+            e['_str'] = e.branchname;
+            return e;
+        });
+        var libraries_map = all_libraries.reduce((map, e) => {
             map[e._id] = e;
             return map;
         }, {});
@@ -771,6 +777,9 @@
                             [% UNLESS loop.last %],[% END %]
                         [% END %]
                     ],
+                    [% IF patron_search_unfiltered %]
+                    'search_unfiltered': true,
+                    [% END %]
                     'embed': [% To.json(embed) | $raw %],
                     "order": [[ [% order_column_index | html %], "asc" ]],
                     "autoWidth": false,
@@ -921,7 +930,7 @@
                 patron_search_form.find(".searchfieldstype_filter option:first").prop("selected", true);
                 patron_search_form.find(".searchtype_filter option[value='[% searchtype | html %]']").prop("selected", true);
                 patron_search_form.find(".categorycode_filter option:first").prop("selected", true);
-                patron_search_form.find(".branchcode_filter option:first").prop("selected", true);
+                patron_search_form.find(".branchcode_filter option[data-default]").prop("selected", true);
                 patron_search_form.find("select[name='sort1_filter']").val('').trigger("change");
                 patron_search_form.find("select[name='sort2_filter']").val('').trigger("change");
                 parent_block.find(".firstletter_filter").val('');
@@ -945,6 +954,18 @@
                     if ( setstate ) {
                         history.pushState( null, null, "?firstletter=" + letter );
                     }
+                [% END %]
+
+                let table_dt = patrons_table.DataTable();
+                [% FOR c IN columns %]
+                    [% SWITCH c %]
+                    [% CASE 'branch' %]
+                        library_id = $("#branchcode_filter").val() || "";
+                        table_dt.column([% loop.count - 1 %]).search(library_id ? '^'+library_id+'$' : '');
+                    [% CASE 'category' %]
+                        let category_id = $("#categorycode_filter").val() || "";
+                        table_dt.column([% loop.count - 1 %]).search(category_id ? '^'+category_id+'$' : '');
+                    [% END %]
                 [% END %]
 
                 patrons_table.DataTable().draw();
