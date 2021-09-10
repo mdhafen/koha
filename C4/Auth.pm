@@ -1281,6 +1281,7 @@ sub checkauth {
                             }
                         }
 
+                        unless ( C4::Context->preference('IndependentBranches') && $branchcode ) {
                         if (
                             # If StaffLoginLibraryBasedOnIP is enabled we will try to find a branch
                             # matching your ip, regardless of the choice you have passed in
@@ -1310,6 +1311,7 @@ sub checkauth {
                                     last;
                                 }
                             }
+                        }
                         }
                     }
 
@@ -1777,16 +1779,18 @@ sub check_api_auth {
                     $branchname = $library? $library->branchname: '';
                 }
                 my $branches = { map { $_->branchcode => $_->unblessed } Koha::Libraries->search->as_list };
-                foreach my $br ( keys %$branches ) {
+                unless ( $branchcode && C4::Context->preference('IndependentBranches') ) {
+                    foreach my $br ( keys %$branches ) {
 
-                    #     now we work with the treatment of ip
-                    my $domain = $branches->{$br}->{'branchip'};
-                    next unless ( $domain );
-                    if ( in_iprange($domain) ) {
-                        $branchcode = $branches->{$br}->{'branchcode'};
+                        #     now we work with the treatment of ip
+                        my $domain = $branches->{$br}->{'branchip'};
+                        next unless ( $domain );
+                        if ( in_iprange($domain) ) {
+                            $branchcode = $branches->{$br}->{'branchcode'};
 
-                        # new op dev : add the branchname to the cookie
-                        $branchname    = $branches->{$br}->{'branchname'};
+                            # new op dev : add the branchname to the cookie
+                            $branchname    = $branches->{$br}->{'branchname'};
+                        }
                     }
                 }
                 $session->param( 'number',       $borrowernumber );
