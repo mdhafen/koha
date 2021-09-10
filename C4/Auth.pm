@@ -1231,16 +1231,18 @@ sub checkauth {
                         }
                     }
 
-                    foreach my $br ( keys %$branches ) {
+                    unless ( C4::Context->preference('IndependentBranches') && $branchcode ) {
+                        foreach my $br ( keys %$branches ) {
 
-                        #     now we work with the treatment of ip
-                        my $domain = $branches->{$br}->{'branchip'};
-                        next unless ( $domain );
-                        if ( in_iprange($domain) ) {
-                            $branchcode = $branches->{$br}->{'branchcode'};
+                            #     now we work with the treatment of ip
+                            my $domain = $branches->{$br}->{'branchip'};
+                            next unless ( $domain );
+                            if ( in_iprange($domain) ) {
+                                $branchcode = $branches->{$br}->{'branchcode'};
 
-                            # new op dev : add the branchname to the cookie
-                            $branchname    = $branches->{$br}->{'branchname'};
+                                # new op dev : add the branchname to the cookie
+                                $branchname    = $branches->{$br}->{'branchname'};
+                            }
                         }
                     }
 
@@ -1638,16 +1640,18 @@ sub check_api_auth {
                     $branchname = $library? $library->branchname: '';
                 }
                 my $branches = { map { $_->branchcode => $_->unblessed } Koha::Libraries->search };
-                foreach my $br ( keys %$branches ) {
+                unless ( $branchcode && C4::Context->preference('IndependentBranches') ) {
+                    foreach my $br ( keys %$branches ) {
 
-                    #     now we work with the treatment of ip
-                    my $domain = $branches->{$br}->{'branchip'};
-                    next unless ( $domain );
-                    if ( in_iprange($domain) ) {
-                        $branchcode = $branches->{$br}->{'branchcode'};
+                        #     now we work with the treatment of ip
+                        my $domain = $branches->{$br}->{'branchip'};
+                        next unless ( $domain );
+                        if ( in_iprange($domain) ) {
+                            $branchcode = $branches->{$br}->{'branchcode'};
 
-                        # new op dev : add the branchname to the cookie
-                        $branchname    = $branches->{$br}->{'branchname'};
+                            # new op dev : add the branchname to the cookie
+                            $branchname    = $branches->{$br}->{'branchname'};
+                        }
                     }
                 }
                 $session->param( 'number',       $borrowernumber );
