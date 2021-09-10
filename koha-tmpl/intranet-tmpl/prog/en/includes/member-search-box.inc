@@ -54,9 +54,7 @@
                     [% END %]
                     <label for="branchcode" class="control-label">Library</label>
                     <select name="branchcode_filter" id="branchcode" class="form-control">
-                        [% IF branches.size != 1 %]
                             <option value="">Any</option>
-                        [% END %]
                         [% PROCESS options_for_libraries libraries => branches %]
                     </select>
                 </div>
