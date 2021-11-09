@@ -945,6 +945,7 @@
                                                         </span>
                                                     </span>
                                                 [% END %]
+                                                <a class="btn btn-default btn-xs" href="/cgi-bin/koha/circ/circulation.pl?borrowernumber=[% riloo.patron.borrowernumber | uri %]">Check out to</a>
                                                 <a class="btn btn-default btn-xs printcheckinslip" href="#" data-borrowernumber="[% riloo.patron.borrowernumber | html %]"><i class="fa fa-print"></i> Print checkin slip</a>
                                             [% ELSE %]
                                                 Not checked out
