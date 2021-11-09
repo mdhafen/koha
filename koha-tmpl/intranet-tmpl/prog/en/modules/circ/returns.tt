@@ -1395,6 +1395,7 @@
                                         </span>
                                     </span>
                                 [% END %]
+                                <a class="btn btn-default btn-xs" href="/cgi-bin/koha/circ/circulation.pl?borrowernumber=[% checkin.patron.borrowernumber | uri %]">Check out to</a>
                                 [% IF checkin.patron.privacy < 2 %]
                                     [%# 2 is the privacy rule "Never" (Delete my history immediately) %]
                                     <a class="btn btn-default btn-xs printcheckinslip" href="#" data-borrowernumber="[% checkin.patron.borrowernumber | html %]"><i class="fa fa-print"></i> Print checkin slip</a>
