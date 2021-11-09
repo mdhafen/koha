@@ -194,6 +194,13 @@
                             </span>
                         </span>
                     </template>
+                    <a
+                        class="btn btn-xs btn-outline-secondary ms-1"
+                        :href="`/cgi-bin/koha/circ/circulation.pl?borrowernumber=${checkin.checkout.patron_id}`"
+                        >{{
+                            $__("Check out to")
+                        }}</a
+                    >
                     <button
                         v-if="showPrintSlipButton(checkin)"
                         class="btn btn-xs btn-outline-secondary ms-1"
