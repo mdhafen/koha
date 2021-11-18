@@ -545,7 +545,7 @@ sub UpdateFine {
     # - accumulate fines for other items
     # so we can update $itemnum fine taking in account fine caps
     while (my $overdue = $overdues->next) {
-        if ( defined $overdue->issue_id && $overdue->issue_id == $issue_id && $overdue->status eq 'UNRETURNED' ) {
+        if ( defined $overdue->issue_id && $overdue->issue_id == $issue_id ) {
             if ($accountline) {
                 $debug and warn "Not a unique accountlines record for issue_id $issue_id";
                 #FIXME Should we still count this one in total_amount ??
@@ -574,7 +574,9 @@ sub UpdateFine {
     }
 
     if ( $accountline ) {
-        if ( Koha::Number::Price->new($accountline->amount)->round != Koha::Number::Price->new($amount)->round ) {
+        # a book may be returned while cronjob/fines.pl is running
+        if ( ( $accountline->status eq 'UNRETURNED' || ! C4::Context->preference('CalculateFinesOnReturn') )
+             && Koha::Number::Price->new($accountline->amount)->round != Koha::Number::Price->new($amount)->round ) {
             $accountline->adjust(
                 {
                     amount    => $amount,
