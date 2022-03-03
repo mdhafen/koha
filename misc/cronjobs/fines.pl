@@ -164,14 +164,12 @@ for my $overdue ( @{$overdues} ) {
         && ( $amount && $amount > 0 )
       )
     {
-        if ( $verify_issue ) {
             # if the issue changed before the script got to it, then pass on it.
             my $issue = Koha::Checkouts->find({ issue_id => $overdue->{issue_id} });
             if ( ! $issue or $issue->date_due ne $overdue->{date_due} ) {
                 $counted--;
                 next;
             }
-        }
         UpdateFine(
             {
                 issue_id       => $overdue->{issue_id},
