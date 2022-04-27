@@ -1,0 +1,8 @@
+# do some indexing, but dont index search URLs
+User-agent: *
+Disallow: /opac-search.pl
+Disallow: /cgi-bin/koha/opac-search.pl
+Disallow: /cgi-bin/koha/opac-detail.pl
+Disallow: /cgi-bin/koha/opac-MARCdetail.pl
+Disallow: /cgi-bin/koha/opac-ISBDdetail.pl
+Disallow: /opac/svc/overdrive_proxy/
