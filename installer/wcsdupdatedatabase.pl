@@ -86,6 +86,36 @@ if ( CheckVersion($DBversion) ) {
     NewVersion( $DBversion, "", "Change unique key on items.barcode to include items.homebranch" );
 }
 
+$DBversion = '5.003';
+if( CheckVersion( $DBversion ) ) {
+    $dbh->do( "INSERT IGNORE INTO systempreferences (variable, value, options, explanation, type) VALUES ('IndependentBranchesHideOtherBranchesItems','0','','Hide other branches in selects.  Hide items belonging to other branches in search results, holds, biblio and item details, and exports.','YesNo')" );
+    NewVersion( $DBversion, 28642, "Add new systempreference IndependentBranchesHideOtherBranchesItems");
+}
+
+$DBversion = '5.004';
+if( CheckVersion( $DBversion ) ) {
+    $dbh->do( "ALTER TABLE `branches` MODIFY `branchip` mediumtext COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'the IP address(s) for your library or branch'" );
+
+    my $sth = $dbh->prepare("
+        SELECT branchip,branchcode
+        FROM branches
+        WHERE branchip like '%*%'
+    ");
+    $sth->execute;
+    my $results = $sth->fetchall_arrayref({});
+    $sth = $dbh->prepare("
+        UPDATE branches
+	SET branchip = ?
+        WHERE branchcode = ?
+    ");
+    foreach(@$results) {
+	$_->{branchip} =~ s|\*||g;
+        $sth->execute($_->{branchip}, $_->{branchcode});
+    }
+
+    NewVersion( $DBversion, 28657, "expand branches.branchip to allow for multiple ip ranges and remove '*'");
+}
+
 #$DBversion = '5.XXX';
 #if ( CheckVersion($DBversion) ) {
 #    $dbh->do(q{
