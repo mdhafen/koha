@@ -86,6 +86,57 @@ if ( CheckVersion($DBversion) ) {
     NewVersion( $DBversion, "", "Change unique key on items.barcode to include items.homebranch" );
 }
 
+$DBversion = '5.003';
+if( CheckVersion( $DBversion ) ) {
+    $dbh->do( "INSERT IGNORE INTO systempreferences (variable, value, options, explanation, type) VALUES ('IndependentBranchesHideOtherBranchesItems','0','','Hide other branches in selects.  Hide items belonging to other branches in search results, holds, biblio and item details, and exports.','YesNo')" );
+    NewVersion( $DBversion, 28642, "Add new systempreference IndependentBranchesHideOtherBranchesItems");
+}
+
+$DBversion = '5.004';
+if( CheckVersion( $DBversion ) ) {
+    $dbh->do( "ALTER TABLE `branches` MODIFY `branchip` mediumtext DEFAULT NULL COMMENT 'the IP address(s) for your library or branch'" );
+
+    my $sth = $dbh->prepare("
+        SELECT branchip,branchcode
+        FROM branches
+        WHERE branchip like '%*%'
+    ");
+    $sth->execute;
+    my $results = $sth->fetchall_arrayref({});
+    $sth = $dbh->prepare("
+        UPDATE branches
+	SET branchip = ?
+        WHERE branchcode = ?
+    ");
+    foreach(@$results) {
+	$_->{branchip} =~ s|\*||g;
+        $sth->execute($_->{branchip}, $_->{branchcode});
+    }
+
+    NewVersion( $DBversion, 28657, "expand branches.branchip to allow for multiple ip ranges and remove '*'");
+}
+
+$DBversion = '5.005';
+if ( CheckVersion($DBversion) ) {
+        unless ( TableExists('patron_list_users') ) {
+            $dbh->do(q{CREATE TABLE `patron_list_users` (
+  `patron_list_user_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'unique identifier',
+  `patron_list_id` int(11) NOT NULL COMMENT 'the list this entry is part of',
+  `borrowernumber` int(11) NOT NULL COMMENT 'the borrower that is given access to this list',
+  `can_edit` tinyint(1) NOT NULL DEFAULt 0 COMMENT 'whether this borrower can edit the list and it''s patrons',
+  PRIMARY KEY (`patron_list_user_id`),
+  KEY `patron_list_id` (`patron_list_id`),
+  KEY `borrowernumber` (`borrowernumber`),
+  CONSTRAINT `patron_list_users_ibfk_1` FOREIGN KEY (`patron_list_id`) REFERENCES `patron_lists` (`patron_list_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `patron_list_users_ibfk_2` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci});
+
+            $dbh->do(q{ALTER TABLE patron_lists MODIFY shared tinyint DEFAULT 0 COMMENT '1 for everyone, 2 for library and individuals, 3 for individuals'});
+        }
+
+    NewVersion( $DBversion, "32105", "Add patron list users table" );
+}
+
 #$DBversion = '5.XXX';
 #if ( CheckVersion($DBversion) ) {
 #    $dbh->do(q{
