@@ -28,7 +28,7 @@ use vars qw{ $VERSION };
 #        used by developers when the database changes.
 #        wcsd_update takes care of the changes itself,
 #        and is automatically called by Auth.pm when needed.
-$VERSION = "5.002";
+$VERSION = "5.004";
 
 sub version {
     return $VERSION;
