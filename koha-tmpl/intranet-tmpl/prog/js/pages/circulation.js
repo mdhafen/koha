@@ -103,6 +103,13 @@ $(document).ready(function() {
             $('#clubs_panel').load('/cgi-bin/koha/clubs/patron-clubs-tab.pl?borrowernumber=' + borrowernumber );
         });
     }
+
+    if ( $('#pat_lists-tab').length ) {
+        $('#pat_lists-tab-link').on('click', function() {
+            $('#pat_lists-tab').text(_("Loading..."));
+            $('#pat_lists-tab').load('/cgi-bin/koha/patron_lists/patron-lists-tab.pl?borrowernumber=' + borrowernumber );
+        });
+    }
 });
 
 function export_checkouts(format) {
