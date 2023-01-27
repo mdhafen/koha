@@ -717,6 +717,14 @@
                                     </a>
                                 </li>
                             [% END %]
+
+                            [% IF CAN_user_tools_manage_patron_lists || patron_lists_count %]
+                                <li role="presentation">
+                                    <a id="pat_lists-tab-link" href="#pat_lists-tab" aria-controls="pat_lists-tab" role="tab" data-toggle="tab">
+                                        Patron lists ([% patron_lists_count | html %])
+                                    </a>
+                                </li>
+                            [% END %]
                         </ul>
 
                         <div class="tab-content">
@@ -736,6 +744,12 @@
 
                             [% IF CAN_user_clubs && ( enrollments.count || enrollable.count ) %]
                                 <div id="clubs-tab" role="tabpanel" class="tab-pane">
+                                    Loading...
+                                </div>
+                            [% END %]
+
+                            [% IF CAN_user_tools_manage_patron_lists || patron_lists_count %]
+                                <div id="pat_lists-tab" role="tabpanel" class="tab-pane">
                                     Loading...
                                 </div>
                             [% END %]
@@ -891,6 +905,13 @@
                 $('#clubs-tab-link').on('click', function() {
                     $('#clubs-tab').text(_("Loading..."));
                     $('#clubs-tab').load('/cgi-bin/koha/clubs/patron-clubs-tab.pl?borrowernumber=[% patron.borrowernumber | html %]');
+                });
+            }
+
+            if ( $('#pat_lists-tab').length ) {
+                $('#pat_lists-tab-link').on('click', function() {
+                    $('#pat_lists-tab').text(_("Loading..."));
+                    $('#pat_lists-tab').load('/cgi-bin/koha/patron_lists/patron-lists-tab.pl?borrowernumber=[% patron.borrowernumber | html %]');
                 });
             }
 
