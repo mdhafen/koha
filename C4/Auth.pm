@@ -2382,7 +2382,7 @@ sub in_iprange {
     if (@allowedipranges) {
         my @rangelist;
         eval { @rangelist = Net::CIDR::range2cidr(@allowedipranges); }; return 0 if $@;
-        eval { $result = Net::CIDR::cidrlookup($ENV{'REMOTE_ADDR'}, @rangelist) } || Koha::Logger->get->warn('cidrlookup failed for ' . join(' ',@rangelist) );
+        eval { $result = Net::CIDR::cidrlookup($ENV{'REMOTE_ADDR'}, @rangelist) }; # || Koha::Logger->get->warn('cidrlookup failed for ' . join(' ',@rangelist) );
      }
      return $result ? 1 : 0;
 }
