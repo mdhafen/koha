@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth           qw( get_template_and_user );
 use C4::Output         qw( output_html_with_http_headers );
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 
 my $cgi = CGI->new;
 
@@ -36,7 +36,7 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
     }
 );
 
-my @lists = GetPatronLists();
+my @lists = get_patron_lists();
 
 $template->param( lists => \@lists );
 
