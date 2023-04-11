@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth qw( get_template_and_user );
 use C4::Output qw( output_html_with_http_headers );
-use Koha::List::Patron qw( AddPatronList GetPatronLists ModPatronList );
+use Koha::List::Patron qw( get_patron_list add_patron_list mod_patron_list grant_patrons_access_to_list revoke_patrons_access_from_list );
 
 my $cgi = CGI->new;
 
@@ -38,24 +38,45 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 
 my $id   = $cgi->param('patron_list_id');
 my $name = $cgi->param('name');
-my $shared = $cgi->param('shared') ? 1 : 0;
+my $shared = $cgi->param('shared');
+my @grant_user = $cgi->multi_param('grant_borrowernumber');
+my @revoke_user = $cgi->multi_param('revoke_list_users_id');
 
 if ($id) {
-    my ($list) = GetPatronLists( { patron_list_id => $id } );
+    my $list = get_patron_list( { 'patron_list_id' => $id } );
     $template->param( list => $list );
 }
 
 if ($name) {
+    my $list;
     if ($id) {
-        ModPatronList( { patron_list_id => $id, name => $name, shared => $shared } );
-        print $cgi->redirect('lists.pl');
+        mod_patron_list( { patron_list_id => $id, name => $name, shared => $shared } );
+        $list = get_patron_list( { 'patron_list_id' => $id } );
     }
     else {
-        my $list = AddPatronList( { name => $name, shared => $shared } );
-        print $cgi->redirect(
-            "list.pl?patron_list_id=" . $list->patron_list_id() );
+        $list = add_patron_list( { name => $name, shared => $shared } );
     }
 
+    $template->param( list => $list );
+}
+
+if (@grant_user) {
+    my $list = get_patron_list( { 'patron_list_id' => $id } );
+    my $results = grant_patrons_access_to_list({
+        list => $list,
+        borrowernumbers => \@grant_user,
+    });
+    print $cgi->redirect("add-modify.pl?patron_list_id=" . $list->patron_list_id() );
+    exit;
+}
+
+if (@revoke_user) {
+    my $list = get_patron_list( { 'patron_list_id' => $id } );
+    my $results = revoke_patrons_access_from_list({
+        list => $list,
+        patron_list_users => \@revoke_user,
+    });
+    print $cgi->redirect("add-modify.pl?patron_list_id=" . $list->patron_list_id() );
     exit;
 }
 

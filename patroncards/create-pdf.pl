@@ -29,7 +29,7 @@ use autouse 'Data::Dumper' => qw(Dumper);
 use C4::Context;
 use C4::Creators;
 use C4::Patroncards;
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 use Koha::Patrons;
 use Koha::Patron::Images;
 
@@ -96,7 +96,7 @@ elsif (@borrower_numbers) {
     } @borrower_numbers;
 }
 elsif ( $patronlist_id  ) {
-    my ($list) = GetPatronLists( { patron_list_id => $patronlist_id } );
+    my ($list) = get_patron_lists( { patron_list_id => $patronlist_id } );
     my @borrowerlist = $list->patron_list_patrons()->search_related('borrowernumber')
     ->get_column('borrowernumber')->all();
     grep {
