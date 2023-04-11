@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth qw( get_template_and_user );
 use C4::Output;
-use Koha::List::Patron qw( DelPatronList );
+use Koha::List::Patron qw( del_patron_list );
 
 my $cgi = CGI->new;
 
@@ -38,6 +38,6 @@ my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
 
 my $id = $cgi->param('patron_list_id');
 
-DelPatronList( { patron_list_id => $id } );
+del_patron_list( { patron_list_id => $id } );
 
 print $cgi->redirect('lists.pl');
