@@ -45,7 +45,7 @@ use Koha::Token;
 use Koha::Libraries;
 use Koha::Patron::Categories;
 use Koha::Patron::Attribute::Types;
-use Koha::List::Patron qw( AddPatronList AddPatronsToList );
+use Koha::List::Patron qw( add_patron_list add_patrons_to_list );
 
 use Koha::Patrons::Import;
 my $Import = Koha::Patrons::Import->new();
@@ -135,8 +135,8 @@ if ( $op eq 'cud-import' && $uploadborrowers && length($uploadborrowers) > 0 ) {
     my $imported_borrowers = $return->{imported_borrowers};
 
     if ( $imported && $createpatronlist ) {
-        my $patronlist = AddPatronList( { name => $patronlistname } );
-        AddPatronsToList( { list => $patronlist, borrowernumbers => $imported_borrowers } );
+        my $patronlist = add_patron_list( { name => $patronlistname } );
+        add_patrons_to_list( { list => $patronlist, borrowernumbers => $imported_borrowers } );
         $template->param( 'patronlistname' => $patronlistname );
     }
 
