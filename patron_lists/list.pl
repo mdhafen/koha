@@ -24,9 +24,9 @@ use CGI qw ( -utf8 );
 use C4::Auth           qw( get_template_and_user );
 use C4::Output         qw( output_html_with_http_headers );
 use Koha::List::Patron qw(
-    AddPatronsToList
-    DelPatronsFromList
-    GetPatronLists
+    get_patron_list
+    add_patrons_to_list
+    del_patrons_from_list
 );
 use List::MoreUtils qw( uniq );
 
@@ -43,7 +43,7 @@ my ( $template, $logged_in_user, $cookie ) = get_template_and_user(
 );
 
 my ($list) =
-    GetPatronLists( { patron_list_id => scalar $cgi->param('patron_list_id') } );
+    get_patron_list( { patron_list_id => scalar $cgi->param('patron_list_id') } );
 
 my @existing = $list->patron_list_patrons;
 
@@ -55,7 +55,7 @@ if ( $op eq 'cud-add' && $patrons_by_id ) {
     my %add_params;
     $add_params{list} = $list;
     $add_params{$id_column} = \@patrons_list;
-    my @results = AddPatronsToList( \%add_params );
+    my @results = add_patrons_to_list( \%add_params );
     my $id      = $id_column eq 'borrowernumbers' ? 'borrowernumber' : 'cardnumber';
     my %found   = map { $_->borrowernumber->$id => 1 } @results;
     my %exist   = map { $_->borrowernumber->$id => 1 } @existing;
@@ -74,12 +74,12 @@ if ( $op eq 'cud-add' && $patrons_by_id ) {
 
 my @patrons_to_add = $cgi->multi_param('patrons_to_add');
 if ( $op eq 'cud-add' && @patrons_to_add ) {
-    AddPatronsToList( { list => $list, cardnumbers => \@patrons_to_add } );
+    add_patrons_to_list( { list => $list, cardnumbers => \@patrons_to_add } );
 }
 
 my @patrons_to_remove = $cgi->multi_param('patrons_to_remove');
 if ( $op eq 'cud-delete' && @patrons_to_remove ) {
-    DelPatronsFromList( { list => $list, patron_list_patrons => \@patrons_to_remove } );
+    del_patrons_from_list( { list => $list, patron_list_patrons => \@patrons_to_remove } );
 }
 
 $template->param( list => $list );
