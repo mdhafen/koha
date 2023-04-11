@@ -25,7 +25,7 @@ use C4::Auth   qw( get_template_and_user );
 use C4::Output qw( output_html_with_http_headers );
 
 use Koha::Patrons;
-use Koha::List::Patron qw( GetPatronLists AddPatronsToList DelPatronsFromList );
+use Koha::List::Patron qw( get_patron_lists get_patron_list add_patrons_to_list del_patrons_from_list );
 
 my $cgi = CGI->new;
 
@@ -54,14 +54,14 @@ if ( !$logged_in_user->can_see_patron_infos($patron) ) {
 } else {
     my $has_perms = C4::Auth::haspermission( $logged_in_user->userid, { 'tools' => 'manage_patron_lists' } );
     if ( $list_id && $has_perms ) {
-        my ($list) = GetPatronLists( { patron_list_id => $list_id } );
+        my ($list) = get_patron_list( { patron_list_id => $list_id } );
 
         if (@patrons_to_add) {
-            AddPatronsToList( { list => $list, cardnumbers => \@patrons_to_add } );
+            add_patrons_to_list( { list => $list, cardnumbers => \@patrons_to_add } );
         }
 
         if (@patrons_to_remove) {
-            DelPatronsFromList( { list => $list, patron_list_patrons => \@patrons_to_remove } );
+            del_patrons_from_list( { list => $list, patron_list_patrons => \@patrons_to_remove } );
         }
     }
 
@@ -77,8 +77,8 @@ if ( !$logged_in_user->can_see_patron_infos($patron) ) {
             }
         }
     }
-    @available_lists = GetPatronLists();
-    @available_lists = grep { !$list_id_lookup{ $_->patron_list_id } } @available_lists;
+    @available_lists = get_patron_lists();
+    @available_lists = grep { ! $list_id_lookup{$_->patron_list_id} } @available_lists;
 }
 
 $template->param(
