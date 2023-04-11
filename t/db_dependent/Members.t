@@ -26,7 +26,7 @@ use Data::Dumper qw/Dumper/;
 use C4::Context;
 use Koha::Database;
 use Koha::Holds;
-use Koha::List::Patron qw( AddPatronList AddPatronsToList );
+use Koha::List::Patron qw( add_patron_list add_patrons_to_list );
 use Koha::Patrons;
 use Koha::Patron::Debarments qw( AddDebarment );
 use Koha::Patron::Relationship;
@@ -259,14 +259,14 @@ t::lib::Mocks::mock_preference( 'AnonymousPatron', $anonymous_patron );
 
 my $owner =
     Koha::Patron->new( { categorycode => 'STAFFER', branchcode => $library2->{branchcode} } )->store->borrowernumber;
-my $list1 = AddPatronList( { name => 'Test List 1', owner => $owner } );
+my $list1 = add_patron_list( { name => 'Test List 1', owner => $owner } );
 
-AddPatronsToList( { list => $list1, borrowernumbers => [$anonymous_patron] } );
+add_patrons_to_list( { list => $list1, borrowernumbers => [$anonymous_patron] } );
 my $patstodel = GetBorrowersToExpunge( { patron_list_id => $list1->patron_list_id() } );
 is( scalar(@$patstodel), 0, 'Anonymous Patron not deleted from list' );
 
 my @listpatrons = ( $bor1inlist, $bor2inlist );
-AddPatronsToList( { list => $list1, borrowernumbers => \@listpatrons } );
+add_patrons_to_list( { list => $list1, borrowernumbers => \@listpatrons } );
 $patstodel = GetBorrowersToExpunge( { patron_list_id => $list1->patron_list_id() } );
 is( scalar(@$patstodel), 0, 'No staff deleted from list of all staff' );
 Koha::Patrons->find($bor2inlist)->set( { categorycode => 'CIVILIAN' } )->store;
