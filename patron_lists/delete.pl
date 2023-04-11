@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth qw( get_template_and_user );
 use C4::Output;
-use Koha::List::Patron qw( DelPatronList );
+use Koha::List::Patron qw( del_patron_list );
 
 my $cgi = CGI->new;
 
@@ -40,11 +40,11 @@ my $id        = $cgi->param('patron_list_id');
 my @lists_ids = $cgi->multi_param('patron_lists_ids');
 
 if ( defined $id && $id ne '' ) {
-    DelPatronList( { patron_list_id => $id } );
+    del_patron_list( { patron_list_id => $id } );
 }
 if (@lists_ids) {
     foreach my $list_id (@lists_ids) {
-        DelPatronList( { patron_list_id => $list_id } );
+        del_patron_list( { patron_list_id => $list_id } );
     }
 }
 
