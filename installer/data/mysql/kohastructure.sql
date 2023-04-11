@@ -5215,6 +5215,26 @@ CREATE TABLE `patron_list_patrons` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `patron_list_users`
+--
+
+DROP TABLE IF EXISTS `patron_list_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `patron_list_users` (
+  `patron_list_user_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'unique identifier',
+  `patron_list_id` int(11) NOT NULL COMMENT 'the list this entry is part of',
+  `borrowernumber` int(11) NOT NULL COMMENT 'the borrower that is given access to this list',
+  `can_edit` tinyint(1) NOT NULL DEFAULt 0 COMMENT 'whether this borrower can edit the list and it''s patrons',
+  PRIMARY KEY (`patron_list_user_id`),
+  KEY `patron_list_id` (`patron_list_id`),
+  KEY `borrowernumber` (`borrowernumber`),
+  CONSTRAINT `patron_list_users_ibfk_1` FOREIGN KEY (`patron_list_id`) REFERENCES `patron_lists` (`patron_list_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `patron_list_users_ibfk_2` FOREIGN KEY (`borrowernumber`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `patron_lists`
 --
 
@@ -5225,7 +5245,7 @@ CREATE TABLE `patron_lists` (
   `patron_list_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'unique identifier',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'the list''s name',
   `owner` int(11) NOT NULL COMMENT 'borrowernumber of the list creator',
-  `shared` tinyint(1) DEFAULT 0,
+  `shared` tinyint(1) DEFAULT 0 COMMENT '1 for everyone, 2 for library and individuals, 3 for individuals',
   PRIMARY KEY (`patron_list_id`),
   KEY `owner` (`owner`),
   CONSTRAINT `patron_lists_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `borrowers` (`borrowernumber`) ON DELETE CASCADE ON UPDATE CASCADE

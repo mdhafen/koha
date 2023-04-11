@@ -22,7 +22,7 @@ use CGI;
 
 use C4::Auth           qw( check_cookie_auth );
 use JSON               qw( to_json );
-use Koha::List::Patron qw( AddPatronList GetPatronLists AddPatronsToList );
+use Koha::List::Patron qw( add_patron_list get_patron_lists add_patrons_to_list );
 
 my $input = CGI->new;
 
@@ -44,13 +44,13 @@ if ( $input->request_method eq "POST" ) {
         my $patron_list = [];
 
         if ( $add_to_patron_list eq 'new' ) {
-            $patron_list = AddPatronList( { name => $new_patron_list } );
+            $patron_list = add_patron_list( { name => $new_patron_list } );
         } else {
             $patron_list =
-                [ GetPatronLists( { patron_list_id => $add_to_patron_list } ) ]->[0];
+                [ get_patron_lists( { patron_list_id => $add_to_patron_list } ) ]->[0];
         }
 
-        my @patrons_added_to_list = AddPatronsToList( { list => $patron_list, borrowernumbers => \@borrowernumbers } );
+        my @patrons_added_to_list = add_patrons_to_list( { list => $patron_list, borrowernumbers => \@borrowernumbers } );
 
         $response->{patron_list} = { patron_list_id => $patron_list->patron_list_id, name => $patron_list->name };
         $response->{patrons_added_to_list} = scalar(@patrons_added_to_list);

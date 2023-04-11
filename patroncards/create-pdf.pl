@@ -29,7 +29,7 @@ use autouse 'Data::Dumper' => qw(Dumper);
 use C4::Context;
 use C4::Creators;
 use C4::Patroncards;
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_list );
 use Koha::Patrons;
 use Koha::Patron::Images;
 
@@ -65,8 +65,8 @@ my $cardscount = 0;
 #Note fo bug 14138: Indenting follows in separate patch to ease review
 eval {
     $pdf_file = (
-        @label_ids || @borrower_numbers
-        ? "card_single_" . scalar( @label_ids || @borrower_numbers )
+        @label_ids || @borrower_numbers || $patronlist_id
+        ? "card_single_" . scalar( @label_ids || @borrower_numbers || $patronlist_id )
         : "card_batch_$batch_id"
     );
 
@@ -113,7 +113,7 @@ eval {
             if ($order_by);
         grep { push( @{$items}, { borrower_number => $_ } ); } @borrower_numbers;
     } elsif ($patronlist_id) {
-        my ($list) = GetPatronLists( { patron_list_id => $patronlist_id } );
+        my ($list) = get_patron_list( { patron_list_id => $patronlist_id } );
         my @borrowerlist =
             $list->patron_list_patrons()->search_related('borrowernumber')->get_column('borrowernumber')->all();
         @borrowerlist =
