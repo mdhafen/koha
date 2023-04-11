@@ -42,7 +42,7 @@ use Koha::DateUtils qw( dt_from_string );
 use Koha::Old::Checkouts;
 use Koha::Patron::Categories;
 use Koha::Patrons;
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 
 use Try::Tiny qw( catch try );
 use Koha::BackgroundJob::BatchDeletePatron;
@@ -183,7 +183,7 @@ if ( $step == 2 ) {
         testrun => ( $radio eq "testrun" ) ? 1   : 0,
     );
 } else {    # $step == 1
-    my @all_lists = GetPatronLists();
+    my @all_lists = get_patron_lists();
     my @non_empty_lists;
     foreach my $list (@all_lists) {
         my @patrons = $list->patron_list_patrons();
