@@ -33,7 +33,7 @@ use C4::Creators qw(
     html_table
 );
 use C4::Labels;
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 
 my $cgi = CGI->new;
 my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
@@ -117,7 +117,7 @@ else { # trap unsupported operations here
 my $table = html_table($display_columns->{$card_element}, $db_rows);
 
 $template->param(print => 1) if ($card_element eq 'batch');
-$template->param( patron_lists => [ GetPatronLists() ] ) if ($card_element eq 'batch');
+$template->param( patron_lists => [ get_patron_lists() ] ) if ($card_element eq 'batch');
 
 $template->param(
                 error           => $errstr,
