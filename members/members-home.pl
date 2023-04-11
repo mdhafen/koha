@@ -25,7 +25,7 @@ use C4::Context;
 use C4::Members;
 use Koha::Patron::Modifications;
 use Koha::Libraries;
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 use Koha::Patron::Categories;
 use Koha::Patron::Attribute::Types;
 
@@ -73,7 +73,7 @@ $template->param(
 $template->param(
     alphabet           => C4::Context->preference('alphabet') || join( ' ', 'A' .. 'Z' ),
     PatronAutoComplete => C4::Context->preference('PatronAutoComplete'),
-    patron_lists       => [ GetPatronLists() ],
+    patron_lists       => [ get_patron_lists() ],
     PatronsPerPage     => C4::Context->preference("PatronsPerPage") || 20,
     defer_loading      => 1,
 );

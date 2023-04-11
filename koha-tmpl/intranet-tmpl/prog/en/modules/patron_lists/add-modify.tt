@@ -2,7 +2,10 @@
 [% USE Koha %]
 [% USE Asset %]
 [% PROCESS 'i18n.inc' %]
+[% USE Branches %]
+[% USE Categories %]
 [% SET footerjs = 1 %]
+[% PROCESS 'patron-search.inc' %]
 [% INCLUDE 'doc-head-open.inc' %]
 <title
     >[% FILTER collapse %]
@@ -14,6 +17,8 @@
         &rsaquo; [% t("Patron lists") | html %] &rsaquo; [% t("Tools") | html %] &rsaquo; [% t("Koha") | html %]
     [% END %]</title
 >
+[% SET libraries = Branches.all %]
+[% SET categories = Categories.all.unblessed %]
 [% INCLUDE 'doc-head-close.inc' %]
 </head>
 
@@ -62,15 +67,28 @@
                 </li>
 
                 <li>
-                    <label for="list-shared">Shared:</label>
-                    [% IF list.shared %]
-                        <input id="list-shared" name="shared" type="checkbox" checked="checked" />
+                    <label for="list-shared">Sharing mode:</label>
+                    <select name="shared" id="list-shared">
+                        <option value="0">Not shared</option>
+                    [% IF list.shared == 1 %]
+                        <option value="1" selected="selected">Everyone</option>
                     [% ELSE %]
-                        <input id="list-shared" name="shared" type="checkbox" />
+                        <option value="1">Everyone</option>
                     [% END %]
+                    [% IF list.shared == 2 %]
+                        <option value="2" selected="selected">Library staff and individuals</option>
+                    [% ELSE %]
+                        <option value="2">Library staff and individuals</option>
+                    [% END %]
+                    [% IF list.shared == 3 %]
+                        <option value="3" selected="selected">Individuals</option>
+                    [% ELSE %]
+                        <option value="3">Individuals</option>
+                    [% END %]
+                    </select>
                 </li>
 
-                <li> <span class="label">Owner: </span>[% logged_in_user.userid | html %] </li>
+                <li> <span class="label">Owner: </span>[% INCLUDE 'patron-title.inc' patron=list.owner %] </li>
             </ol>
         </fieldset>
 
@@ -81,10 +99,103 @@
             <a href="lists.pl" class="cancel">Cancel</a>
         </fieldset>
     </form>
+
+    <fieldset class="rows[% IF !list.shared || list.shared == 0 || list.shared == 1 %] hidden[% END %]" id="list-users">
+        <legend>Manage individuals with access to list</legend>
+        <span class="label">Users: </span>
+        <table id="patron_list_users">
+            <thead>
+                <tr><th>Name</th><th>Library</th><th>Category</th><th></th></tr>
+            </thead>
+            <tbody>
+            [% FOREACH u IN list.patron_list_users %]
+                <tr>
+                    <td>[% INCLUDE 'patron-title.inc' patron=u.borrowernumber | html %]</td>
+                    <td>[% u.borrowernumber.library_id.name | html %]</td>
+                    <td>[% u.borrowernumber.category_id.name | html %]</td>
+                    <td><a href="add-modify.pl?patron_list_id=[% list.patron_list_id | html %]&revoke_list_users_id=[% u.patron_list_user_id | html %]">Remove</a>
+                </tr>
+            [% END %]
+            </tbody>
+        </table>
+        <div id="searchform">
+            [% PROCESS patron_search_filters_simple %]
+        </div>
+        <div id="searchresults">
+             <div class="searchheader fh-fixedHeader" id="searchheader" style="display:none">
+                 <div>
+                     <a href="#" class="btn btn-link" id="select_all"><i class="fa fa-check"></i> Select all</a>
+                     |
+                     <a href="#" class="btn btn-link" id="clear_all"><i class="fa fa-remove"></i> Clear all</a>
+                     <button id="add-patrons" class="btn btn-sm btn-default disabled" disabled="disabled"><i class="fa fa-compress" aria-hidden="true"></i> Add selected patrons to list</button>
+                 </div>
+                 [% PROCESS patron_search_table table_id => 'memberresultst' columns => ['checkbox','cardnumber','name','branch','category'] %]
+             </div>
+        </div>
+    </fieldset>
 [% END %]
 
 [% MACRO jsinclude BLOCK %]
+    [% INCLUDE 'datatables.inc' %]
     [% Asset.js("js/tools-menu.js") | $raw %]
+    <script>
+        var patron_search_selections = [];
+
+        $('#add-patrons').on('click', function() {
+            var merge_patrons_url = 'add-modify.pl?patron_list_id=[% list.patron_list_id | html %]&grant_borrowernumber=' + patron_search_selections.join("&grant_borrowernumber=");
+            window.location.href = merge_patrons_url;
+        });
+
+        $(document).ready(function() {
+            $(".browse").hide();
+
+            $('#memberresultst').on('change', 'input.selection', function() {
+                var borrowernumber = $(this).val();
+                if( $(this).prop("checked") ){
+                    patron_search_selections.push( $(this).val() );
+                    $('#add-patrons').prop('disabled', false).removeClass("disabled");
+                } else {
+                    var filtered = patron_search_selections.filter(function( value ){
+                        return value !== borrowernumber;
+                    });
+                    if( filtered.length > 0 ){
+                        patron_search_selections = filtered;
+                        $('#add-patrons').prop('disabled', false).removeClass("disabled");
+                    } else {
+                        patron_search_selections = [];
+                        $('#add-patrons').prop('disabled', true).addClass("disabled");
+                    }
+                }
+            });
+
+            $("#select_all").on("click",function(e){
+                e.preventDefault();
+                patron_search_selections = [];
+                $(".selection").each(function(){
+                    if( $(this).prop("checked") == false ){
+                        $(this).prop( "checked", true ).change();
+                    }
+                    patron_search_selections.push( $(this).val() );
+                });
+                $('#add-patrons').removeClass("disabled").prop('disabled', false);
+            });
+            $("#clear_all").on("click",function(e){
+                e.preventDefault();
+                $(".selection").each(function(){
+                    if( $(this).prop("checked") ){
+                        $(this).prop("checked", false ).change();
+                    }
+                });
+                patron_search_selections = [];
+                $('#add-patrons').prop('disabled', true).addClass("disabled");
+            });
+
+            $("#searchheader").hide();
+            $("#patron_search_form").on('submit', function(){$("#searchheader").show();});
+        });
+    </script>
+    [% PROCESS patron_search_js table_id => 'memberresultst', columns => ['checkbox','cardnumber','name','branch','category'], default_sort_column => 'name-address', display_search_description => 1, libraries => libraries, categories => categories %]
+
 [% END %]
 
 [% INCLUDE 'intranet-bottom.inc' %]
