@@ -47,6 +47,8 @@ use Koha::Patron::Attribute::Types;
 use Koha::Patron::Categories;
 use Koha::Patrons;
 use Koha::UploadedFiles;
+use Koha::List::Patron qw( add_patron_list add_patrons_to_list );
+
 
 use Text::CSV;
 
