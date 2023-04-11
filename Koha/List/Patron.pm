@@ -36,29 +36,57 @@ BEGIN {
     require Exporter;
     @ISA    = qw(Exporter);
     @EXPORT_OK = qw(
-      GetPatronLists
+      get_patron_list
+      get_patron_lists
 
-      DelPatronList
-      AddPatronList
-      ModPatronList
+      del_patron_list
+      add_patron_list
+      mod_patron_list
 
-      AddPatronsToList
-      DelPatronsFromList
+      add_patrons_to_list
+      del_patrons_from_list
+
+      grant_patrons_access_to_list
+      revoke_patrons_access_from_list
     );
 }
 
-=head2 GetPatronLists
+=head2 get_patron_list
 
-    my @lists = GetPatronLists( $params );
+    my $list = get_patron_list( { patron_list_id => 2 } );
+
+    Returns the patron list with patron_list_id.
+=cut
+
+sub get_patron_list {
+    my ($params) = @_;
+
+    unless ( $params->{'patron_list_id'} ) {
+        carp("No list id passed in or defined!");
+        return;
+    }
+
+    my $schema = Koha::Database->new()->schema();
+
+    my $patron_list = $schema->resultset('PatronList')->find($params->{'patron_list_id'});
+
+    return $patron_list;
+}
+
+=head2 get_patron_lists
+
+    my @lists = get_patron_lists( $params );
 
     Returns an array of lists created by the the given user
     or the logged in user if none is passed in.
 =cut
 
-sub GetPatronLists {
+sub get_patron_lists {
     my ($params) = @_;
 
     $params->{owner} ||= C4::Context->userenv->{'number'};
+    my $user_branch = C4::Context->userenv->{'branch'};
+    my $search_attrs = {};
 
     unless ( $params->{owner} ) {
         carp("No owner passed in or defined!");
@@ -72,23 +100,35 @@ sub GetPatronLists {
         $params->{'-or'} = [
             owner => $owner,
             shared => 1,
+            '-and' => [
+                shared => 2,
+                branchcode => $user_branch,
+            ],
+            '-and' => [
+                shared => { 'IN' => [2,3] },
+                'patron_list_users.borrowernumber' => $owner,
+            ],
         ];
+        $search_attrs = {
+            join => [ 'owner', 'patron_list_users' ],
+            group_by => 'patron_list_id',
+        };
     }
 
     my $schema = Koha::Database->new()->schema();
 
-    my @patron_lists = $schema->resultset('PatronList')->search($params);
+    my @patron_lists = $schema->resultset('PatronList')->search($params, $search_attrs);
 
     return wantarray() ? @patron_lists : \@patron_lists;
 }
 
-=head2 DelPatronList
+=head2 del_patron_list
 
-    DelPatronList( { patron_list_id => $list_id [, owner => $owner ] } );
+    del_patron_list( { patron_list_id => $list_id [, owner => $owner ] } );
 
 =cut
 
-sub DelPatronList {
+sub del_patron_list {
     my ($params) = @_;
 
     $params->{owner} ||= C4::Context->userenv->{'number'};
@@ -107,13 +147,13 @@ sub DelPatronList {
       ->search($params)->single()->delete();
 }
 
-=head2 AddPatronList
+=head2 add_patron_list
 
-    AddPatronList( { name => $name [, owner => $owner ] } );
+    add_patron_list( { name => $name [, owner => $owner ] } );
 
 =cut
 
-sub AddPatronList {
+sub add_patron_list {
     my ($params) = @_;
 
     $params->{owner} ||= C4::Context->userenv->{'number'};
@@ -132,13 +172,13 @@ sub AddPatronList {
       ->create($params);
 }
 
-=head2 ModPatronList
+=head2 mod_patron_list
 
-    ModPatronList( { patron_list_id => $id, name => $name [, owner => $owner ] } );
+    mod_patron_list( { patron_list_id => $id, name => $name [, owner => $owner ] } );
 
 =cut
 
-sub ModPatronList {
+sub mod_patron_list {
     my ($params) = @_;
 
     unless ( $params->{patron_list_id} ) {
@@ -146,23 +186,22 @@ sub ModPatronList {
         return;
     }
 
-    my ($list) = GetPatronLists(
+    my $list = get_patron_list(
         {
             patron_list_id => $params->{patron_list_id},
-            owner          => $params->{owner}
         }
     );
 
     return $list->update($params);
 }
 
-=head2 AddPatronsToList
+=head2 add_patrons_to_list
 
-    AddPatronsToList({ list => $list, cardnumbers => \@cardnumbers });
+    add_patrons_to_list({ list => $list, cardnumbers => \@cardnumbers });
 
 =cut
 
-sub AddPatronsToList {
+sub add_patrons_to_list {
     my ($params) = @_;
 
     my $list            = $params->{list};
@@ -204,13 +243,13 @@ sub AddPatronsToList {
     return wantarray() ? @results : \@results;
 }
 
-=head2 DelPatronsFromList
+=head2 del_patrons_from_list
 
-    DelPatronsFromList({ list => $list, patron_list_patrons => \@patron_list_patron_ids });
+    del_patrons_from_list({ list => $list, patron_list_patrons => \@patron_list_patron_ids });
 
 =cut
 
-sub DelPatronsFromList {
+sub del_patrons_from_list {
     my ($params) = @_;
 
     my $list                = $params->{list};
@@ -220,6 +259,73 @@ sub DelPatronsFromList {
 
     return Koha::Database->new()->schema()->resultset('PatronListPatron')
       ->search( { patron_list_patron_id => { 'IN' => $patron_list_patrons } } )
+      ->delete();
+}
+
+=head2 grant_patrons_access_to_list
+
+    grant_patrons_access_to_list({ list => $list, cardnumbers => \@cardnumbers });
+
+=cut
+
+sub grant_patrons_access_to_list {
+    my ($params) = @_;
+
+    my $list            = $params->{list};
+    my $cardnumbers     = $params->{'cardnumbers'};
+    my $borrowernumbers = $params->{'borrowernumbers'};
+
+    return unless ( $list && ( $cardnumbers || $borrowernumbers ) );
+
+    my @borrowernumbers;
+
+    my %search_param;
+    if ($cardnumbers) {
+        $search_param{cardnumber} = { 'IN' => $cardnumbers };
+    } else {
+        $search_param{borrowernumber} = { 'IN' => $borrowernumbers };
+    }
+
+    @borrowernumbers =
+      Koha::Database->new()->schema()->resultset('Borrower')->search(
+        \%search_param,
+        { columns    => [qw/ borrowernumber /] }
+      )->get_column('borrowernumber')->all();
+
+    my $patron_list_id = $list->patron_list_id();
+
+    my $plu_rs = Koha::Database->new()->schema()->resultset('PatronListUser');
+
+    my @results;
+    foreach my $borrowernumber (@borrowernumbers) {
+        my $result = $plu_rs->update_or_create(
+            {
+                patron_list_id => $patron_list_id,
+                borrowernumber => $borrowernumber
+            }
+        );
+        push( @results, $result );
+    }
+
+    return wantarray() ? @results : \@results;
+}
+
+=head2 revoke_patrons_access_from_list
+
+    revoke_patrons_access_from_list({ list => $list, patron_list_users => \@patron_list_user_ids });
+
+=cut
+
+sub revoke_patrons_access_from_list {
+    my ($params) = @_;
+
+    my $list              = $params->{list};
+    my $patron_list_users = $params->{patron_list_users};
+
+    return unless ( $list && $patron_list_users );
+
+    return Koha::Database->new()->schema()->resultset('PatronListUser')
+      ->search( { patron_list_user_id => { 'IN' => $patron_list_users } } )
       ->delete();
 }
 
