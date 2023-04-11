@@ -25,7 +25,7 @@ use Modern::Perl;
 use C4::Auth           qw( get_template_and_user );
 use C4::Output         qw( output_html_with_http_headers );
 use CGI                qw( -utf8 );
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 use Koha::Patrons;
 use Koha::Patron::Attribute::Types;
 
@@ -70,7 +70,7 @@ my $searchtype       = $input->param('searchtype');
 $template->param( 'alphabet' => C4::Context->preference('alphabet') || join ' ', 'A' .. 'Z' );
 
 $template->param(
-    patron_lists        => [ GetPatronLists() ],
+    patron_lists        => [ get_patron_lists() ],
     searchmember        => $searchmember,
     branchcode_filter   => scalar $input->param('branchcode_filter'),
     categorycode_filter => scalar $input->param('categorycode_filter'),

@@ -33,7 +33,7 @@ use C4::Members;
 use C4::Output qw( output_html_with_http_headers );
 use C4::Context;
 use Koha::DateUtils    qw( dt_from_string );
-use Koha::List::Patron qw( GetPatronLists );
+use Koha::List::Patron qw( get_patron_lists );
 use Koha::Libraries;
 use Koha::Patron::Categories;
 use Koha::Patron::Debarments qw( AddDebarment DelDebarment );
@@ -100,7 +100,7 @@ if ( $op eq 'cud-show' || $op eq 'show' ) {
     } elsif ( my $patron_list_id = $input->param('patron_list_id') ) {
 
         # User selected a patron list
-        my ($list) = GetPatronLists( { patron_list_id => $patron_list_id } );
+        my ($list) = get_patron_lists( { patron_list_id => $patron_list_id } );
         @patronidnumbers =
             $list->patron_list_patrons()->search_related('borrowernumber')->get_column('cardnumber')->all();
     }
@@ -514,7 +514,7 @@ if ( $op eq 'cud-do' ) {
     $template->param( errors => \@errors );
 } else {
 
-    $template->param( patron_lists => [ GetPatronLists() ] );
+    $template->param( patron_lists => [ get_patron_lists() ] );
 }
 
 $template->param(
