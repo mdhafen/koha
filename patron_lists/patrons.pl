@@ -23,7 +23,7 @@ use CGI qw ( -utf8 );
 
 use C4::Auth           qw( get_template_and_user );
 use C4::Output         qw( output_html_with_http_headers );
-use Koha::List::Patron qw( AddPatronList GetPatronLists ModPatronList );
+use Koha::List::Patron qw( get_patron_list add_patron_list mod_patron_list );
 
 my $cgi = CGI->new;
 
@@ -40,15 +40,15 @@ my $id   = $cgi->param('patron_list_id');
 my $name = $cgi->param('name');
 
 if ($id) {
-    my ($list) = GetPatronLists( { patron_list_id => $id } );
+    my ($list) = get_patron_list( { patron_list_id => $id } );
     $template->param( list => $list );
 }
 
 if ($name) {
     if ($id) {
-        ModPatronList( { patron_list_id => $id, name => $name } );
+        mod_patron_list( { patron_list_id => $id, name => $name } );
     } else {
-        AddPatronList( { name => $name } );
+        add_patron_list( { name => $name } );
     }
 
     print $cgi->redirect('lists.pl');
