@@ -78,12 +78,30 @@
                         [% CASE 'sort1' %]
                             <li>
                                 <label>Sort 1:</label>
-                                [% PROCESS 'av-build-dropbox.inc' no_id => 1, name="sort1_filter", category="Bsort1", empty=1, size = 20 %]
+                                [% IF sort1 %]
+                                    <select class="select2" name="sort1_filter" id="sort1_filter">
+                                        <option value="">Any</option>
+                                        [% FOREACH s1 IN sort1 %]
+                                            <option value="[% s1 | html %]">[% s1 | html %]</option>
+                                        [% END %]
+                                    </select>
+                                [% ELSE %]
+                                    [% PROCESS 'av-build-dropbox.inc' no_id => 1, name="sort1_filter", category="Bsort1", empty=1, size = 20 %]
+                                [% END %]
                             </li>
                         [% CASE 'sort2' %]
                             <li>
                                 <label>Sort 2:</label>
-                                [% PROCESS 'av-build-dropbox.inc' no_id => 1, name="sort2_filter", category="Bsort2", empty=1, size = 20 %]
+                                [% IF sort2 %]
+                                    <select class="select2" name="sort2_filter" id="sort2_filter">
+                                        <option value="">Any</option>
+                                        [% FOREACH s2 IN sort2 %]
+                                            <option value="[% s2 | html %]">[% s2 | html %]</option>
+                                        [% END %]
+                                    </select>
+                                [% ELSE %]
+                                    [% PROCESS 'av-build-dropbox.inc' no_id => 1, name="sort2_filter", category="Bsort2", empty=1, size = 20 %]
+                                [% END %]
                             </li>
                         [% CASE 'search_field' %]
                             <li> [% INCLUDE patron_fields_dropdown %] </li>

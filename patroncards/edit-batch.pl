@@ -22,12 +22,14 @@ use Modern::Perl;
 
 use CGI qw ( -utf8 );
 use autouse 'Data::Dumper' => qw(Dumper);
+use List::MoreUtils qw(uniq);
 
 use C4::Auth     qw( get_template_and_user );
 use C4::Output   qw( output_html_with_http_headers );
 use C4::Creators qw( get_card_summary html_table );
 use C4::Patroncards;
 use Koha::Patrons;
+use C4::Koha qw( GetAuthorisedValues );
 
 my $cgi = CGI->new;
 my ( $template, $loggedinuser, $cookie ) = get_template_and_user(
@@ -146,6 +148,19 @@ $db_rows = get_card_summary( items => $items, batch_id => $batch_id );
 
 my $table = html_table( $display_columns, $db_rows );
 
+my $sort_filter = { ( C4::Context->only_my_library ? (branchcode => C4::Context->userenv->{branch}) : () ) };
+my ( @sort1, @sort2, $pat_search_rs );
+@sort1 = map { $_->{lib} } @{ GetAuthorisedValues("Bsort1") };
+unless ( @sort1 ) {
+    $pat_search_rs = Koha::Patrons->search($sort_filter);
+    @sort1 = sort {$a cmp $b} uniq( $pat_search_rs->get_column('sort1') );
+}
+@sort2 = map { $_->{lib} } @{ GetAuthorisedValues("Bsort2") };
+unless ( @sort2 ) {
+    unless ($pat_search_rs) { $pat_search_rs = Koha::Patrons->search($sort_filter) };
+    @sort2 = sort {$a cmp $b} uniq( $pat_search_rs->get_column('sort2') );
+}
+
 $template->param(
     op                => $op,
     batch_id          => $batch_id,
@@ -153,6 +168,8 @@ $template->param(
     duplicate_message => $duplicate_message,
     duplicate_count   => $duplicate_count,
     error             => $errstr,
+    sort1             => \@sort1,
+    sort2             => \@sort2,
 );
 
 output_html_with_http_headers $cgi, $cookie, $template->output;
