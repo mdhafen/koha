@@ -2632,7 +2632,7 @@ $star-selected: #EDB867;
         height: 28px;
         white-space: nowrap;
 
-        a {
+        span,a {
             font: normal normal normal 20px/1 "Font Awesome 6 Free";
             -webkit-font-smoothing: antialiased;
             margin-right: 2px;
@@ -2663,7 +2663,7 @@ $star-selected: #EDB867;
     }
 
     .br-readonly {
-        a {
+        span, a {
             cursor: default;
         }
     }
@@ -2678,7 +2678,7 @@ $star-selected: #EDB867;
 @media print {
     .br-theme-fontawesome-stars {
         .br-widget {
-            a {
+            span,a {
                 &::after {
                     color: #000000;
                     content: "\f006";
