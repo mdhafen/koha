@@ -580,10 +580,11 @@ if ( @$barcodes && $op eq 'cud-checkout' ) {
                 my $borrowernumber = $patron->borrowernumber;
                 my $user           = C4::Context->userenv->{number};
                 my $branchcode     = C4::Context->userenv->{branch};
-                $message = "Restriction overridden temporarily";
-                @message = ("Restriction overridden temporarily");
 
                 if ($issueconfirmed) {
+                    $message = "Restriction overridden temporarily";
+                    @message = ("Restriction overridden temporarily");
+
                     my $infos = (
                         {
                             message        => \@message,
