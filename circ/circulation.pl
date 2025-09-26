@@ -58,6 +58,7 @@ use Koha::SearchEngine;
 use Koha::SearchEngine::Search;
 use Koha::Patron::Modifications;
 use Koha::Token;
+use Koha::I18N qw(__);
 
 use List::MoreUtils qw( uniq );
 
@@ -582,8 +583,8 @@ if ( @$barcodes && $op eq 'cud-checkout' ) {
                 my $branchcode     = C4::Context->userenv->{branch};
 
                 if ($issueconfirmed) {
-                    $message = "Restriction overridden temporarily";
-                    @message = ("Restriction overridden temporarily");
+                    $message = __("Restriction overridden temporarily");
+                    @message = ( __("Restriction overridden temporarily") );
 
                     my $infos = (
                         {
