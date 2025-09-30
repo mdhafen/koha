@@ -164,9 +164,12 @@ export default {
                 return
             }
             nextTick(() => {
-                $("#warning.modal").modal("show")
-            })
-        })
+                $("#warning.modal").on("hidden.bs.modal", function () {
+                    removeMessages();
+                });
+                $("#warning.modal").modal("show");
+            });
+        });
 
         watch(confirmation, newConfirmation => {
             if (!newConfirmation) {
@@ -174,9 +177,12 @@ export default {
                 return
             }
             nextTick(() => {
-                $("#confirmation.modal").modal("show")
-            })
-        })
+                $("#confirmation.modal").on("hidden.bs.modal", function () {
+                    removeConfirmationMessages();
+                });
+                $("#confirmation.modal").modal("show");
+            });
+        });
 
         return {
             message,
