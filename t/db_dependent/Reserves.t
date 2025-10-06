@@ -17,7 +17,7 @@
 
 use Modern::Perl;
 
-use Test::More tests => 71;
+use Test::More tests => 69;
 use Test::NoWarnings;
 use Test::MockModule;
 use Test::Warn;
@@ -395,17 +395,7 @@ is( $which_highest->{reserve_id}, $reserve_id, 'CheckReserves returns higher pri
 
 # End of tests for bug 9761 (ConfirmFutureHolds)
 
-
-# test marking a hold as captured
-my $hold_notice_count = count_hold_print_messages();
 ModReserveAffect($item->itemnumber, $requesters{$branch_1}->borrowernumber, 0);
-my $new_count = count_hold_print_messages();
-is($new_count, $hold_notice_count + 1, 'patron notified when item set to waiting');
-
-# test that duplicate notices aren't generated
-ModReserveAffect($item->itemnumber, $requesters{$branch_1}->borrowernumber, 0);
-$new_count = count_hold_print_messages();
-is($new_count, $hold_notice_count + 1, 'patron not notified a second time (bug 11445)');
 
 # avoiding the not_same_branch error
 t::lib::Mocks::mock_preference('IndependentBranches', 0);
@@ -722,7 +712,7 @@ $cache->clear_from_cache("MarcSubfieldStructure-$frameworkcode");
 
 subtest '_koha_notify_reserve() tests' => sub {
 
-    plan tests => 4;
+    plan tests => 6;
 
     my $branch = $builder->build_object({
         class => 'Koha::Libraries',
@@ -735,7 +725,14 @@ subtest '_koha_notify_reserve() tests' => sub {
     my $item = $builder->build_sample_item({
         homebranch => $branch->branchcode,
         holdingbranch => $branch->branchcode
-    });
+        }
+    );
+    my $item2 = $builder->build_sample_item(
+        {
+            homebranch    => $branch->branchcode,
+            holdingbranch => $branch->branchcode
+        }
+    );
 
     my $wants_hold_and_email = {
         wants_digest => '0',
@@ -774,7 +771,21 @@ subtest '_koha_notify_reserve() tests' => sub {
             }
         });
 
-    my $hold_borrower = $builder->build({
+    my $print_hold_notice = $builder->build(
+        {
+            source => 'Letter',
+            value  => {
+                message_transport_type => 'print',
+                branchcode             => '',
+                code                   => 'HOLD',
+                module                 => 'reserves',
+                lang                   => 'default',
+            }
+        }
+    );
+
+    my $hold_borrower = $builder->build(
+        {
             source => 'Borrower',
             value => {
                 smsalertnumber=>'5555555555',
@@ -787,6 +798,13 @@ subtest '_koha_notify_reserve() tests' => sub {
             branchcode     => $item->homebranch,
             borrowernumber => $hold_borrower,
             biblionumber   => $item->biblionumber,
+        }
+    );
+    C4::Reserves::AddReserve(
+        {
+            branchcode     => $item->homebranch,
+            borrowernumber => $hold_borrower,
+            biblionumber   => $item2->biblionumber,
         }
     );
 
@@ -813,6 +831,23 @@ subtest '_koha_notify_reserve() tests' => sub {
     my $email_reply_address = $email->reply_address();
     is( $email_reply_address, 'branch@reply.to', "Library's reply address is used for reply" );
 
+    $wants_hold_and_email = {
+        wants_digest => '0',
+        transports   => {},
+        letter_code  => 'HOLD'
+    };
+    $mp = Test::MockModule->new('C4::Members::Messaging');
+    $mp->mock( "GetMessagingPreferences", $wants_hold_and_email );
+
+    my $hold_notice_count = count_hold_print_messages();
+    ModReserveAffect( $item2->itemnumber, $hold_borrower );
+    my $new_count = count_hold_print_messages();
+    is( $new_count, $hold_notice_count, 'patron not notified if no messaging preference is specified' );
+
+    $hold_notice_count = count_hold_print_messages();
+    ModReserveAffect( $item2->itemnumber, $hold_borrower, 0 );
+    $new_count = count_hold_print_messages();
+    is( $new_count, $hold_notice_count, 'patron not notified a second time (bug 11445)' );
 };
 
 subtest 'ReservesNeedReturns' => sub {
