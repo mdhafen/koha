@@ -408,7 +408,7 @@ sub CanBookBeReserved{
         $items = Koha::Items->search({
             -or => [
                 biblionumber => $biblionumber,
-                itemnumber => { -in => @hostitemnumbers }
+                itemnumber   => { -in => \@hostitemnumbers }
             ]
         });
     } else {
