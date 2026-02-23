@@ -165,11 +165,11 @@ export default {
             }
             nextTick(() => {
                 $("#warning.modal").on("hidden.bs.modal", function () {
-                    removeMessages();
-                });
-                $("#warning.modal").modal("show");
-            });
-        });
+                    removeMessages()
+                })
+                $("#warning.modal").modal("show")
+            })
+        })
 
         watch(confirmation, newConfirmation => {
             if (!newConfirmation) {
@@ -178,11 +178,11 @@ export default {
             }
             nextTick(() => {
                 $("#confirmation.modal").on("hidden.bs.modal", function () {
-                    removeConfirmationMessages();
-                });
-                $("#confirmation.modal").modal("show");
-            });
-        });
+                    removeConfirmationMessages()
+                })
+                $("#confirmation.modal").modal("show")
+            })
+        })
 
         return {
             message,
