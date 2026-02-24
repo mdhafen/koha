@@ -50,7 +50,8 @@ subtest 'list() tests' => sub {
     $patron->set_password( { password => $password, skip_validation => 1 } );
     my $userid = $patron->userid;
 
-    $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds' )->status_is( 200, 'REST3.2.2' )
+    $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds' )
+        ->status_is( 200, 'REST3.2.2' )
         ->json_is( [] );
 
     my $hold_1 = $builder->build_object( { class => 'Koha::Holds', value => { borrowernumber => $patron->id } } );
@@ -65,7 +66,8 @@ subtest 'list() tests' => sub {
     $hold_3->fill;
 
     $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds?_order_by=+me.hold_id' )
-        ->status_is( 200, 'REST3.2.2' )->json_is( '' => [ $hold_2->to_api ], 'Only current holds retrieved' );
+        ->status_is( 200, 'REST3.2.2' )
+        ->json_is( '' => [ $hold_2->to_api ], 'Only current holds retrieved' );
 
     $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds?old=1&_order_by=+me.hold_id' )
         ->status_is( 200, 'REST3.2.2' )
@@ -76,14 +78,16 @@ subtest 'list() tests' => sub {
     $old_hold_1->pickup_library->delete;
 
     $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds?old=1&_order_by=+me.hold_id' )
-        ->status_is( 200, 'REST3.2.2' )->json_is(
+        ->status_is( 200, 'REST3.2.2' )
+        ->json_is(
         '' => [ $old_hold_1->get_from_storage->to_api, $hold_3->to_api ],
         'Old holds even after item and library removed'
         );
 
     $old_hold_1->biblio->delete;
     $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $patron->id . '/holds?old=1&_order_by=+me.hold_id' )
-        ->status_is( 200, 'REST3.2.2' )->json_is(
+        ->status_is( 200, 'REST3.2.2' )
+        ->json_is(
         '' => [ $old_hold_1->get_from_storage->to_api, $hold_3->to_api ],
         'Old holds even after biblio removed'
         );
@@ -94,7 +98,8 @@ subtest 'list() tests' => sub {
     # get rid of the patron
     $non_existent_patron->delete;
 
-    $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $non_existent_patron_id . '/holds' )->status_is(404)
+    $t->get_ok( "//$userid:$password@/api/v1/patrons/" . $non_existent_patron_id . '/holds' )
+        ->status_is(404)
         ->json_is( '/error' => 'Patron not found' );
 
     $schema->storage->txn_rollback;
@@ -122,7 +127,8 @@ subtest 'delete_public() tests' => sub {
     my $deleted_hold_id = $hold_to_delete->id;
     $hold_to_delete->delete;
 
-    $t->delete_ok( "/api/v1/public/patrons/" . $patron->id . '/holds/' . $deleted_hold_id )->status_is(401)
+    $t->delete_ok( "/api/v1/public/patrons/" . $patron->id . '/holds/' . $deleted_hold_id )
+        ->status_is(401)
         ->json_is( { error => 'Authentication failure.' } );
 
     $t->delete_ok( "//$userid:$password@/api/v1/public/patrons/" . $patron->id . '/holds/' . $deleted_hold_id )
@@ -151,7 +157,8 @@ subtest 'delete_public() tests' => sub {
     );
 
     $t->delete_ok( "//$userid:$password@/api/v1/public/patrons/" . $patron->id . '/holds/' . $non_waiting_hold->id )
-        ->status_is( 204, 'REST3.2.4' )->content_is( '', 'REST3.3.4' );
+        ->status_is( 204, 'REST3.2.4' )
+        ->content_is( '', 'REST3.3.4' );
 
     my $cancellation_requestable;
 
@@ -173,7 +180,8 @@ subtest 'delete_public() tests' => sub {
     $cancellation_requestable = 0;
 
     $t->delete_ok( "//$userid:$password@/api/v1/public/patrons/" . $patron->id . '/holds/' . $waiting_hold->id )
-        ->status_is(403)->json_is( { error => 'Cancellation forbidden' } );
+        ->status_is(403)
+        ->json_is( { error => 'Cancellation forbidden' } );
 
     $cancellation_requestable = 1;
 

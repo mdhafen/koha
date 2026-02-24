@@ -1186,7 +1186,7 @@ subtest "filter_by_last_update" => sub {
                 class => 'Koha::Patrons',
                 value => { updated_on => $now->clone->subtract( days => $i ) }
             }
-        )->borrowernumber;
+            )->borrowernumber;
     }
 
     my $patrons = Koha::Patrons->search( { borrowernumber => { -in => \@borrowernumbers } } );

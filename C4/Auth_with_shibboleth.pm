@@ -158,7 +158,7 @@ sub _autocreate {
                 module      => 'members',
                 letter_code => 'WELCOME',
                 branchcode  => $patron->branchcode,
-                ,
+
                 lang   => $patron->lang || 'default',
                 tables => {
                     'branches'  => $patron->branchcode,

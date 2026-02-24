@@ -208,26 +208,33 @@ subtest "Test endpoints with permission" => sub {
 
     $t->get_ok("//$userid_1:$password@/api/v1/holds")->status_is(200)->json_has('/0')->json_has('/1')->json_hasnt('/2');
 
-    $t->get_ok("//$userid_1:$password@/api/v1/holds?priority=2")->status_is(200)
-        ->json_is( '/0/patron_id', $patron_2->borrowernumber )->json_hasnt('/1');
+    $t->get_ok("//$userid_1:$password@/api/v1/holds?priority=2")
+        ->status_is(200)
+        ->json_is( '/0/patron_id', $patron_2->borrowernumber )
+        ->json_hasnt('/1');
 
-    $t->delete_ok("//$userid_3:$password@/api/v1/holds/$reserve_id")->status_is( 204, 'REST3.2.4' )
+    $t->delete_ok("//$userid_3:$password@/api/v1/holds/$reserve_id")
+        ->status_is( 204, 'REST3.2.4' )
         ->content_is( '', 'REST3.3.4' );
 
-    $t->patch_ok( "//$userid_3:$password@/api/v1/holds/$reserve_id" => json => $patch_data )->status_is(404)
+    $t->patch_ok( "//$userid_3:$password@/api/v1/holds/$reserve_id" => json => $patch_data )
+        ->status_is(404)
         ->json_has('/error');
 
     $t->delete_ok("//$userid_3:$password@/api/v1/holds/$reserve_id")->status_is(404)->json_has('/error');
 
-    $t->get_ok( "//$userid_3:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )->status_is(200)
+    $t->get_ok( "//$userid_3:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )
+        ->status_is(200)
         ->json_is( [] );
 
     my $inexisting_borrowernumber = $patron_2->borrowernumber * 2;
-    $t->get_ok("//$userid_1:$password@/api/v1/holds?patron_id=$inexisting_borrowernumber")->status_is(200)
+    $t->get_ok("//$userid_1:$password@/api/v1/holds?patron_id=$inexisting_borrowernumber")
+        ->status_is(200)
         ->json_is( [] );
 
     $t->delete_ok( "//$userid_3:$password@/api/v1/holds/$reserve_id2" => json => "Cancellation reason" )
-        ->status_is( 204, 'REST3.2.4' )->content_is( '', 'REST3.3.4' );
+        ->status_is( 204, 'REST3.2.4' )
+        ->content_is( '', 'REST3.3.4' );
 
     # Make sure pickup location checks doesn't get in the middle
     my $mock_biblio = Test::MockModule->new('Koha::Biblio');
@@ -235,24 +242,29 @@ subtest "Test endpoints with permission" => sub {
     my $mock_item = Test::MockModule->new('Koha::Item');
     $mock_item->mock( 'pickup_locations', sub { return Koha::Libraries->search } );
 
-    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )->status_is(201)->json_has('/hold_id')
+    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(201)
+        ->json_has('/hold_id')
         ->header_is( 'Location' => '/api/v1/holds/' . $t->tx->res->json->{hold_id}, "REST3.4.1" );
 
     # Get id from response
     $reserve_id = $t->tx->res->json->{hold_id};
 
-    $t->get_ok( "//$userid_1:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )->status_is(200)
+    $t->get_ok( "//$userid_1:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )
+        ->status_is(200)
         ->json_is( '/0/hold_id',         $reserve_id )
         ->json_is( '/0/expiration_date', output_pref( { dt => $expiration_date, dateformat => 'iso', dateonly => 1 } ) )
         ->json_is( '/0/pickup_library_id', $branchcode );
 
-    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )->status_is(403)
+    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(403)
         ->json_like( '/error', qr/itemAlreadyOnHold/ );
 
     $post_data->{biblio_id} = $biblio_2->biblionumber;
     $post_data->{item_id}   = $item_2->itemnumber;
 
-    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )->status_is(403)
+    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(403)
         ->json_like( '/error', qr/Hold cannot be placed. Reason: tooManyReserves/ );
 
     my $to_delete_patron  = $builder->build_object( { class => 'Koha::Patrons' } );
@@ -261,7 +273,8 @@ subtest "Test endpoints with permission" => sub {
 
     my $tmp_patron_id = $post_data->{patron_id};
     $post_data->{patron_id} = $deleted_patron_id;
-    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )->status_is(400)
+    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(400)
         ->json_is( { error => 'patron_id not found' } );
 
     # Restore the original patron_id as it is expected by the next subtest
@@ -279,7 +292,8 @@ subtest 'Reserves with itemtype' => sub {
         item_type         => $itemtype,
     };
 
-    $t->delete_ok("//$userid_3:$password@/api/v1/holds/$reserve_id")->status_is( 204, 'REST3.2.4' )
+    $t->delete_ok("//$userid_3:$password@/api/v1/holds/$reserve_id")
+        ->status_is( 204, 'REST3.2.4' )
         ->content_is( '', 'REST3.3.4' );
 
     # Make sure pickup location checks doesn't get in the middle
@@ -292,8 +306,10 @@ subtest 'Reserves with itemtype' => sub {
 
     $reserve_id = $t->tx->res->json->{hold_id};
 
-    $t->get_ok( "//$userid_1:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )->status_is(200)
-        ->json_is( '/0/hold_id', $reserve_id )->json_is( '/0/item_type', $itemtype );
+    $t->get_ok( "//$userid_1:$password@/api/v1/holds?patron_id=" . $patron_1->borrowernumber )
+        ->status_is(200)
+        ->json_is( '/0/hold_id',   $reserve_id )
+        ->json_is( '/0/item_type', $itemtype );
 };
 
 subtest 'test AllowHoldDateInFuture' => sub {
@@ -325,7 +341,8 @@ subtest 'test AllowHoldDateInFuture' => sub {
     my $mock_item = Test::MockModule->new('Koha::Item');
     $mock_item->mock( 'pickup_locations', sub { return Koha::Libraries->search } );
 
-    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )->status_is(201)
+    $t->post_ok( "//$userid_3:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(201)
         ->json_is( '/hold_date', output_pref( { dt => $future_hold_date, dateformat => 'iso', dateonly => 1 } ) );
 };
 
@@ -384,7 +401,8 @@ subtest 'x-koha-override and AllowHoldPolicyOverride tests' => sub {
 
     $can_item_be_reserved_result = { status => 'ageRestricted' };
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $post_data )->status_is(403)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(403)
         ->json_is( '/error' => "Hold cannot be placed. Reason: ageRestricted" );
 
     # x-koha-override doesn't override if AllowHoldPolicyOverride not set
@@ -395,7 +413,8 @@ subtest 'x-koha-override and AllowHoldPolicyOverride tests' => sub {
 
     $can_item_be_reserved_result = { status => 'pickupNotInHoldGroup' };
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $post_data )->status_is(403)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $post_data )
+        ->status_is(403)
         ->json_is( '/error' => "Hold cannot be placed. Reason: pickupNotInHoldGroup" );
 
     # x-koha-override overrides the status
@@ -493,7 +512,8 @@ subtest 'suspend and resume tests' => sub {
         'Hold suspension has correct end date'
     );
 
-    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id . "/suspension" )->status_is( 204, 'REST3.2.4' )
+    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id . "/suspension" )
+        ->status_is( 204, 'REST3.2.4' )
         ->content_is( '', 'REST3.3.4' );
 
     # Pass a an expiration date for the suspension
@@ -502,12 +522,14 @@ subtest 'suspend and resume tests' => sub {
             . $hold->id
             . "/suspension" => json =>
             { end_date => output_pref( { dt => $date, dateformat => 'iso', dateonly => 1 } ) } )
-        ->status_is( 201, 'Hold suspension created' )->json_is(
+        ->status_is( 201, 'Hold suspension created' )
+        ->json_is(
         '/end_date',
         output_pref( { dt => $date, dateformat => 'iso', dateonly => 1 } )
-    )->header_is( Location => "/api/v1/holds/" . $hold->id . "/suspension", 'The Location header is set' );
+        )->header_is( Location => "/api/v1/holds/" . $hold->id . "/suspension", 'The Location header is set' );
 
-    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id . "/suspension" )->status_is( 204, 'REST3.2.4' )
+    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id . "/suspension" )
+        ->status_is( 204, 'REST3.2.4' )
         ->content_is( '', 'REST3.3.4' );
 
     $hold->set_waiting->discard_changes;
@@ -693,14 +715,16 @@ subtest 'PUT /holds/{hold_id}/priority tests' => sub {
 
     $t->put_ok( "//$userid_np:$password@/api/v1/holds/" . $hold_3->id . "/priority" => json => 1 )->status_is(403);
 
-    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $hold_3->id . "/priority" => json => 1 )->status_is(200)
+    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $hold_3->id . "/priority" => json => 1 )
+        ->status_is(200)
         ->json_is(1);
 
     is( $hold_1->discard_changes->priority, 2, 'Priority adjusted correctly' );
     is( $hold_2->discard_changes->priority, 3, 'Priority adjusted correctly' );
     is( $hold_3->discard_changes->priority, 1, 'Priority adjusted correctly' );
 
-    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $hold_3->id . "/priority" => json => 3 )->status_is(200)
+    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $hold_3->id . "/priority" => json => 3 )
+        ->status_is(200)
         ->json_is(3);
 
     is( $hold_1->discard_changes->priority, 1, 'Priority adjusted correctly' );
@@ -880,7 +904,8 @@ subtest 'add() + can_place_holds() tests' => sub {
         my $hold_id =
             $t->post_ok(
             "//$userid:$password@/api/v1/holds" => { 'x-koha-override' => 'debt_limit' } => json => $post_data )
-            ->status_is( 201, "Override works for 'debt_limit'" )->tx->res->json->{hold_id};
+            ->status_is( 201, "Override works for 'debt_limit'" )
+            ->tx->res->json->{hold_id};
 
         Koha::Holds->find($hold_id)->delete();
 
@@ -1003,7 +1028,8 @@ subtest 'add() + can_place_holds() tests' => sub {
 
         my $hold_id = $t->post_ok(
             "//$userid:$password@/api/v1/holds" => { 'x-koha-override' => 'hold_limit' } => json => $post_data )
-            ->status_is( 201, "Override works for 'hold_limit'" )->tx->res->json->{hold_id};
+            ->status_is( 201, "Override works for 'hold_limit'" )
+            ->tx->res->json->{hold_id};
 
         Koha::Holds->find($hold_id)->delete();
 
@@ -1283,20 +1309,24 @@ subtest 'edit() tests' => sub {
     };
 
     $t->patch_ok( "//$userid:$password@/api/v1/holds/" . $biblio_hold->id => json => $biblio_hold_data )
-        ->status_is(400)->json_is( { error => 'The supplied pickup location is not valid' } );
+        ->status_is(400)
+        ->json_is( { error => 'The supplied pickup location is not valid' } );
 
-    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $biblio_hold->id => json => $biblio_hold_data )->status_is(400)
+    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $biblio_hold->id => json => $biblio_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $biblio_hold->discard_changes;
     is( $biblio_hold->branchcode, $library_3->branchcode, 'branchcode remains untouched' );
 
     $t->patch_ok( "//$userid:$password@/api/v1/holds/"
-            . $biblio_hold->id => { 'x-koha-override' => 'any' } => json => $biblio_hold_data )->status_is(200)
+            . $biblio_hold->id => { 'x-koha-override' => 'any' } => json => $biblio_hold_data )
+        ->status_is(200)
         ->json_has( '/pickup_library_id' => $library_1->id );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
-            . $biblio_hold->id => { 'x-koha-override' => 'any' } => json => $biblio_hold_data )->status_is(200)
+            . $biblio_hold->id => { 'x-koha-override' => 'any' } => json => $biblio_hold_data )
+        ->status_is(200)
         ->json_has( '/pickup_library_id' => $library_1->id );
 
     $biblio_hold_data->{pickup_library_id} = $library_2->branchcode;
@@ -1346,21 +1376,25 @@ subtest 'edit() tests' => sub {
         priority          => $item_hold_api_data->{priority}
     };
 
-    $t->patch_ok( "//$userid:$password@/api/v1/holds/" . $item_hold->id => json => $item_hold_data )->status_is(400)
+    $t->patch_ok( "//$userid:$password@/api/v1/holds/" . $item_hold->id => json => $item_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
-    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $item_hold->id => json => $item_hold_data )->status_is(400)
+    $t->put_ok( "//$userid:$password@/api/v1/holds/" . $item_hold->id => json => $item_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $item_hold->discard_changes;
     is( $item_hold->branchcode, $library_3->branchcode, 'branchcode remains untouched' );
 
     $t->patch_ok( "//$userid:$password@/api/v1/holds/"
-            . $item_hold->id => { 'x-koha-override' => 'any' } => json => $item_hold_data )->status_is(200)
+            . $item_hold->id => { 'x-koha-override' => 'any' } => json => $item_hold_data )
+        ->status_is(200)
         ->json_has( '/pickup_library_id' => $library_1->id );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
-            . $item_hold->id => { 'x-koha-override' => 'any' } => json => $item_hold_data )->status_is(200)
+            . $item_hold->id => { 'x-koha-override' => 'any' } => json => $item_hold_data )
+        ->status_is(200)
         ->json_has( '/pickup_library_id' => $library_1->id );
 
     $item_hold_data->{pickup_library_id} = $library_2->branchcode;
@@ -1483,7 +1517,8 @@ subtest 'add() tests' => sub {
         pickup_library_id => $library_1->branchcode,
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $biblio_hold_data->{pickup_library_id} = $library_2->branchcode;
@@ -1512,7 +1547,8 @@ subtest 'add() tests' => sub {
         pickup_library_id => $library_1->branchcode,
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $biblio_hold_data->{pickup_library_id} = $library_2->branchcode;
@@ -1540,7 +1576,8 @@ subtest 'add() tests' => sub {
         pickup_library_id => $library_1->branchcode,
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $item_hold_data )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $item_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $can_item_be_reserved   = 'notReservable';
@@ -1565,7 +1602,8 @@ subtest 'add() tests' => sub {
         }
     );
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $biblio_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     # empty cases
@@ -1576,7 +1614,8 @@ subtest 'add() tests' => sub {
         }
     );
 
-    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $item_hold_data )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/holds" => json => $item_hold_data )
+        ->status_is(400)
         ->json_is( { error => 'The supplied pickup location is not valid' } );
 
     $schema->storage->txn_rollback;
@@ -1636,14 +1675,16 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )->status_is(200)
+            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )
+        ->status_is(200)
         ->json_is( { pickup_library_id => $library_2->branchcode } );
 
     is( $hold->discard_changes->branchcode, $library_2->branchcode, 'pickup library adjusted correctly' );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )->status_is(400)
+            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )
+        ->status_is(400)
         ->json_is( { error => '[The supplied pickup location is not valid]' } );
 
     is( $hold->discard_changes->branchcode, $library_2->branchcode, 'pickup library unchanged' );
@@ -1664,7 +1705,8 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
     # Attempt to use an invalid pickup locations ends in 400
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )->status_is(400)
+            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )
+        ->status_is(400)
         ->json_is( { error => '[The supplied pickup location is not valid]' } );
 
     is( $hold->discard_changes->branchcode, $library_1->branchcode, 'pickup library unchanged' );
@@ -1675,7 +1717,8 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
             . "/pickup_location" => { 'x-koha-override' => 'any' } => json =>
-            { pickup_library_id => $library_2->branchcode } )->status_is(200)
+            { pickup_library_id => $library_2->branchcode } )
+        ->status_is(200)
         ->json_is( { pickup_library_id => $library_2->branchcode } );
 
     is( $hold->discard_changes->branchcode, $library_2->branchcode, 'pickup library changed' );
@@ -1684,14 +1727,16 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )->status_is(200)
+            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )
+        ->status_is(200)
         ->json_is( { pickup_library_id => $library_2->branchcode } );
 
     is( $hold->discard_changes->branchcode, $library_2->branchcode, 'pickup library adjusted correctly' );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )->status_is(400)
+            . "/pickup_location" => json => { pickup_library_id => $library_3->branchcode } )
+        ->status_is(400)
         ->json_is( { error => '[The supplied pickup location is not valid]' } );
 
     is( $hold->discard_changes->branchcode, $library_2->branchcode, 'invalid pickup library not used' );
@@ -1699,7 +1744,8 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $hold->id
             . "/pickup_location" => { 'x-koha-override' => 'any' } => json =>
-            { pickup_library_id => $library_3->branchcode } )->status_is(400)
+            { pickup_library_id => $library_3->branchcode } )
+        ->status_is(400)
         ->json_is( { error => '[The supplied pickup location is not valid]' } );
 
     is(
@@ -1713,17 +1759,20 @@ subtest 'PUT /holds/{hold_id}/pickup_location tests' => sub {
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $waiting_hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )->status_is(409)
+            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )
+        ->status_is(409)
         ->json_is( { error => q{Cannot change pickup location}, error_code => 'hold_waiting' } );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $in_processing_hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )->status_is(409)
+            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )
+        ->status_is(409)
         ->json_is( { error => q{Cannot change pickup location}, error_code => 'hold_in_processing' } );
 
     $t->put_ok( "//$userid:$password@/api/v1/holds/"
             . $in_transit_hold->id
-            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )->status_is(200)
+            . "/pickup_location" => json => { pickup_library_id => $library_2->branchcode } )
+        ->status_is(200)
         ->json_is( { pickup_library_id => $library_2->branchcode } );
 
     $schema->storage->txn_rollback;
@@ -1777,7 +1826,8 @@ subtest 'delete() tests' => sub {
         )
     );
 
-    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id )->status_is( 204, 'REST3.2.4' )
+    $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id )
+        ->status_is( 204, 'REST3.2.4' )
         ->content_is( '', 'REST3.3.4' );
 
     $hold = Koha::Holds->find(
@@ -1793,7 +1843,8 @@ subtest 'delete() tests' => sub {
     );
 
     $t->delete_ok( "//$userid:$password@/api/v1/holds/" . $hold->id => { 'x-koha-override' => q{} } )
-        ->status_is( 204, 'Same behavior if header not set' )->content_is('');
+        ->status_is( 204, 'Same behavior if header not set' )
+        ->content_is('');
 
     $hold = Koha::Holds->find(
         AddReserve(
@@ -1809,7 +1860,8 @@ subtest 'delete() tests' => sub {
 
     $t->delete_ok(
         "//$userid:$password@/api/v1/holds/" . $hold->id => { 'x-koha-override' => q{cancellation-request-flow} } )
-        ->status_is( 204, 'Same behavior if header set but hold not waiting' )->content_is('');
+        ->status_is( 204, 'Same behavior if header set but hold not waiting' )
+        ->content_is('');
 
     $hold = Koha::Holds->find(
         AddReserve(
@@ -1928,7 +1980,8 @@ subtest 'Bug 40866: API hold creation with override logs confirmations' => sub {
     # Create hold with override
     my $hold_id =
         $t->post_ok( "//$userid:$password@/api/v1/holds" => { 'x-koha-override' => 'any' } => json => $post_data )
-        ->status_is(201)->tx->res->json->{hold_id};
+        ->status_is(201)
+        ->tx->res->json->{hold_id};
 
     ok( $hold_id, 'Hold created via API with override' );
 

@@ -89,8 +89,10 @@ subtest 'get_balance() tests' => sub {
     )->store();
     $debit_2->discard_changes;
 
-    $t->get_ok("//$userid:$password@/api/v1/patrons/$patron_id/account")->status_is(200)
-        ->or( sub { diag $t->tx->res->body } )->json_is(
+    $t->get_ok("//$userid:$password@/api/v1/patrons/$patron_id/account")
+        ->status_is(200)
+        ->or( sub { diag $t->tx->res->body } )
+        ->json_is(
         {
             balance            => 100.01,
             outstanding_debits => {
@@ -212,10 +214,11 @@ subtest 'add_credit() tests' => sub {
 
     my $ret =
         $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/credits" => json => $credit )
-        ->status_is(201)->header_is(
+        ->status_is(201)
+        ->header_is(
         'Location' => "/api/v1/patrons/$patron_id/account/credits/" . $t->tx->res->json->{account_line_id},
         "REST3.4.1"
-    )->tx->res->json;
+        )->tx->res->json;
 
     is_deeply(
         $ret,
@@ -224,7 +227,7 @@ subtest 'add_credit() tests' => sub {
     );
 
     my $outstanding_credits = $account->outstanding_credits;
-    is( $outstanding_credits->count,             1 );
+    is( $outstanding_credits->count,              1 );
     is( $outstanding_credits->total_outstanding, -100 );
 
     my $debit_1 = $account->add_debit(
@@ -249,8 +252,10 @@ subtest 'add_credit() tests' => sub {
     is( $account->outstanding_debits->total_outstanding, 25 );
     $credit->{library_id} = $library->id;
 
-    $ret = $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/credits" => json => $credit )
-        ->status_is(201)->tx->res->json;
+    $ret =
+        $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/credits" => json => $credit )
+        ->status_is(201)
+        ->tx->res->json;
 
     is_deeply(
         $ret,
@@ -284,8 +289,10 @@ subtest 'add_credit() tests' => sub {
         account_lines_ids => [ $debit_1->id, $debit_2->id, $debit_3->id ]
     };
 
-    $ret = $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/credits" => json => $credit )
-        ->status_is(201)->tx->res->json;
+    $ret =
+        $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/credits" => json => $credit )
+        ->status_is(201)
+        ->tx->res->json;
 
     is_deeply(
         $ret,
@@ -422,8 +429,11 @@ subtest 'add_debit() tests' => sub {
         library_id  => $library->id,
     };
 
-    my $ret = $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $debit )
-        ->status_is(201)->json_is( '/user_id' => $librarian_x->id, 'Passed user_id is stored' )->tx->res->json;
+    my $ret =
+        $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $debit )
+        ->status_is(201)
+        ->json_is( '/user_id' => $librarian_x->id, 'Passed user_id is stored' )
+        ->tx->res->json;
     my $account_line = Koha::Account::Debits->find( $ret->{account_line_id} );
 
     is_deeply( $ret, $account_line->to_api, 'Line returned correctly' );
@@ -458,7 +468,8 @@ subtest 'add_debit() tests' => sub {
 
     my $account_line_id = $ret->{account_line_id};
 
-    $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $debit )->status_is(201)
+    $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $debit )
+        ->status_is(201)
         ->header_is(
         'Location' => "/api/v1/patrons/$patron_id/account/debits/" . $t->tx->res->json->{account_line_id},
         "REST3.4.1"
@@ -480,13 +491,16 @@ subtest 'add_debit() tests' => sub {
         library_id  => $library->id,
     };
 
-    $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $payout )->status_is(400)
+    $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $payout )
+        ->status_is(400)
         ->json_is( '/error' => 'Account transaction requires a cash register' );
 
     my $register = $builder->build_object( { class => 'Koha::Cash::Registers', } );
     $payout->{cash_register_id} = $register->id;
-    my $res = $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $payout )
-        ->status_is(201)->tx->res->json;
+    my $res =
+        $t->post_ok( "//$userid:$password@/api/v1/patrons/$patron_id/account/debits" => json => $payout )
+        ->status_is(201)
+        ->tx->res->json;
 
     is( $res->{user_id}, $librarian->id, 'If not passed, the session user ID is picked' );
 

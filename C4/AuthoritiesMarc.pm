@@ -532,7 +532,7 @@ ORDER BY tagfield, display_order, tagsubfield"
 
     while (
         (
-            $tag,           $subfield,     $liblibrarian,,    $libopac, $tab,
+            $tag,           $subfield,     $liblibrarian,     $libopac, $tab,
             $mandatory,     $repeatable,   $authorised_value, $authtypecode,
             $value_builder, $kohafield,    $seealso,          $hidden,
             $isurl,         $defaultvalue, $display_order

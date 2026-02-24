@@ -488,7 +488,7 @@ if ( ( !$nok ) and $nodouble and ( $op eq 'cud-insert' or $op eq 'cud-save' ) ) 
                     my $letter = GetPreparedLetter(
                         module      => 'members',
                         letter_code => 'WELCOME',
-                        branchcode  => $patron->branchcode,,
+                        branchcode  => $patron->branchcode,
                         lang        => $patron->lang || 'default',
                         tables      => {
                             'branches'  => $patron->branchcode,

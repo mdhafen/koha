@@ -1268,7 +1268,7 @@ sub checkauth {
                             : Koha::Cash::Registers->search(
                             { branch => $branchcode, branch_default => 1 },
                             { rows   => 1 }
-                        )->single;
+                            )->single;
                         $register_id   = $register->id   if ($register);
                         $register_name = $register->name if ($register);
                     }
@@ -1478,7 +1478,7 @@ sub checkauth {
     # get the inputs from the incoming query
     my @inputs          = ();
     my @inputs_to_clean = qw( login_userid login_password ticket logout.x otp_token );
-    foreach my $name ( param $query) {
+    foreach my $name ( param $query ) {
         next if grep { $name eq $_ } @inputs_to_clean;
         my @value = $query->multi_param($name);
         push @inputs, { name => $name, value => $_ } for @value;
