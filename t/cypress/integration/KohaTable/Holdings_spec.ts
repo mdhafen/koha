@@ -208,7 +208,7 @@ describe("catalogue/detail/holdings_table with items", () => {
                     // Filters are not displayed
                     cy.get(`#${table_id} thead tr`).should("have.length", 1);
 
-                    cy.get(`#${table_id} th`).contains("Status");
+                    cy.get(`#${table_id} th`).contains("Barcode");
                     cy.get(`#${table_id} th`)
                         .contains("URL")
                         .should("not.exist");
@@ -223,7 +223,7 @@ describe("catalogue/detail/holdings_table with items", () => {
                     // Filters are displayed
                     cy.get(`#${table_id} thead tr`).should("have.length", 2);
 
-                    cy.get(`#${table_id} th`).contains("Status");
+                    cy.get(`#${table_id} th`).contains("Barcode");
                     cy.get(`#${table_id} th`)
                         .contains("URL")
                         .should("not.exist");
