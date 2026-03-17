@@ -764,6 +764,11 @@ function patron_autocomplete(node, options) {
             item.link = null;
         }
 
+        var cardnumber = "";
+        if (item.cardnumber != "") {
+            // Display card number in parentheses if it exists
+            cardnumber = " (" + item.cardnumber + ") ";
+        }
         if (item.library_id == loggedInLibrary) {
             loggedInClass = "ac-currentlibrary";
         } else {
@@ -775,7 +780,20 @@ function patron_autocomplete(node, options) {
             .append(
                 "" +
                     (item.link ? '<a href="' + item.link + '">' : "<a>") +
-                    $patron_to_html(item, { display_cardnumber: true }) +
+                    (item.surname ? item.surname.escapeHtml() : "") +
+                    ", " +
+                    (item.preferred_name
+                        ? item.preferred_name.escapeHtml()
+                        : item.firstname
+                          ? item.firstname.escapeHtml()
+                          : "") +
+                    " " +
+                    (item.middle_name ? item.middle_name.escapeHtml() : "") +
+                    " " +
+                    (item.other_name
+                        ? "(" + item.other_name.escapeHtml() + ")"
+                        : "") +
+                    cardnumber.escapeHtml() +
                     " " +
                     (item.date_of_birth
                         ? $date(item.date_of_birth) +
