@@ -1,0 +1,279 @@
+# RELEASE NOTES FOR KOHA 24.11.14
+30 Mar 2026
+
+Koha is the first free and open source software library automation
+package (ILS). Development is sponsored by libraries of varying types
+and sizes, volunteers, and support companies from around the world. The
+website for the Koha project is:
+
+- [Koha Community](https://koha-community.org)
+
+Koha 24.11.14 can be downloaded from:
+
+- [Download](https://download.koha-community.org/koha-24.11.14.tar.gz)
+
+Installation instructions can be found at:
+
+- [Koha Wiki](https://wiki.koha-community.org/wiki/Installation_Documentation)
+- OR in the INSTALL files that come in the tarball
+
+Koha 24.11.14 is a bugfix/maintenance release.
+
+It includes 8 bugfixes.
+
+**System requirements**
+
+You can learn about the system components (like OS and database) needed for running Koha on the [community wiki](https://wiki.koha-community.org/wiki/System_requirements_and_recommendations).
+
+
+#### Security bugs
+
+- [41261](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41261) XSS vulnerability in opac/unAPI
+  >This change validates the inputs to "unapi" so that any invalid inputs will result in a 400 error or a response containing valid options for follow-up requests.
+- [41594](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41594) Can access invoice-files.pl even when AcqEnableFiles is disabled
+
+## Bugfixes
+
+### Architecture, internals, and plumbing
+
+#### Other bugs fixed
+
+- [41142](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41142) Update jQuery-validate plugin to 1.21.0
+
+  **Sponsored by** *Athens County Public Libraries*
+
+### ERM
+
+#### Other bugs fixed
+
+- [41001](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41001) Dismissing the "Run now" modal breaks functionality
+
+### I18N/L10N
+
+#### Other bugs fixed
+
+- [41623](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41623) Missing translation string in catalogue_detail.inc (again)
+
+### ILL
+
+#### Other bugs fixed
+
+- [41237](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=41237) OPAC created requests ignore library selection, always default to patron's library
+  >This fixes a bug on the OPAC create ILL request form which was always setting the library to the patron's library, ignoring the library selection made on the form.
+
+### OPAC
+
+#### Other bugs fixed
+
+- [40602](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=40602) Broken HTML showing in Alert 'subscriptions' tab
+
+### Patrons
+
+#### Other bugs fixed
+
+- [39587](https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=39587) Patron surname missing from contact information list on patron details tab
+
+## Documentation
+
+The Koha manual is maintained in Sphinx. The home page for Koha
+documentation is
+
+- [Koha Documentation](https://koha-community.org/documentation/)
+As of the date of these release notes, the Koha manual is available in the following languages:
+
+- [English (USA)](https://koha-community.org/manual/24.11/en/html/)
+- [French](https://koha-community.org/manual/24.11/fr/html/) (79%)
+- [German](https://koha-community.org/manual/24.11/de/html/) (89%)
+- [Greek](https://koha-community.org/manual/24.11/el/html/) (93%)
+- [Hindi](https://koha-community.org/manual/24.11/hi/html/) (63%)
+
+The Git repository for the Koha manual can be found at
+
+- [Koha Git Repository](https://gitlab.com/koha-community/koha-manual)
+
+## Translations
+
+Complete or near-complete translations of the OPAC and staff
+interface are available in this release for the following languages:
+<div style="column-count: 2;">
+
+- Arabic (ar_ARAB) (95%)
+- Armenian (hy_ARMN) (100%)
+- Bulgarian (bg_CYRL) (100%)
+- Chinese (Simplified Han script) (86%)
+- Chinese (Traditional Han script) (99%)
+- Czech (68%)
+- Dutch (88%)
+- English (100%)
+- English (New Zealand) (63%)
+- English (USA)
+- Finnish (99%)
+- French (100%)
+- French (Canada) (99%)
+- German (100%)
+- Greek (67%)
+- Hindi (97%)
+- Italian (83%)
+- Norwegian Bokmål (73%)
+- Persian (fa_ARAB) (96%)
+- Polish (99%)
+- Portuguese (Brazil) (99%)
+- Portuguese (Portugal) (88%)
+- Russian (94%)
+- Slovak (61%)
+- Spanish (99%)
+- Swedish (88%)
+- Telugu (67%)
+- Tetum (52%)
+- Turkish (83%)
+- Ukrainian (76%)
+- Western Armenian (hyw_ARMN) (62%)
+</div>
+
+Partial translations are available for various other languages.
+
+The Koha team welcomes additional translations; please see
+
+- [Koha Translation Info](https://wiki.koha-community.org/wiki/Translating_Koha)
+
+For information about translating Koha, and join the koha-translate 
+list to volunteer:
+
+- [Koha Translate List](https://lists.koha-community.org/cgi-bin/mailman/listinfo/koha-translate)
+
+The most up-to-date translations can be found at:
+
+- [Koha Translation](https://translate.koha-community.org/)
+
+## Release Team
+
+The release team for Koha 24.11.14 is
+
+
+- Release Manager: Lucas Gass
+
+- QA Manager: Martin Renvoize
+
+- QA Team:
+  - Andrew Fuerste-Henry
+  - Andrii Nugged
+  - Baptiste Wojtkowski
+  - Brendan Lawlor
+  - David Cook
+  - Emily Lamancusa
+  - Jonathan Druart
+  - Julian Maurice
+  - Kyle Hall
+  - Laura Escamilla
+  - Lisette Scheer
+  - Marcel de Rooy
+  - Nick Clemens
+  - Paul Derscheid
+  - Petro V
+  - Tomás Cohen Arazi
+  - Victor Grousset
+
+- Documentation Manager: David Nind
+
+- Documentation Team:
+  - Aude Charillon
+  - Caroline Cyr La Rose
+  - Donna Bachowski
+  - Heather Hernandez
+  - Kristi Krueger
+  - Philip Orr
+
+- Translation Manager: Jonathan Druart
+
+
+- Wiki curators: 
+  - George Williams
+  - Thomas Dukleth
+
+- Release Maintainers:
+  - 25.05 -- Paul Derscheid
+  - 24.11 -- Fridolin Somers
+  - 24.05 -- Jesse Maseto
+  - 22.11 -- Catalyst IT (Wainui, Alex, Aleisha)
+
+- Release Maintainer assistants:
+  - 25.05 -- Martin Renvoize
+  - 24.11 -- Baptiste Wojtkowski
+  - 24.05 -- Laura Escamilla
+
+## Credits
+
+We thank the following libraries, companies, and other institutions who are known to have sponsored
+new features in Koha 24.11.14
+<div style="column-count: 2;">
+
+- Athens County Public Libraries
+</div>
+
+We thank the following individuals who contributed patches to Koha 24.11.14
+<div style="column-count: 2;">
+
+- Pedro Amorim (3)
+- David Cook (2)
+- Lucas Gass (1)
+- Owen Leonard (3)
+- Baptiste Wojtkowski (2)
+</div>
+
+We thank the following libraries, companies, and other institutions who contributed
+patches to Koha 24.11.14
+<div style="column-count: 2;">
+
+- Athens County Public Libraries (3)
+- [BibLibre](https://www.biblibre.com) (2)
+- [ByWater Solutions](https://bywatersolutions.com) (1)
+- [OpenFifth](https://openfifth.co.uk) (3)
+- [Prosentient Systems](https://www.prosentient.com.au) (2)
+</div>
+
+We also especially thank the following individuals who tested patches
+for Koha
+<div style="column-count: 2;">
+
+- Roman Dolny (1)
+- Jonathan Druart (2)
+- Laura Escamilla (5)
+- Katrin Fischer (1)
+- Stephen Graham (2)
+- Owen Leonard (1)
+- David Nind (1)
+- Martin Renvoize (2)
+- Marcel de Rooy (4)
+- Caroline Cyr La Rose (1)
+- Fridolin Somers (2)
+- Baptiste Wojtkowski (6)
+</div>
+
+
+
+
+
+We regret any omissions.  If a contributor has been inadvertently missed,
+please send a patch against these release notes to koha-devel@lists.koha-community.org.
+
+## Revision control notes
+
+The Koha project uses Git for version control.  The current development
+version of Koha can be retrieved by checking out the main branch of:
+
+- [Koha Git Repository](https://git.koha-community.org/koha-community/koha)
+
+The branch for this version of Koha and future bugfixes in this release
+line is 24.11.x-security.
+
+## Bugs and feature requests
+
+Bug reports and feature requests can be filed at the Koha bug
+tracker at:
+
+- [Koha Bugzilla](https://bugs.koha-community.org)
+
+He rau ringa e oti ai.
+(Many hands finish the work)
+
+Autogenerated release notes updated last on 30 Mar 2026 12:51:34.
